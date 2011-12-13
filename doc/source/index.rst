@@ -68,6 +68,8 @@ dput of source debs as the input to the build farm
 * works well with launchpad for testing and community based repos.
 * A clean breakage of concerns for our build farm, once its in as a source deb we can build it
   using apt, sbuild, pbuilder, etc...
+* for testing the debs, devs can get the sources from the source deb repo, without waiting for
+  build farm.
 
 
 Indices and tables
