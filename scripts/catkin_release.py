@@ -87,7 +87,7 @@ def make_working(working_dir):
         os.makedirs(working_dir)
 
 def exclude(filename):
-    if filename[-1] == '~':
+    if filename and filename[-1] == '~':
         return True;
     return any(x == os.path.basename(filename) for x in ('.svn', '.git', '.hg'))
 
@@ -161,10 +161,19 @@ def generate_deb(stack_yaml, repo_path, stamp, debian_distro):
     expand('changelog', stack_yaml, source_dir, dest_dir, filetype=stack_yaml['Catkin-ChangelogType'])
     expand('rules', stack_yaml, source_dir, dest_dir, filetype=stack_yaml['Catkin-DebRulesType'])
     expand('copyright', stack_yaml, source_dir, dest_dir, filetype=stack_yaml['Catkin-CopyrightType'])
-    
+
+    #compat to quiet warnings
     ofilename = os.path.join(dest_dir, 'compat')
     ofilestr = open(ofilename, "w")
-    print("8", file=ofilestr)
+    print("7", file=ofilestr)
+    ofilestr.close()
+
+    #source format, 3.0 quilt
+    if not os.path.exists(os.path.join(dest_dir, 'source')):
+        os.makedirs(os.path.join(dest_dir, 'source'))
+    ofilename = os.path.join(dest_dir, 'source/format')
+    ofilestr = open(ofilename, "w")
+    print("3.0 (quilt)", file=ofilestr)
     ofilestr.close()
 
 def commit_debian(stack_yaml, repo_path):

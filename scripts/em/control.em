@@ -2,7 +2,7 @@ Source: @(PackagePrefix)@(Package)
 Section: @(Section)
 Priority: @(Priority)
 Maintainer: @(Maintainer)
-Build-Depends: debhelper (>= 8.0.0), @(empy.expand(locals()['Build-Depends'], locals()))
+Build-Depends: debhelper (>= 7), @(empy.expand(locals()['Build-Depends'], locals()))
 Homepage: @(Homepage)
 Standards-Version: 3.9.2
 
