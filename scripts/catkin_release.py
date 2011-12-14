@@ -40,8 +40,7 @@ def call(working_dir, command, pipe=None):
     output, unused_err = process.communicate()
     retcode = process.poll()
     if retcode:
-        raise CalledProcessError(retcode, command,
-         output=output)
+        raise CalledProcessError(retcode, command)
     if pipe:
         return output
 
