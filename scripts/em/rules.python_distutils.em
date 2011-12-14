@@ -11,14 +11,13 @@ export DH_VERBOSE=1
 export DH_OPTIONS=-v
 # this is the --install-layout=deb variety
 export PYTHONPATH=@(INSTALL_PREFIX)/lib/python@(pyversion)/dist-packages
-
 %:
 	dh  $@@
 
 override_dh_auto_configure:
 	dh_auto_configure -Scmake -- \
 		-DCMAKE_INSTALL_PREFIX="@(INSTALL_PREFIX)" \
-		-DCMAKE_PREFIX_PATH="@(INSTALL_PREFIX)" \
+		-DCMAKE_PREFIX_PATH="@(INSTALL_PREFIX)"
 	dh_auto_configure -Spython_distutils
 
 override_dh_auto_install:

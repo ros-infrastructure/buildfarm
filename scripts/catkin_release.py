@@ -161,6 +161,11 @@ def generate_deb(stack_yaml, repo_path, stamp, debian_distro):
     expand('changelog', stack_yaml, source_dir, dest_dir, filetype=stack_yaml['Catkin-ChangelogType'])
     expand('rules', stack_yaml, source_dir, dest_dir, filetype=stack_yaml['Catkin-DebRulesType'])
     expand('copyright', stack_yaml, source_dir, dest_dir, filetype=stack_yaml['Catkin-CopyrightType'])
+    
+    ofilename = os.path.join(dest_dir, 'compat')
+    ofilestr = open(ofilename, "w")
+    print("8", file=ofilestr)
+    ofilestr.close()
 
 def commit_debian(stack_yaml, repo_path):
     call(repo_path, ['git', 'add', 'debian'])
