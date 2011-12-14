@@ -161,7 +161,7 @@ def generate_deb(stack_yaml, repo_path, stamp, debian_distro):
     expand('rules', stack_yaml, source_dir, dest_dir, filetype=stack_yaml['Catkin-DebRulesType'])
     expand('copyright', stack_yaml, source_dir, dest_dir, filetype=stack_yaml['Catkin-CopyrightType'])
 
-    #compat to quiet warnings
+    #compat to quiet warnings, 7 .. lucid
     ofilename = os.path.join(dest_dir, 'compat')
     ofilestr = open(ofilename, "w")
     print("7", file=ofilestr)
