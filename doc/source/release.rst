@@ -16,8 +16,7 @@ scripts folder in your path.
 ::
    
    git clone git://github.com/willowgarage/catkin-debs.git
-   cd catkin-debs
-   export PATH=`pwd`:$PATH
+   export PATH=`pwd`/catkin-debs/scripts:$PATH
 
 Now take a look at the release script help:
 
