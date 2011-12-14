@@ -45,19 +45,19 @@ def call(working_dir, command, pipe=None):
     if pipe:
         return output
 
-def check_local_repo_exists(working_dir, repo_path):
-    return os.path.exists(repo_path)
+def check_local_repo_exists(repo_path):
+    return os.path.exists(os.path.join(repo_path, '.git'))
 
 def update_repo(working_dir, repo_path, repo_uri, first_release):
-    if check_local_repo_exists(working_dir, repo_path):
-        print("please start from a bare working dir::\n\trm -rf %s" % working_dir)
+    if check_local_repo_exists(repo_path):
+        print("please start from a bare working dir::\n\trm -rf %s" % repo_path)
         sys.exit(1)
     if first_release:
         os.makedirs(repo_path)
         call(repo_path, ['git', 'init'])
         call(repo_path, ['git', 'remote', 'add', 'origin', repo_uri])
     else:
-        command = ('gbp-clone', '--verbose', repo_uri);
+        command = ('gbp-clone', repo_uri);
         call(working_dir, command)
 
     command = ['git', 'config', '--add', 'remote.origin.push', '+refs/heads/*:refs/heads/*']
@@ -107,7 +107,7 @@ def sanitize_package_name(name):
 def parse_stack_yaml(upstream, rosdistro):
     yaml_path = os.path.join(upstream, 'stack.yaml')
     stack_yaml = yaml.load(open(yaml_path))
-    
+
     if 'Catkin-ChangelogType' not in stack_yaml:
         stack_yaml['Catkin-ChangelogType'] = ''
     stack_yaml['DebianInc'] = '0'
@@ -150,12 +150,12 @@ def generate_deb(stack_yaml, repo_path, stamp, debian_distro):
     stack_yaml['Distribution'] = debian_distro
     stack_yaml['Date'] = stamp.strftime('%a, %d %b %Y %T %z')
     stack_yaml['YYYY'] = stamp.strftime('%Y')
-    
+
     source_dir = repo_path
     dest_dir = os.path.join(source_dir, 'debian')
     if not os.path.exists(dest_dir):
         os.makedirs(dest_dir)
-    
+
     #create control file:
     expand('control', stack_yaml, source_dir, dest_dir)
     expand('changelog', stack_yaml, source_dir, dest_dir, filetype=stack_yaml['Catkin-ChangelogType'])
@@ -179,27 +179,27 @@ if __name__ == "__main__":
     args = parse_options()
     stack_yaml = parse_stack_yaml(args.upstream, args.rosdistro)
     make_working(args.working)
-    
+
     tarball_name = '%(Package)s-%(Version)s.tar.gz' % stack_yaml
     tarball_name = os.path.join(args.working, tarball_name)
-    
+
     repo_base, extension = os.path.splitext(os.path.basename(args.repo_uri))
     repo_path = os.path.join(args.working, repo_base)
-    
+
     print('Generating an upstream tarball --- %s' % tarball_name)
     make_tarball(args.upstream,
                  tarball_name)
-       
+
 
     #step 1. clone repo
     update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=args.repo_uri, first_release=args.first_release)
-    
+
     import_orig(repo_path, tarball_name, stack_yaml['Version'])
 
     for debian_distro in args.distros:
         generate_deb(stack_yaml, repo_path, stamp, debian_distro)
         commit_debian(stack_yaml, repo_path)
         gbp_sourcedebs(stack_yaml, repo_path, args.output)
-    
+
     if args.push:
         call(repo_path, ['git', 'push'])
