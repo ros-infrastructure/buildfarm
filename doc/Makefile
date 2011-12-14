@@ -151,3 +151,7 @@ doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
+
+deploy:	html
+		rsync --perms --chmod=a+rX  -va $(BUILDDIR)/html/ lou.willowgarage.com:/wg/wgdata1/people/erublee/catkin-debs
+
