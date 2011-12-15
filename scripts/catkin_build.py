@@ -43,7 +43,7 @@ def list_debian_tags(repo_path):
 def version_cmp(v1,v2):
     def normalize(v):
         return [int(x) for x in v.split(".")]
-    return cmp(normalize(version1), normalize(version2))
+    return cmp(normalize(v1), normalize(v2))
 def get_latest_tags(tags, rosdistro):
     #filter by ros distro
     tags = [x for x in tags if rosdistro in x]
