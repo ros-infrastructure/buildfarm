@@ -2,7 +2,13 @@ binaries
 ========
 .. highlight:: ectosh
 
+
 Take the source packages and build em...
+
+See this tutorial for some nice starting places: https://wiki.ubuntu.com/PackagingGuide/Complete
+
+pbuilder
+--------
 
 For example using `pbuilder <http://www.netfort.gr.jp/~dancer/software/pbuilder-doc/pbuilder-doc.html>`_
 
@@ -24,3 +30,18 @@ try the following recipe::
 
 If something fails, you can just play directly in the unpacked debian package.
 Use the distro that you have on your machine.
+
+apt-get
+-------
+If you have some source debs in an apt repo, e.g. reprepro, ppa.
+
+Here are some steps to build something from a source deb using apt::
+
+   % apt-get build-dep ros-fuerte-common-msgs
+   The following NEW packages will be installed:
+   ros-fuerte-catkin ros-fuerte-gencpp ros-fuerte-genmsg ros-fuerte-genpy ros-fuerte-std-msgs
+   ...
+   Setting up ros-fuerte-std-msgs (3.4.5-20111204-2300-0800~oneiric) ...
+   % apt-get source -b ros-fuerte-common-msgs
+   ...
+   dpkg-buildpackage: binary only upload (no source included)

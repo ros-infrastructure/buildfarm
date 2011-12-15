@@ -3,9 +3,12 @@ Brainstorm
 ==========
 A highlevel brainstorm... Likely out of date.
 
+notes 12/10/2011
+----------------
+
 
 Pipeline steps
---------------
+++++++++++++++
 1.  Make a release ...
 2.  Import the release into a git-buildpackage repo, /repos/PACKAGE.git
     These will have some tag convention that is easy to create a package per debian/ubuntu
@@ -40,7 +43,7 @@ Pipeline steps
 
 
 Reasoning
----------
++++++++++
 
 Git buildpackage
 
@@ -60,3 +63,37 @@ dput of source debs as the input to the build farm
   using apt, sbuild, pbuilder, etc...
 * for testing the debs, devs can get the sources from the source deb repo, without waiting for
   build farm.
+  
+  
+notes 12/14/2011
+----------------
+
+It may be useful to add a few more pieces of info to the **stack.yaml**
+
+- source vcs uri
+- vcs type
+- release repo
+- docs public location uri
+- docs build type - sphinx, doxygen, make, ...
+
+Using just a stack.yaml, and an upstream tar ball we can build source debs... OpenCV, pcl...
+
+would be good to sign the source debs with a gpg key on the build server
+
+A set of git repos for catkin-ros
+
+::
+
+   git clone git@github.com:willowgarage/catkin-debs.git
+   git clone git@github.com:willowgarage/catkin.git
+   git clone git@github.com:ros/genmsg.git
+   git clone git@github.com:ros/gencpp.git
+   git clone git@github.com:ros/genpy.git
+   git clone git@github.com:ros/genpy.git
+   git clone git@github.com:ros/genpybindings.git
+   git clone git@github.com:ros/std_msgs.git
+   git clone git@github.com:ros/roscpp_core.git
+
+*python-em* should **not** be necessary inside the stack.yaml...
+
+Document what variables are defined for *.em templates.  

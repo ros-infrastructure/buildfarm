@@ -18,16 +18,17 @@ Changes is a bulleted list of changes.
 def parse_options():
     import argparse
     parser = argparse.ArgumentParser(description='Creates/updates a gpb from a catkin project.')
-    parser.add_argument(dest='repo_uri',
-            help='A pushable git buildpackage repo uri.')
+    parser.add_argument('--repo_uri', dest='repo_uri',
+            help='Override the Release-Push feild in the stack.yaml. A pushable git buildpackage repo uri.', default=None)
     parser.add_argument('--working', help='A scratch build path. Default: %(default)s', default='/tmp/catkin_gbp')
     parser.add_argument(dest='upstream',
             help='The location of your sources to create an upstream snap shot from.')
+    parser.add_argument('--bump', dest='bump', help='Bump the changelog debian number. Please enter a monotonically increasing number from the last upload.', default=0)
     parser.add_argument(dest='rosdistro', help='The ros distro. electric, fuerte, galapagos')
     parser.add_argument('--output', help='The result of source deb building will go here. For debuging purposes. Default: %(default)s', default='/tmp/catkin_debs')
     parser.add_argument('--distros', nargs='+',
             help='A list of debian distros. Default: %(default)s',
-            default=['lucid', 'maverick', 'natty', 'oneiric'])
+            default=['lucid', 'natty', 'oneiric'])
 
     parser.add_argument('--push', dest='push', help='Push it to your remote repo?', action='store_true')
     parser.add_argument('--first_release', dest='first_release', help='Is this your first release?', action='store_true')
@@ -103,7 +104,7 @@ def make_tarball(upstream, tarball_name):
 def sanitize_package_name(name):
     return name.replace('_', '-')
 
-def parse_stack_yaml(upstream, rosdistro):
+def parse_stack_yaml(upstream, rosdistro, release_push=None):
     yaml_path = os.path.join(upstream, 'stack.yaml')
     stack_yaml = yaml.load(open(yaml_path))
 
@@ -114,6 +115,13 @@ def parse_stack_yaml(upstream, rosdistro):
     stack_yaml['ROS_DISTRO'] = rosdistro
     stack_yaml['INSTALL_PREFIX'] = '/opt/ros/%s' % rosdistro
     stack_yaml['PackagePrefix'] = 'ros-%s-' % rosdistro
+
+    #release repo stuff.
+    if release_push:
+        stack_yaml['Release-Push'] = name
+    if not stack_yaml.has_key('Release-Push'):
+        print("You must provide either a Release-Push key in your stack.yaml, or pass a pushable release repo uri on the command line. See --help", file=sys.stderr)
+        sys.exit(1)
     return stack_yaml
 
 def template_dir():
@@ -145,7 +153,7 @@ def expand(fname, stack_yaml, source_dir, dest_dir, filetype=''):
     if fname == 'rules':
         os.chmod(ofilename, 0755)
 
-def generate_deb(stack_yaml, repo_path, stamp, debian_distro):
+def generate_deb(stack_yaml, repo_path, stamp, debian_distro, bump):
     stack_yaml['Distribution'] = debian_distro
     stack_yaml['Date'] = stamp.strftime('%a, %d %b %Y %T %z')
     stack_yaml['YYYY'] = stamp.strftime('%Y')
@@ -190,24 +198,25 @@ if __name__ == "__main__":
     stamp = datetime.datetime.now(dateutil.tz.tzlocal())
 
     args = parse_options()
-    stack_yaml = parse_stack_yaml(args.upstream, args.rosdistro)
+    stack_yaml = parse_stack_yaml(args.upstream, args.rosdistro, args.repo_uri)
     make_working(args.working)
-
-    tarball_name = '%(Package)s-%(Version)s.tar.gz' % stack_yaml
-    tarball_name = os.path.join(args.working, tarball_name)
-
-    repo_base, extension = os.path.splitext(os.path.basename(args.repo_uri))
-    repo_path = os.path.join(args.working, repo_base)
-
-    print('Generating an upstream tarball --- %s' % tarball_name)
-    make_tarball(args.upstream,
-                 tarball_name)
-
+    
 
     #step 1. clone repo
-    update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=args.repo_uri, first_release=args.first_release)
+    update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=stack_yaml['Release-Push'], first_release=args.first_release)
+    
+    if not args.bump:
+        tarball_name = '%(Package)s-%(Version)s.tar.gz' % stack_yaml
+        tarball_name = os.path.join(args.working, tarball_name)
+    
+        repo_base, extension = os.path.splitext(os.path.basename(stack_yaml['Release-Push']))
+        repo_path = os.path.join(args.working, repo_base)
+    
+        print('Generating an upstream tarball --- %s' % tarball_name)
+        make_tarball(args.upstream,
+                     tarball_name)
 
-    import_orig(repo_path, tarball_name, stack_yaml['Version'])
+        import_orig(repo_path, tarball_name, stack_yaml['Version'])
 
     for debian_distro in args.distros:
         generate_deb(stack_yaml, repo_path, stamp, debian_distro)
