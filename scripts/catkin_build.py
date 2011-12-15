@@ -31,7 +31,8 @@ def list_debian_tags(repo_path):
     print(tags, end='')
     marked_tags = []
     for tag in tags.split('\n'):
-         m = re.search('debian/ros_(.*)_(\d.\d.\d)_(.*)', tag)
+         #TODO make this regex better...
+         m = re.search('debian/ros_(.*)_(.*)_(.*)', tag)
          if m:
              ros_X = m.group(1)
              version = m.group(2)
@@ -40,10 +41,12 @@ def list_debian_tags(repo_path):
     marked_tags = sorted(marked_tags)
     marked_tags.reverse()
     return marked_tags
+
 def version_cmp(v1,v2):
     def normalize(v):
         return [int(x) for x in v.split(".")]
     return cmp(normalize(v1), normalize(v2))
+
 def get_latest_tags(tags, rosdistro):
     #filter by ros distro
     tags = [x for x in tags if rosdistro in x]
