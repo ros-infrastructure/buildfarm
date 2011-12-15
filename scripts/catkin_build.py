@@ -40,13 +40,16 @@ def list_debian_tags(repo_path):
     marked_tags = sorted(marked_tags)
     marked_tags.reverse()
     return marked_tags
-
+def version_cmp(v1,v2):
+    def normalize(v):
+        return [int(x) for x in v.split(".")]
+    return cmp(normalize(version1), normalize(version2))
 def get_latest_tags(tags, rosdistro):
     #filter by ros distro
     tags = [x for x in tags if rosdistro in x]
 
     #get a sorted set of version tags
-    versions = sorted(list(set(zip(*tags)[0])))
+    versions = sorted(list(set(zip(*tags)[0])), cmp=version_cmp)
     versions.reverse()
 
     #get grab the latest version, lexographical?

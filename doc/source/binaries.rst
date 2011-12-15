@@ -45,3 +45,7 @@ Here are some steps to build something from a source deb using apt::
    % apt-get source -b ros-fuerte-common-msgs
    ...
    dpkg-buildpackage: binary only upload (no source included)
+
+LVM
+---
+https://help.ubuntu.com/community/SbuildLVMHowto
