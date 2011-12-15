@@ -7,14 +7,14 @@ Patterns
 
 tags will be used to mark points in the git repo with which source debs are generated.
 
-Here is some regex for ros specific git tags, using python. Regex:``debian/ros_(.*)_(\d.\d.\d)_(.*)``
+Here is some regex for ros specific git tags, using python. Regex:``debian/ros_(.+)_(\d+\.\d+\.\d+)_(.+)``
 
 .. code-block:: python
   
   import re,subprocess
   tags = subprocess.check_output(['git','tag']).split('\n')
   for x in tags:
-    m = re.search('debian/ros_(.*)_(\d.\d.\d)_(.*)', tag)
+    m = re.search('debian/ros_(.+)_(\d+\.\d+\.\d+)_(.+)', tag)
     print m.groups
 
 * **group 1** is the ros distribution short name, e.g. fuerte, galapagos, H.

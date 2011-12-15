@@ -2,9 +2,10 @@
 export ROS_PACKAGE_REPO=@(ROS_PACKAGE_REPO)
 export ROS_DISTRO=@(ROS_DISTRO)
 export distro=@(DISTRO)
-export base=/var/cache/pbuilder-$ROS_DISTRO-$distro
-export basetgz=$base/base.tgz
+export arch=@(ARCH)
+export base=/var/cache/pbuilder-$ROS_DISTRO-$distro-$arch
 export aptconfdir=$base/apt-$ROS_DISTRO-$distro
+export basetgz=$base/base.tgz
 
 sudo apt-get update
 sudo apt-get install -y pbuilder
@@ -22,6 +23,7 @@ sudo pbuilder create \
   --distribution $distro \
   --aptconfdir $aptconfdir \
   --basetgz $basetgz
+  --architecture $arch
 
 sudo pbuilder --update
 

@@ -32,6 +32,8 @@ if __name__ == "__main__":
     ROS_PACKAGE_REPO="http://50.28.27.175/repos/building"
     )
     for x in args.distros:
+        for arch in ('i386','amd64'):
+            d['ARCH'] = arch
         d['DISTRO'] = x
         config = create_config(d)
         jb = job_name(d)
