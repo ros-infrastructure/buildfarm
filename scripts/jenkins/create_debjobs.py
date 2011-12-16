@@ -102,5 +102,13 @@ def doit():
             print("Would have created job: %s " % job_name)
             print("--commit to do it for real.")
 
+    print("="*80)
+    print ("Summary: %d jobs would have been (re)configured.  Listed below."%len(jobs))
+    for job_name, config in jobs:
+        print ("  %s"%job_name)
+    if not args.commit:
+        print("This was not pushed to the server.  If you want to do so use ",
+              "--commit to do it for real.")
+    print("="*80)        
 if __name__ == "__main__":
     doit()
