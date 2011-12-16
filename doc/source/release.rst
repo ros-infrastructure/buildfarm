@@ -48,7 +48,7 @@ we are using the *pushable* uri for our git repo.
 
 ::
 
-   % catkin_release.py git@github.com:mypackages/foo_pkg.git /path/to/foo_pkg fuerte --first_release
+   % catkin_release.py /path/to/foo_pkg fuerte --first_release
    Generating an upstream tarball --- /tmp/catkin_gbp/foo-pkg-0.1.0.tar.gz
    + git init
    Initialized empty Git repository in /tmp/catkin_gbp/foo_pkg/.git/
@@ -66,7 +66,7 @@ the script will poke at you to run the command.
 
 ::
 
-   % catkin_release.py git@github.com:mypackages/foo_pkg.git /path/to/foo_pkg fuerte --first_release --push
+   % catkin_release.py /path/to/foo_pkg fuerte --first_release --push
    Generating an upstream tarball --- /tmp/catkin_gbp/foo-pkg-0.1.0.tar.gz
    please start from a bare working dir::
       rm -rf /tmp/catkin_gbp
@@ -75,7 +75,7 @@ If you are successful you should see something like:
 
 ::
 
-   % catkin_release.py git@github.com:mypackages/foo_pkg.git /path/to/foo_pkg fuerte --first_release --push
+   % catkin_release.py /path/to/foo_pkg fuerte --first_release --push
    ...
    Counting objects: 31, done.
    Delta compression using up to 8 threads.
@@ -99,9 +99,9 @@ Just get rid of the ``--first_release``
 
 A practice run::
 
-   % catkin_release.py git@github.com:mypackages/foo_pkg.git /path/to/foo_pkg fuerte
+   % catkin_release.py /path/to/foo_pkg fuerte
 
 The real thing::
 
-   % catkin_release.py git@github.com:mypackages/foo_pkg.git /path/to/foo_pkg fuerte --push
+   % catkin_release.py /path/to/foo_pkg fuerte --push
 
