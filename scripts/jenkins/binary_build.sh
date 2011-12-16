@@ -29,7 +29,6 @@ rm -rf $work_dir
 mkdir -p $work_dir
 cd $work_dir
 
-
 echo "
 deb http://archive.ubuntu.com/ubuntu $distro main restricted universe multiverse
 deb $ROS_PACKAGE_REPO $distro main
@@ -37,16 +36,16 @@ deb-src $ROS_PACKAGE_REPO $distro main
 " > sources.list
 sudo cp sources.list $aptconfdir
 
-#if [ ! -e $basetgz ]
-#then
+if [ ! -e $basetgz ]
+then
   sudo pbuilder create \
     --distribution $distro \
     --aptconfdir $aptconfdir \
     --basetgz $basetgz \
     --architecture $arch 
-#else
+else
   sudo pbuilder --update --basetgz $basetgz
-#fi
+fi
 
 echo "
 Dir::Etc $aptconfdir;

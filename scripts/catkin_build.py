@@ -20,7 +20,7 @@ def parse_options():
 def update_repo(working_dir, repo_path, repo_uri):
     if check_local_repo_exists(repo_path):
         print(repo_path)
-        command = ('git','fetch',)
+        command = ('git', 'fetch',)
         call(repo_path, command)
     else:
         command = ('gbp-clone', repo_uri)
@@ -32,7 +32,7 @@ def list_debian_tags(repo_path):
     marked_tags = []
     for tag in tags.split('\n'):
          #TODO make this regex better...
-         m = re.search('debian/ros_(.*)_(.*)_(.*)', tag)
+         m = re.search('debian/ros_(.+)_(\d+\.\d+\.\d+)_(.+)', tag)
          if m:
              ros_X = m.group(1)
              version = m.group(2)
@@ -42,7 +42,7 @@ def list_debian_tags(repo_path):
     marked_tags.reverse()
     return marked_tags
 
-def version_cmp(v1,v2):
+def version_cmp(v1, v2):
     def normalize(v):
         return [int(x) for x in v.split(".")]
     return cmp(normalize(v1), normalize(v2))
