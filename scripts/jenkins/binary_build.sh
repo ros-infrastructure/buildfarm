@@ -1,6 +1,7 @@
 #!/bin/bash
 export ROS_REPO_FQDN=@(FQDN)
 export ROS_PACKAGE_REPO=@(ROS_PACKAGE_REPO)
+export PACKAGE=@(PACKAGE)
 export ROS_DISTRO=@(ROS_DISTRO)
 export distro=@(DISTRO)
 export arch=@(ARCH)
@@ -14,6 +15,7 @@ export work_dir=$WORKSPACE/work
 sudo apt-get update
 sudo apt-get install -y pbuilder
 
+sudo rm -rf $base
 sudo mkdir -p $aptconfdir
 sudo mkdir -p $aptconfdir/apt.conf.d
 sudo mkdir -p $aptconfdir/preferences.d
@@ -33,21 +35,18 @@ deb http://archive.ubuntu.com/ubuntu $distro main restricted universe multiverse
 deb $ROS_PACKAGE_REPO $distro main
 deb-src $ROS_PACKAGE_REPO $distro main
 " > sources.list
-sudo mv sources.list $aptconfdir
+sudo cp sources.list $aptconfdir
 
-if [ ! -e $basetgz ]
-then
+#if [ ! -e $basetgz ]
+#then
   sudo pbuilder create \
     --distribution $distro \
     --aptconfdir $aptconfdir \
     --basetgz $basetgz \
     --architecture $arch 
-else
-
+#else
   sudo pbuilder --update --basetgz $basetgz
-
-fi
-
+#fi
 
 echo "
 Dir::Etc $aptconfdir;
@@ -55,7 +54,7 @@ Dir::State $aptstatedir;
 " > apt.conf
 
 sudo apt-get update -c $work_dir/apt.conf
-sudo apt-get source ros-$ROS_DISTRO-catkin -c $work_dir/apt.conf
+sudo apt-get source ros-$ROS_DISTRO-$PACKAGE -c $work_dir/apt.conf
 
 sudo pbuilder  --build --basetgz $basetgz --buildresult $output_dir --debbuildopts \"-b\" *.dsc
 

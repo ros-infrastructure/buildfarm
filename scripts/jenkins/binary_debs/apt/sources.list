@@ -1,2 +1,0 @@
-deb http://archive.ubuntu.com/ubuntu @DISTRO main restricted universe multiverse
-deb @ROS_PACKAGE_REPO @DISTRO main
