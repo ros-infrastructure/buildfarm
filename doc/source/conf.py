@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.abspath('.'))
 extensions = ['programoutput']
 extensions += ['EctoShLexer']
 
-programoutput_path = [os.path.abspath('../../scripts')] #fill with paths to append other than the system path.
+programoutput_path = [os.path.abspath('../../scripts'), os.path.abspath('../../scripts/jenkins')] #fill with paths to append other than the system path.
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
