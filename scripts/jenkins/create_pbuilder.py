@@ -13,7 +13,7 @@ def parse_options():
     return parser.parse_args()
 
 def job_name(d):
-    return "pbuilder_create_%(ROS_DISTRO)s_%(DISTRO)s" % d
+    return "pbuilder_%(ROS_DISTRO)s_%(DISTRO)s" % d
 
 def create_config(d):
     #Create the bash script the runs inside the job
