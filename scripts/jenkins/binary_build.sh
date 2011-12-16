@@ -55,7 +55,12 @@ Dir::State $aptstatedir;
 sudo apt-get update -c $work_dir/apt.conf
 sudo apt-get source $DEBPACKAGE -c $work_dir/apt.conf
 
-sudo pbuilder  --build --basetgz $basetgz --buildresult $output_dir --debbuildopts \"-b\" *.dsc
+sudo pbuilder  --build \
+    --basetgz $basetgz \
+    --buildresult $output_dir \
+    --binary-arch \  # even if "any" type debs produce arch specific debs
+    --debbuildopts \"-b\" \
+    *.dsc
 
 echo "
 [debtarget]
