@@ -22,10 +22,10 @@ def parse_options():
 
 class Templates(object):
     template_dir = os.path.dirname(__file__)
-    config_sourcedeb = os.path.join(template_dir, 'config.source.xml') #A config.xml template for sourcedebs.
-    command_sourcedeb = os.path.join(template_dir, 'source_build.sh') #The bash script that the sourcedebs config.xml runs.
-    config_bash = os.path.join(template_dir, 'config.bash.xml') #A config.xml template for something that runs a shell script
-    command_binarydeb = os.path.join(template_dir, 'binary_build.sh') #builds binary debs.
+    config_sourcedeb = os.path.join(template_dir, 'config.source.xml.em') #A config.xml template for sourcedebs.
+    command_sourcedeb = os.path.join(template_dir, 'source_build.sh.em') #The bash script that the sourcedebs config.xml runs.
+    config_bash = os.path.join(template_dir, 'config.bash.xml.em') #A config.xml template for something that runs a shell script
+    command_binarydeb = os.path.join(template_dir, 'binary_build.sh.em') #builds binary debs.
 
 def expand(config_template, d):
     with open(config_template) as fh:

@@ -1,6 +1,6 @@
-export RELEASE_URI=@(RELEASE_URI)
-export ROS_DISTRO=@(ROS_DISTRO)
-export FQDN=@(FQDN)
+RELEASE_URI=@(RELEASE_URI)
+ROS_DISTRO=@(ROS_DISTRO)
+FQDN=@(FQDN)
 
 sudo apt-get install -y git-buildpackage dput
 

@@ -1,17 +1,17 @@
 #!/bin/bash
-export ROS_REPO_FQDN=@(FQDN)
-export ROS_PACKAGE_REPO=@(ROS_PACKAGE_REPO)
-export PACKAGE=@(PACKAGE)
-export ROS_DISTRO=@(ROS_DISTRO)
-export distro=@(DISTRO)
-export arch=@(ARCH)
-export DEBPACKAGE=ros-$ROS_DISTRO-@(PACKAGE.replace('_','-'))
-export base=/var/cache/pbuilder-$ROS_DISTRO-$distro-$arch
-export aptconfdir=$base/apt-conf
-export aptstatedir=$base/apt-state
-export basetgz=$base/base.tgz
-export output_dir=$WORKSPACE/output
-export work_dir=$WORKSPACE/work
+ROS_REPO_FQDN=@(FQDN)
+ROS_PACKAGE_REPO=@(ROS_PACKAGE_REPO)
+PACKAGE=@(PACKAGE)
+ROS_DISTRO=@(ROS_DISTRO)
+distro=@(DISTRO)
+arch=@(ARCH)
+DEBPACKAGE=ros-$ROS_DISTRO-@(PACKAGE.replace('_','-'))
+base=/var/cache/pbuilder-$ROS_DISTRO-$distro-$arch
+aptconfdir=$base/apt-conf
+aptstatedir=$base/apt-state
+basetgz=$base/base.tgz
+output_dir=$WORKSPACE/output
+work_dir=$WORKSPACE/work
 
 sudo apt-get update
 sudo apt-get install -y pbuilder

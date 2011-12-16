@@ -96,4 +96,4 @@ A set of git repos for catkin-ros
 
 *python-em* should **not** be necessary inside the stack.yaml...
 
-Document what variables are defined for *.em templates.  
+Document what variables are defined for ``*.em`` templates.  
