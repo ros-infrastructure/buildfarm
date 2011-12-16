@@ -1,7 +1,6 @@
 export RELEASE_URI=@(RELEASE_URI)
 export ROS_DISTRO=@(ROS_DISTRO)
 export FQDN=@(FQDN)
-export distros=@(' '.join(DISTROS))
 
 sudo apt-get install -y git-buildpackage dput
 
@@ -17,7 +16,7 @@ rm -rf $WORKSPACE/output
 catkin-debs/scripts/catkin_build.py $RELEASE_URI $ROS_DISTRO --working $WORKSPACE/workspace --output $WORKSPACE/output
 ls $WORKSPACE/output
 
-for distro in $distros
+for distro in @(' '.join(DISTROS))
 do
     echo "
 [uploadhost]
