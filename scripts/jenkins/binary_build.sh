@@ -5,6 +5,7 @@ export PACKAGE=@(PACKAGE)
 export ROS_DISTRO=@(ROS_DISTRO)
 export distro=@(DISTRO)
 export arch=@(ARCH)
+export DEBPACKAGE=ros-$ROS_DISTRO-@(PACKAGE.replace('_','-'))
 export base=/var/cache/pbuilder-$ROS_DISTRO-$distro-$arch
 export aptconfdir=$base/apt-conf
 export aptstatedir=$base/apt-state
@@ -15,17 +16,16 @@ export work_dir=$WORKSPACE/work
 sudo apt-get update
 sudo apt-get install -y pbuilder
 
-sudo rm -rf $base
 sudo mkdir -p $aptconfdir
 sudo mkdir -p $aptconfdir/apt.conf.d
 sudo mkdir -p $aptconfdir/preferences.d
 sudo mkdir -p $aptstatedir/lists/partial
 
 
-rm -rf $output_dir
+sudo rm -rf $output_dir
 mkdir -p $output_dir
 
-rm -rf $work_dir
+sudo rm -rf $work_dir
 mkdir -p $work_dir
 cd $work_dir
 
@@ -53,7 +53,7 @@ Dir::State $aptstatedir;
 " > apt.conf
 
 sudo apt-get update -c $work_dir/apt.conf
-sudo apt-get source ros-$ROS_DISTRO-$PACKAGE -c $work_dir/apt.conf
+sudo apt-get source $DEBPACKAGE -c $work_dir/apt.conf
 
 sudo pbuilder  --build --basetgz $basetgz --buildresult $output_dir --debbuildopts \"-b\" *.dsc
 

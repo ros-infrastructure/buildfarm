@@ -94,7 +94,7 @@ If you are successful you should see something like:
  
 Subsequent releases
 -------------------
- 
+
 Just get rid of the ``--first_release``
 
 A practice run::

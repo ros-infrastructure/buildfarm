@@ -17,6 +17,7 @@ Contents:
    release.rst
    build.rst
    binaries.rst
+   jenkins.rst
 
 To get catkin-debs, use git::
   
