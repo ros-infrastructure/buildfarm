@@ -58,19 +58,22 @@ sudo apt-get source $DEBPACKAGE -c $work_dir/apt.conf
 mkdir -p hooks
 
 echo "#!/bin/bash -ex
-cd /tmp/buildd/ros-*/
+echo \`env\`
+cd /tmp/buildd/*/
 apt-get install devscripts -y
-prevversion=`dpkg-parsechangelog | grep Version | awk '{print $2}'`
-dch -v $prevversion+b`date +%s` "*timestamp..." -b
+prevversion=\`dpkg-parsechangelog | grep Version | awk '{print \$2}'\`
+debchange -v \$prevversion\`date +%s\` ''
+cat debian/changelog
 " >> hooks/A50stamp
 chmod +x hooks/A50stamp
 
+#  --binary-arch even if "any" type debs produce arch specific debs
 sudo pbuilder  --build \
     --basetgz $basetgz \
     --buildresult $output_dir \
-    --binary-arch \  # even if "any" type debs produce arch specific debs
+    --binary-arch \
     --debbuildopts \"-b\" \
-	--hookdir hooks \
+    --hookdir hooks \
     *.dsc
 
 echo "
