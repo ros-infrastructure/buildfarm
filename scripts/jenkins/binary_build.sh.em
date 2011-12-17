@@ -89,4 +89,4 @@ post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /
 #ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /var/www/repos/building -T deb -V listfilter $distro 'Package (% ros-* ), Depends (% *ros-$ROS_DISTRO-$PACKAGE* )'
 
 # push the new deb
-dput -u --ignore=emptyfilenamepart -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
+dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
