@@ -65,7 +65,13 @@ dch -v $prevversion+b`date +%s` "*timestamp..." -b
 " >> hooks/A50stamp
 chmod +x hooks/A50stamp
 
-sudo pbuilder  --build --basetgz $basetgz --buildresult $output_dir --debbuildopts \"-b\" --hookdir hooks *.dsc
+sudo pbuilder  --build \
+    --basetgz $basetgz \
+    --buildresult $output_dir \
+    --binary-arch \  # even if "any" type debs produce arch specific debs
+    --debbuildopts \"-b\" \
+	--hookdir hooks \
+    *.dsc
 
 echo "
 [debtarget]
