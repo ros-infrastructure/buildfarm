@@ -5,9 +5,10 @@ import sys
 import pprint
 import re
 import os
-def parse_dsc(package_name, version, debian_version, dsc_file):
+
+def parse_dsc(package_name, dsc_file):
     dsc = yaml.load(open(dsc_file))
-    return {(package_name, version):set([dep.strip() for dep in dsc['Build-Depends'].split(',')])}
+    return {package_name:set([dep.strip() for dep in dsc['Build-Depends'].split(',')])}
 
 def split_dsc(dsc):
     dsc_base = os.path.basename(dsc)
@@ -21,25 +22,30 @@ def sort_dscs(dscs):
     dscs_parsed = [ split_dsc(x) for x in dscs]
     dscs_parsed = sorted(dscs_parsed)
     dscs_parsed.reverse()
-    
-    latest_list = set()
-    for package_name, version, debian_version, dsc in dscs_parsed:
-        latest_list.add(package_name)
     return dscs_parsed
 
-def buildable_graph_from_dscs(dscs):
+def grab_latests_dscs(dscs):
     dscs = sort_dscs(dscs)
-    graph = {}
-    for x in dscs:
-        graph.update(parse_dsc(*x))
+    latest_set = set()
+    for package_name, _version, _debian_version, dsc in dscs:
+        if not package_name in latest_set:
+            latest_set.add((package_name, dsc))
+    return latest_set
 
-    ourpackages = [package for package, version in graph.keys()]
+
+def buildable_graph_from_dscs(dscs):
+    dscs = grab_latests_dscs(dscs)
+    graph = {}
+    for package_name, dsc in dscs:
+        graph.update(parse_dsc(package_name, dsc))
+
+    ourpackages = [package for package in graph.keys()]
     graph_we_can_build = {}
-    
+
     for key, deps in graph.iteritems():
         graph_we_can_build[key] = deps.intersection(ourpackages)
     return graph_we_can_build
-            
+
 
 def topological_sort(graph):
     '''
@@ -59,13 +65,13 @@ def topological_sort(graph):
         return L (a topologically sorted order)
     '''
     L = []
-    S = [x for x, version in graph.keys() if len(graph[x, version]) == 0]
+    S = [package for package in graph.keys() if len(graph[package]) == 0]
     while S:
         n = S.pop()
         L.append(n)
-        for m, version in [(m, version) for m, version in graph.keys() if n in graph[m, version]]:
-            graph[m, version].remove(n)
-            if len(graph[m, version]) == 0:
+        for m in [m for m in graph.keys() if n in graph[m]]:
+            graph[m].remove(n)
+            if len(graph[m]) == 0:
                 S.append(m)
     return L
 
