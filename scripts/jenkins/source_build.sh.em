@@ -1,3 +1,4 @@
+#!/bin/bash
 RELEASE_URI=@(RELEASE_URI)
 ROS_DISTRO=@(ROS_DISTRO)
 FQDN=@(FQDN)
@@ -24,7 +25,7 @@ method                  = scp
 fqdn                    = $FQDN
 incoming                = /var/www/repos/building/queue/$distro
 run_dinstall            = 0
-post_upload_command     = ssh rosbuild@@$FQDN -- /usr/bin/reprepro -b /var/www/repos/building -V processincoming $distro
+post_upload_command     = ssh rosbuild@@$FQDN -- /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro
 " > $WORKSPACE/output/dput.cf
     dput -u -c $WORKSPACE/output/dput.cf uploadhost $WORKSPACE/output/*$distro*.changes
 done

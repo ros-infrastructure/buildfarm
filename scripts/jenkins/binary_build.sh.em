@@ -62,7 +62,7 @@ echo \`env\`
 cd /tmp/buildd/*/
 apt-get install devscripts -y
 prevversion=\`dpkg-parsechangelog | grep Version | awk '{print \$2}'\`
-debchange -v \$prevversion\`date +%s\` ''
+debchange -v \$prevversion\`date +%s\` 'Time stamping.'
 cat debian/changelog
 " >> hooks/A50stamp
 chmod +x hooks/A50stamp
@@ -71,7 +71,6 @@ chmod +x hooks/A50stamp
 sudo pbuilder  --build \
     --basetgz $basetgz \
     --buildresult $output_dir \
-    --binary-arch \
     --debbuildopts \"-b\" \
     --hookdir hooks \
     *.dsc
@@ -82,12 +81,12 @@ method                  = scp
 fqdn                    = $ROS_REPO_FQDN
 incoming                = /var/www/repos/building/queue/$distro
 run_dinstall            = 0
-post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /var/www/repos/building -V processincoming $distro
+post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro 
 " > $output_dir/dput.cf
 
 # invalidate all binary packages which will depend on this package
 # listing for now, change to removefilter when confident its working right
-ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /var/www/repos/building -T deb -V listfilter $distro 'Package (% ros-* ), Depends (% *ros-$ROS_DISTRO-$PACKAGE* )'
+#ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /var/www/repos/building -T deb -V listfilter $distro 'Package (% ros-* ), Depends (% *ros-$ROS_DISTRO-$PACKAGE* )'
 
 # push the new deb
-dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
+dput -u --ignore=emptyfilenamepart -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
