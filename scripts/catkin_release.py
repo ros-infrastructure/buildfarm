@@ -198,7 +198,7 @@ def find_deps(stack_yaml, rosdeb_db, distro):
     ubuntu_deps = set()
     for dep in deps:
         if dep not in rosdeb_db.keys():
-            print("I can't find a rosdep for : %s\nAdding verbatim as a ubuntu package name." % dep, file=sys.stderr)
+            print("I can't find a rosdep for : %s\nAdding verbatim as an Ubuntu package name." % dep, file=sys.stderr)
             ubuntu_deps.add(dep)
         else:
             dep_def = rosdeb_db[dep]
@@ -214,7 +214,7 @@ def find_deps(stack_yaml, rosdeb_db, distro):
 
 def generate_deb(stack_yaml, repo_path, stamp, debian_distro, rosdep_db):
     depends = find_deps(stack_yaml, rosdep_db, debian_distro)
-    stack_yaml['Depends'] = depends
+    stack_yaml['DebDepends'] = depends
     stack_yaml['Distribution'] = debian_distro
     stack_yaml['Date'] = stamp.strftime('%a, %d %b %Y %T %z')
     stack_yaml['YYYY'] = stamp.strftime('%Y')
