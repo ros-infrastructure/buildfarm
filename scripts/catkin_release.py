@@ -89,16 +89,14 @@ def make_working(working_dir):
 def exclude(filename):
     if filename and filename[-1] == '~':
         return True;
-    return any(x == os.path.basename(filename) for x in ('.svn', '.git', '.hg'))
-
-def filter(tarinfo):
-    if exclude(tarinfo.name):
-        return None
-    return tarinfo
+    ignores = []
+    ignores += [x == os.path.basename(filename) for x in ('.svn', '.git', '.hg')]
+    ignores += [x == os.path.basename(os.path.dirname(filename)) for x in ('build',)]
+    return any(ignores)
 
 def make_tarball(upstream, tarball_name):
     tarball = tarfile.open(name=tarball_name, mode='w:gz')
-    tarball.add(name=upstream, arcname=os.path.basename(upstream), recursive=True, exclude=exclude, filter=filter)
+    tarball.add(name=upstream, arcname=os.path.basename(upstream), recursive=True, exclude=exclude)
     tarball.close()
 
 def sanitize_package_name(name):

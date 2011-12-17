@@ -8,16 +8,21 @@ import argparse
 import jenkins
 
 def parse_options():
-    parser = argparse.ArgumentParser(description='Create a set of jenkins jobs for source debs and binary debs for a catkin package.')
+    parser = argparse.ArgumentParser(
+             description='Create a set of jenkins jobs '
+             'for source debs and binary debs for a catkin package.')
     parser.add_argument('--fqdn', dest='fqdn',
-            help='The source repo to push to, fully qualified something or other...', default='50.28.27.175')
-    parser.add_argument(dest='rosdistro', help='The ros distro. electric, fuerte, galapagos')
+           help='The source repo to push to, fully qualified something...',
+           default='50.28.27.175')
+    parser.add_argument(dest='rosdistro',
+           help='The ros distro. electric, fuerte, galapagos')
     parser.add_argument('--distros', nargs='+',
-            help='A list of debian distros. Default: %(default)s',
-            default=['lucid', 'natty', 'oneiric'])
-    parser.add_argument('--commit', dest='commit', help='Really?', action='store_true')
+           help='A list of debian distros. Default: %(default)s',
+           default=['lucid', 'natty', 'oneiric'])
+    parser.add_argument('--commit', dest='commit',
+           help='Really?', action='store_true')
     parser.add_argument(dest='release_uri',
-            help='A release repo uri..')
+           help='A release repo uri..')
     return parser.parse_args()
 
 class Templates(object):
@@ -97,18 +102,15 @@ def doit():
     for job_name, config in jobs:
         if args.commit:
             create_jenkins(job_name, config)
-        else:
-            print(config, "\n\n*****************************")
-            print("Would have created job: %s " % job_name)
-            print("--commit to do it for real.")
 
     print("="*80)
-    print ("Summary: %d jobs would have been (re)configured.  Listed below."%len(jobs))
+    print ("Summary: %d jobs configured.  Listed below." % len(jobs))
     for job_name, config in jobs:
-        print ("  %s"%job_name)
+        print ("  %s" % job_name)
     if not args.commit:
         print("This was not pushed to the server.  If you want to do so use ",
               "--commit to do it for real.")
-    print("="*80)        
+    print("="*80)
+
 if __name__ == "__main__":
     doit()

@@ -55,7 +55,17 @@ Dir::State $aptstatedir;
 sudo apt-get update -c $work_dir/apt.conf
 sudo apt-get source $DEBPACKAGE -c $work_dir/apt.conf
 
-sudo pbuilder  --build --basetgz $basetgz --buildresult $output_dir --debbuildopts \"-b\" *.dsc
+mkdir -p hooks
+
+echo "#!/bin/bash -ex
+cd /tmp/buildd/ros-*/
+apt-get install devscripts -y
+prevversion=`dpkg-parsechangelog | grep Version | awk '{print $2}'`
+dch -v $prevversion+b`date +%s` "*timestamp..." -b
+" >> hooks/A50stamp
+chmod +x hooks/A50stamp
+
+sudo pbuilder  --build --basetgz $basetgz --buildresult $output_dir --debbuildopts \"-b\" --hookdir hooks *.dsc
 
 echo "
 [debtarget]
