@@ -1,6 +1,6 @@
 Source: @(PackagePrefix)@(Package)
 Section: misc
-Priority: low
+Priority: extra
 Maintainer: @(Maintainer)
 Build-Depends: debhelper (>= 7), @(','.join(DebDepends))
 Homepage: @(Homepage)

@@ -20,7 +20,7 @@ def parse_options():
 def update_repo(working_dir, repo_path, repo_uri):
     if check_local_repo_exists(repo_path):
         print(repo_path)
-        command = ('git', 'fetch',)
+        command = ('git', 'fetch', '--all')
         call(repo_path, command)
     else:
         command = ('gbp-clone', repo_uri)

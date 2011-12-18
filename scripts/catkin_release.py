@@ -47,7 +47,7 @@ def parse_options():
 
 def call(working_dir, command, pipe=None):
     print('+ cd %s && ' % working_dir + ' '.join(command))
-    process = Popen(command, stdout=pipe, cwd=working_dir)
+    process = Popen(command, stdout=pipe, stderr=pipe, cwd=working_dir)
     output, unused_err = process.communicate()
     retcode = process.poll()
     if retcode:
@@ -248,14 +248,15 @@ def commit_debian(stack_yaml, repo_path):
     call(repo_path, ['git', 'add', 'debian'])
     message = '''+ Creating debian mods for distro: %(Distribution)s, rosdistro: %(ROS_DISTRO)s, upstream version: %(Version)s
 ''' % stack_yaml
-    call(repo_path, ['git', 'commit', '-m', message])
+    call(repo_path, ['git', 'commit', '-a', '-m', message])
 
 def gbp_sourcedebs(stack_yaml, repo_path, output):
-    tag = '--git-debian-tag=debian/ros_%(ROS_DISTRO)s_%(Version)s_%(Distribution)s' % stack_yaml
+    tag_name = 'debian/ros_%(ROS_DISTRO)s_%(Version)s_%(Distribution)s' % stack_yaml
+    tag = '--git-debian-tag=%s' % tag_name
     call(repo_path, ['git', 'buildpackage',
         '-S', '--git-export-dir=%s' % output,
         '--git-ignore-new', '--git-retag', '--git-tag', tag, '-uc', '-us'])
-
+    return tag_name
 def main(args):
     stamp = datetime.datetime.now(dateutil.tz.tzlocal())
     stack_yaml = parse_stack_yaml(args.upstream, args.rosdistro, args.repo_uri, args=args)
@@ -263,7 +264,7 @@ def main(args):
     repo_path = os.path.join(args.working, repo_base)
 
     make_working(args.working)
-    
+
     rosdep_db = generate_rosdep_db(args.working, args.rosdep, args.rosdistro)
 
     update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=stack_yaml['Release-Push'], first_release=args.first_release)
@@ -278,13 +279,15 @@ def main(args):
                      tarball_name)
 
         import_orig(repo_path, tarball_name, stack_yaml['Version'])
-
+    tags = []
     for debian_distro in args.distros:
         generate_deb(stack_yaml, repo_path, stamp, debian_distro, rosdep_db)
         commit_debian(stack_yaml, repo_path)
-        gbp_sourcedebs(stack_yaml, repo_path, args.output)
+        tags.append((gbp_sourcedebs(stack_yaml, repo_path, args.output)))
 
     if args.push:
+        for x in tags:
+            x = call(repo_path, ['git', 'push', 'origin', ':refs/tags/%s' % x],pipe=subprocess.PIPE) #delete any remote tags of the same name.
         call(repo_path, ['git', 'push'])
 
 if __name__ == "__main__":
