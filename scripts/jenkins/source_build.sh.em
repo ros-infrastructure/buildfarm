@@ -13,6 +13,7 @@ else
 fi
 
 rm -rf $WORKSPACE/output
+rm -rf $WORKSPACE/workspace
 
 catkin-debs/scripts/catkin_build.py $RELEASE_URI $ROS_DISTRO --working $WORKSPACE/workspace --output $WORKSPACE/output
 ls $WORKSPACE/output
