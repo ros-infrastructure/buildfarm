@@ -6,5 +6,5 @@ for repo_uri in git://github.com/wg-debs/roscpp_core.git \
     git://github.com/wg-debs/genmsg.git \
     git://github.com/wg-debs/catkin.git
 do
-    ./create_debjobs.py fuerte $repo_uri --commit
+    ./create_debjobs.py fuerte $repo_uri --dscs export --commit
 done
