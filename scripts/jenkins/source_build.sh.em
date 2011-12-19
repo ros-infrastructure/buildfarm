@@ -18,6 +18,8 @@ rm -rf $WORKSPACE/workspace
 catkin-debs/scripts/catkin_build.py $RELEASE_URI $ROS_DISTRO --working $WORKSPACE/workspace --output $WORKSPACE/output
 ls $WORKSPACE/output
 
+/bin/echo "***************8 TEST DEBUGGING LINE you may remove me  8***************"
+
 for distro in @(' '.join(DISTROS))
 do
     echo "
