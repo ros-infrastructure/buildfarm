@@ -17,8 +17,17 @@ rm -rf $WORKSPACE/workspace
 
 catkin-debs/scripts/catkin_build.py $RELEASE_URI $ROS_DISTRO --working $WORKSPACE/workspace --output $WORKSPACE/output
 ls $WORKSPACE/output
+cd $WORKSPACE/output
+TO_UPLOAD=$(ls *.changes | perl -ni -e 's@@^([^_]+)@@@@ ; print "$1\n"' | sort | uniq)
+cd ../../
 
-/bin/echo "***************8 TEST DEBUGGING LINE you may remove me  8***************"
+for pkg in $TO_UPLOAD
+do
+    ssh rosbuild@@$FQDN -- /usr/bin/reprepro -b /var/www/repos/building remove lucid $pkg || /bin/true
+    ssh rosbuild@@$FQDN -- /usr/bin/reprepro -b /var/www/repos/building remove maverick $pkg || /bin/true
+    ssh rosbuild@@$FQDN -- /usr/bin/reprepro -b /var/www/repos/building remove natty $pkg || /bin/true
+    ssh rosbuild@@$FQDN -- /usr/bin/reprepro -b /var/www/repos/building remove oneiric $pkg || /bin/true
+done
 
 for distro in @(' '.join(DISTROS))
 do
