@@ -30,18 +30,18 @@ def parse_options():
     parser = argparse.ArgumentParser(description='Creates/updates a gpb from a catkin project.')
     parser.add_argument('--repo_uri', dest='repo_uri',
             help='Override the Release-Push feild in the stack.yaml. A pushable git buildpackage repo uri.', default=None)
-    parser.add_argument('--working', help='A scratch build path. Default: %(default)s', default='/tmp/catkin_gbp')
+    parser.add_argument('--working', help='A scratch build path. Default: %(default)s', default='tmp')
     parser.add_argument(dest='upstream',
             help='The location of your sources to create an upstream snap shot from.')
     parser.add_argument('--debian_inc', dest='debian_inc', help='Bump the changelog debian number. Please enter a monotonically increasing number from the last upload.', default=0)
     parser.add_argument(dest='rosdistro', help='The ros distro. electric, fuerte, galapagos')
-    parser.add_argument('--output', help='The result of source deb building will go here. For debuging purposes. Default: %(default)s', default='/tmp/catkin_debs')
+    parser.add_argument('--output', help='The result of source deb building will go here. For debuging purposes. Default: %(default)s', default='./sourcedeb-build')
     parser.add_argument('--distros', nargs='+',
             help='A list of debian distros. Default: %(default)s',
-            default=['lucid', 'natty', 'oneiric'])
+            default=['lucid', 'maverick', 'natty', 'oneiric'])
     parser.add_argument('--rosdep', help='Location of the remote rosdep database.', default='git://github.com/ros/rosdep_rules.git')
     parser.add_argument('--push', dest='push', help='Push it to your remote repo?', action='store_true')
-    parser.add_argument('--first_release', dest='first_release', help='Is this your first release?', action='store_true')
+    parser.add_argument('--first-release', dest='first_release', help='Is this your first release?', action='store_true')
     return parser.parse_args()
 
 
