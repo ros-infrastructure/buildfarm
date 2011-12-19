@@ -75,6 +75,8 @@ sudo pbuilder  --build \
     --hookdir hooks \
     *.dsc
 
+/bin/echo "Test.  You may delete this line."
+
 echo "
 [debtarget]
 method                  = scp
