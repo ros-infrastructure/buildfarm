@@ -62,7 +62,7 @@ echo \`env\`
 cd /tmp/buildd/*/
 apt-get install devscripts -y
 prevversion=\`dpkg-parsechangelog | grep Version | awk '{print \$2}'\`
-debchange -v \$prevversion\`date +%s\` 'Time stamping.'
+debchange -v \$prevversion-\`date +%Y%m%d-%H%M-%z\` 'Time stamping.'
 cat debian/changelog
 " >> hooks/A50stamp
 chmod +x hooks/A50stamp
