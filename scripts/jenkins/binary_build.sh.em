@@ -90,5 +90,19 @@ post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /
 # listing for now, change to removefilter when confident its working right
 #ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /var/www/repos/building -T deb -V listfilter $distro 'Package (% ros-* ), Depends (% *ros-$ROS_DISTRO-$PACKAGE* )'
 
+cat > invalidate.py << DELIM
+#!/usr/bin/env python
+import paramiko
+cmd = "/usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (% ros-* ), Architecture (== $arch ), Depends (% *ros-$ROS_DISTRO-$PACKAGE* )\" "
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+ssh.connect('$ROS_REPO_FQDN', username='rosbuild') 
+stdin, stdout, stderr = ssh.exec_command(cmd)
+print "Invalidation results:", stdout.readlines()
+ssh.close()
+DELIM
+
+python invalidate.py
+
 # push the new deb
 dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
