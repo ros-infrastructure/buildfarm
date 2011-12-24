@@ -93,7 +93,7 @@ post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /
 cat > invalidate.py << DELIM
 #!/usr/bin/env python
 import paramiko
-cmd = "/usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (% ros-* ), Architecture (== $arch ), Depends (% *ros-$ROS_DISTRO-$PACKAGE* )\" "
+cmd = "/usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (% ros-* ), Architecture (== $arch ), Depends (% *$DEBPACKAGE* )\" "
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect('$ROS_REPO_FQDN', username='rosbuild') 
@@ -102,6 +102,8 @@ print "Invalidation results:", stdout.readlines()
 ssh.close()
 DELIM
 
+echo "invalidation script contents for debugging:"
+cat invalidate.py
 python invalidate.py
 
 # push the new deb
