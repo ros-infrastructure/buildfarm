@@ -10,6 +10,8 @@ def parse_options():
                         help='The directory for apt to use as a rootdir')
     parser.add_argument("--substring", dest="substring", default="ros-", 
                         help="substring to filter packages displayed")
+    parser.add_argument("-u", "--update", dest="update", action='store_true', default=False, 
+                        help="update the cache from the server")
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -17,7 +19,8 @@ if __name__ == "__main__":
 
     c = apt.Cache(rootdir=args.rootdir)
     c.open()
-    c.update()
+    if args.update:
+        c.update()
 
     for p in [k for k in c.keys() if args.substring in k]:
         v = c[p].versions[0]
