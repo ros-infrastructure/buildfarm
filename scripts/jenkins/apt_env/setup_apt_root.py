@@ -4,7 +4,6 @@ from __future__ import print_function
 import em
 import os
 import argparse
-import jenkins
 import pprint
 
 def parse_options():
@@ -26,6 +25,7 @@ class Templates(object):
     sources = os.path.join(template_dir, 'sources.list.em') #basic sources
     ros_sources = os.path.join(template_dir, 'ros-sources.list.em') #ros sources
     apt_conf = os.path.join(template_dir, 'apt.conf.em') #apt.conf
+    arch_conf = os.path.join(template_dir, 'arch.conf.em') #arch.conf
 
 def expand(config_template, d):
     with open(config_template) as fh:
@@ -39,7 +39,11 @@ def setup_directories(rootdir):
 
     # create the directories needed
     dirs = ["etc/apt/sources.list.d", 
-            "etc/apt/apt.conf.d"]
+            "etc/apt/apt.conf.d",
+            "etc/apt/preferences.d",
+            "/var/lib/apt/lists/partial"
+            ]
+    
     for d in dirs:
         try:
             os.makedirs(os.path.join(rootdir, d))
@@ -57,9 +61,13 @@ def setup_conf(rootdir, arch):
     """ Set the apt.conf config settings for the specific
     architecture. """
 
-    d = {'arch':arch}
-    with open(os.path.join(rootdir, "etc/apt/apt.conf.d/51Architecture"), 'w') as apt_conf:
+    d = {'rootdir':rootdir}
+    with open(os.path.join(rootdir, "apt.conf"), 'w') as apt_conf:
         apt_conf.write(expand(Templates.apt_conf, d))
+
+    d = {'arch':arch}
+    with open(os.path.join(rootdir, "etc/apt/apt.conf.d/51Architecture"), 'w') as arch_conf:
+        arch_conf.write(expand(Templates.arch_conf, d))
 
     
 def set_sources(rootdir, server, distro, arch):
