@@ -41,7 +41,7 @@ def setup_directories(rootdir):
     dirs = ["etc/apt/sources.list.d", 
             "etc/apt/apt.conf.d",
             "etc/apt/preferences.d",
-            "/var/lib/apt/lists/partial"
+            "var/lib/apt/lists/partial"
             ]
     
     for d in dirs:

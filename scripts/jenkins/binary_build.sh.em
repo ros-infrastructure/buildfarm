@@ -8,7 +8,7 @@ arch=@(ARCH)
 DEBPACKAGE=ros-$ROS_DISTRO-@(PACKAGE.replace('_','-'))
 base=/var/cache/pbuilder-$ROS_DISTRO-$distro-$arch
 
-rootdir=$base/apt-conf
+rootdir=$WORKSPACE/apt-conf
 
 basetgz=$base/base.tgz
 output_dir=$WORKSPACE/output
@@ -24,7 +24,7 @@ else
   (cd catkin-debs && git pull)
 fi
 
-$WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch --rootdir $rootdir
+$WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch $rootdir
 
 
 sudo rm -rf $output_dir
