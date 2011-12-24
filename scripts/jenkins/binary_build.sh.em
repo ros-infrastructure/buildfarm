@@ -7,8 +7,9 @@ distro=@(DISTRO)
 arch=@(ARCH)
 DEBPACKAGE=ros-$ROS_DISTRO-@(PACKAGE.replace('_','-'))
 base=/var/cache/pbuilder-$ROS_DISTRO-$distro-$arch
-aptconfdir=$base/apt-conf
-aptstatedir=$base/apt-state
+
+rootdir=$base/apt-conf
+
 basetgz=$base/base.tgz
 output_dir=$WORKSPACE/output
 work_dir=$WORKSPACE/work
@@ -16,10 +17,14 @@ work_dir=$WORKSPACE/work
 sudo apt-get update
 sudo apt-get install -y pbuilder
 
-sudo mkdir -p $aptconfdir
-sudo mkdir -p $aptconfdir/apt.conf.d
-sudo mkdir -p $aptconfdir/preferences.d
-sudo mkdir -p $aptstatedir/lists/partial
+if [ ! -e catkin-debs/.git ]
+then
+  git clone git://github.com/willowgarage/catkin-debs.git
+else
+  (cd catkin-debs && git pull)
+fi
+
+$WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch --rootdir $rootdir
 
 
 sudo rm -rf $output_dir
@@ -29,31 +34,22 @@ sudo rm -rf $work_dir
 mkdir -p $work_dir
 cd $work_dir
 
-echo "
-deb http://archive.ubuntu.com/ubuntu $distro main restricted universe multiverse
-deb $ROS_PACKAGE_REPO $distro main
-deb-src $ROS_PACKAGE_REPO $distro main
-" > sources.list
-sudo cp sources.list $aptconfdir
+
 
 if [ ! -e $basetgz ]
 then
   sudo pbuilder create \
     --distribution $distro \
-    --aptconfdir $aptconfdir \
+    --aptconfdir $rootdir \
     --basetgz $basetgz \
     --architecture $arch 
 else
   sudo pbuilder --update --basetgz $basetgz
 fi
 
-echo "
-Dir::Etc $aptconfdir;
-Dir::State $aptstatedir;
-" > apt.conf
 
-sudo apt-get update -c $work_dir/apt.conf
-sudo apt-get source $DEBPACKAGE -c $work_dir/apt.conf
+sudo apt-get update -c $rootdir/apt.conf
+sudo apt-get source $DEBPACKAGE -c $rootdir/apt.conf
 
 mkdir -p hooks
 
@@ -87,8 +83,6 @@ post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /
 " > $output_dir/dput.cf
 
 # invalidate all binary packages which will depend on this package
-# listing for now, change to removefilter when confident its working right
-#ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /var/www/repos/building -T deb -V listfilter $distro 'Package (% ros-* ), Depends (% *ros-$ROS_DISTRO-$PACKAGE* )'
 
 cat > invalidate.py << DELIM
 #!/usr/bin/env python
