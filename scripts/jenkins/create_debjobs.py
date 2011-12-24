@@ -83,6 +83,14 @@ def calc_child_jobs(d, jobgraph):
                 children.append(package + end)
     d["CHILD_PROJECTS"] = children
 
+def add_dependent_to_dict(d, jobgraph):
+    beginning, end = binary_begin_end(d)
+    if jobgraph:
+        pname = beginning + d['PACKAGE'].replace('_', '-')
+        if pname in jobgraph:
+            d["DEPENDENTS"] =  jobgraph[pname]
+
+
 def binarydeb_jobs(package, rosdistro, distros, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
     d = dict(
         ROS_DISTRO=rosdistro,
@@ -97,6 +105,7 @@ def binarydeb_jobs(package, rosdistro, distros, fqdn, jobgraph, ros_package_repo
             d['ARCH'] = arch
             d['DISTRO'] = distro
             calc_child_jobs(d, jobgraph)
+            add_dependent_to_dict(d, jobgraph)
             config = create_binarydeb_config(d)
             print(config)
             job_name = binarydeb_job_name(d)

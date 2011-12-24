@@ -15,7 +15,7 @@ output_dir=$WORKSPACE/output
 work_dir=$WORKSPACE/work
 
 sudo apt-get update
-sudo apt-get install -y pbuilder
+sudo apt-get install -y pbuilder # todo move to server setup, or confirm it's there
 
 if [ ! -e catkin-debs/.git ]
 then
@@ -24,7 +24,23 @@ else
   (cd catkin-debs && git pull)
 fi
 
+#setup the cross platform apt environment
 $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch $rootdir
+
+# Check if this package exists, and call update which will update the cache, following calls don't need to update
+if [ ! $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir $DEBPACKAGE -u ]
+then
+    echo "no need to run this deb already exists"
+    exit 0
+fi
+
+# check precondition that all dependents exist
+if [ ! $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir @(DEPENDENTS) ]
+then
+    echo "preconditions unmet: not all dependents exist"
+    exit 1
+fi
+
 
 
 sudo rm -rf $output_dir
@@ -36,6 +52,11 @@ cd $work_dir
 
 
 
+
+sudo apt-get update -c $rootdir/apt.conf
+sudo apt-get source $DEBPACKAGE -c $rootdir/apt.conf
+
+# Setup the pbuilder environment if not existing, or update
 if [ ! -e $basetgz ]
 then
   sudo pbuilder create \
@@ -48,9 +69,7 @@ else
 fi
 
 
-sudo apt-get update -c $rootdir/apt.conf
-sudo apt-get source $DEBPACKAGE -c $rootdir/apt.conf
-
+# hooks for changing the binary debs to be timestamped
 mkdir -p hooks
 
 echo "#!/bin/bash -ex
@@ -71,16 +90,7 @@ sudo pbuilder  --build \
     --hookdir hooks \
     *.dsc
 
-/bin/echo "Test.  You may delete this line."
 
-echo "
-[debtarget]
-method                  = scp
-fqdn                    = $ROS_REPO_FQDN
-incoming                = /var/www/repos/building/queue/$distro
-run_dinstall            = 0
-post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro 
-" > $output_dir/dput.cf
 
 # invalidate all binary packages which will depend on this package
 
@@ -100,5 +110,14 @@ echo "invalidation script contents for debugging:"
 cat invalidate.py
 python invalidate.py
 
-# push the new deb
+# push the new deb, config followed by execution
+echo "
+[debtarget]
+method                  = scp
+fqdn                    = $ROS_REPO_FQDN
+incoming                = /var/www/repos/building/queue/$distro
+run_dinstall            = 0
+post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro 
+" > $output_dir/dput.cf
+
 dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
