@@ -33,13 +33,16 @@ def expand(config_template, d):
     s = em.expand(file_em, **d)
     return s
 
-def setup_directories(dirname):
+def setup_directories(rootdir):
+    """ Create the directories needed to use apt with an alternate
+    rootdir """
+
     # create the directories needed
     dirs = ["etc/apt/sources.list.d", 
             "etc/apt/apt.conf.d"]
     for d in dirs:
         try:
-            os.makedirs(os.path.join(dirname, d))
+            os.makedirs(os.path.join(rootdir, d))
         except OSError, ex:
             if ex.errno == 17:
                 continue
@@ -50,29 +53,30 @@ def generate_dictonary(server, distro):
          'src_repo_url':"http://%(server)s/repos/building"%locals()}
     return d    
 
-def setup_conf(dirname, arch):
+def setup_conf(rootdir, arch):
+    """ Set the apt.conf config settings for the specific
+    architecture. """
 
     d = {'arch':arch}
-    with open(os.path.join(dirname, "etc/apt/apt.conf.d/51Architecture"), 'w') as apt_conf:
+    with open(os.path.join(rootdir, "etc/apt/apt.conf.d/51Architecture"), 'w') as apt_conf:
         apt_conf.write(expand(Templates.apt_conf, d))
-    
 
-def set_sources(dirname, server, distro, arch):
-    setup_directories(dirname)
-    setup_conf(dirname, arch)    
+    
+def set_sources(rootdir, server, distro, arch):
+    """ Set the source lists for the default ubuntu and ros sources """
     d = generate_dictonary(server, distro)
-    with open(os.path.join(dirname, "etc/apt/sources.list"), 'w') as sources_list:
+    with open(os.path.join(rootdir, "etc/apt/sources.list"), 'w') as sources_list:
         sources_list.write(expand(Templates.sources, d))
-    with open(os.path.join(dirname, "etc/apt/sources.list.d/ros-sources.list"), 'w') as sources_list:
+    with open(os.path.join(rootdir, "etc/apt/sources.list.d/ros-sources.list"), 'w') as sources_list:
         sources_list.write(expand(Templates.ros_sources, d))
-        
+    
 
 def doit():
     args = parse_options()
     print(args)
 
-    if not args.distro:
-        print("error")
+    setup_directories(args.rootdir)
+    setup_conf(args.rootdir, args.architecture)
     set_sources(args.rootdir, args.fqdn, args.distro, args.architecture)
 
 
