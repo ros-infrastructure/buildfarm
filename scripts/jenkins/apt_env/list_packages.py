@@ -18,9 +18,10 @@ if __name__ == "__main__":
     args = parse_options()
 
     c = apt.Cache(rootdir=args.rootdir)
-    c.open()
     if args.update:
         c.update()
+
+    c.open() # required to recall open after updating or you will query the old data
 
     for p in [k for k in c.keys() if args.substring in k]:
         v = c[p].versions[0]
