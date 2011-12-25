@@ -34,8 +34,8 @@ $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch $
 #    exit 0
 #fi
 
-# check precondition that all dependents exist
-if [ @("True" if DEPENDENTS else "False") ]
+# check precondition that all dependents exist, don't check if no dependencies
+if [ @("true" if DEPENDENTS else "false") ]
 then
     $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir @(' '.join(DEPENDENTS)) -u 
 fi
