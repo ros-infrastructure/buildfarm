@@ -25,7 +25,8 @@ else
 fi
 
 #setup the cross platform apt environment
-$WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch $rootdir
+# using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary.
+sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch $rootdir
 
 # Check if this package exists, and call update which will update the cache, following calls don't need to update
 #if [ -e $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir $DEBPACKAGE -u ]
@@ -37,7 +38,7 @@ $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch $
 # check precondition that all dependents exist, don't check if no dependencies
 if [ @("true" if DEPENDENTS else "false") ]
 then
-    $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir @(' '.join(DEPENDENTS)) -u 
+    sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir @(' '.join(DEPENDENTS)) -u 
 fi
 
 sudo rm -rf $output_dir
