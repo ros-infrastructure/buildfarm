@@ -28,20 +28,17 @@ fi
 $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch $rootdir
 
 # Check if this package exists, and call update which will update the cache, following calls don't need to update
-if [ ! $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir $DEBPACKAGE -u ]
-then
-    echo "no need to run this deb already exists"
-    exit 0
-fi
+#if [ -e $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir $DEBPACKAGE -u ]
+#then
+#    echo "no need to run this deb already exists"
+#    exit 0
+#fi
 
 # check precondition that all dependents exist
-if [ ! $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir @(DEPENDENTS) ]
+if [ @("True" if DEPENDENTS else "False") ]
 then
-    echo "preconditions unmet: not all dependents exist"
-    exit 1
+    $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir @(' '.join(DEPENDENTS)) -u 
 fi
-
-
 
 sudo rm -rf $output_dir
 mkdir -p $output_dir

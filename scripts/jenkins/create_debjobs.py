@@ -89,7 +89,8 @@ def add_dependent_to_dict(d, jobgraph):
         pname = beginning + d['PACKAGE'].replace('_', '-')
         if pname in jobgraph:
             d["DEPENDENTS"] =  jobgraph[pname]
-
+    else:
+        d["DEPENDENTS"] = set()
 
 def binarydeb_jobs(package, rosdistro, distros, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
     d = dict(

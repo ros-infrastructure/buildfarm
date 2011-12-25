@@ -1,3 +1,5 @@
+(mkdir export && cd export && wget -qr http://50.28.27.175/repos/building/pool/main -A dsc -nd )
+
 for repo_uri in git://github.com/wg-debs/roscpp_core.git \
     git://github.com/wg-debs/genpybindings.git \
     git://github.com/wg-debs/std_msgs.git \
