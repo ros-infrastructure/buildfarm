@@ -38,7 +38,7 @@ def parse_options():
     parser.add_argument('--output', help='The result of source deb building will go here. For debuging purposes. Default: %(default)s', default='./sourcedeb-build')
     parser.add_argument('--distros', nargs='+',
             help='A list of debian distros. Default: %(default)s',
-            default=['lucid', 'natty', 'oneiric'])
+            default=['lucid', 'maverick', 'natty', 'oneiric', 'precise'])
     parser.add_argument('--rosdep', help='Location of the remote rosdep database.', default='git://github.com/ros/rosdep_rules.git')
     parser.add_argument('--push', dest='push', help='Push it to your remote repo?', action='store_true')
     parser.add_argument('--first-release', dest='first_release', help='Is this your first release?', action='store_true')
