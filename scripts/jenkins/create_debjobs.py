@@ -19,7 +19,7 @@ def parse_options():
            help='The ros distro. electric, fuerte, galapagos')
     parser.add_argument('--distros', nargs='+',
            help='A list of debian distros. Default: %(default)s',
-           default=['lucid', 'natty', 'oneiric'])
+           default=['lucid', 'maverick', 'natty', 'oneiric', 'precise'])
     parser.add_argument('--commit', dest='commit',
            help='Really?', action='store_true')
     parser.add_argument(dest='release_uri',
