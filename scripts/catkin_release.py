@@ -185,6 +185,7 @@ def expand(fname, stack_yaml, source_dir, dest_dir, filetype=''):
     ofilestr.close()
     if fname == 'rules':
         os.chmod(ofilename, 0755)
+
 def find_deps(stack_yaml, rosdeb_db, distro):
     def update_deps(ubuntu_deps, dep, dep_def, distro):
         if type(dep_def) == str:
@@ -257,6 +258,7 @@ def gbp_sourcedebs(stack_yaml, repo_path, output):
         '-S', '--git-export-dir=%s' % output,
         '--git-ignore-new', '--git-retag', '--git-tag', tag, '-uc', '-us'])
     return tag_name
+
 def main(args):
     stamp = datetime.datetime.now(dateutil.tz.tzlocal())
     stack_yaml = parse_stack_yaml(args.upstream, args.rosdistro, args.repo_uri, args=args)

@@ -49,9 +49,9 @@ def version_cmp(v1, v2):
 
 def get_latest_tags(tags, rosdistro):
     #filter by ros distro
-    print "All tags", tags
+    print("All tags: %s" % tags)
     tags = [x for x in tags if rosdistro in x]
-    print "Filtered tags", tags
+    print("Filtered tags: %s" % tags)
     if len(tags) == 0:
         print "No tags for ros distro %s... not sure what this means."
         return []
