@@ -5,10 +5,10 @@ import os
 import argparse
 
 def parse_options():
-    parser = argparse.ArgumentParser(description="List all packages available in the repo.  Filter on substring if provided")
+    parser = argparse.ArgumentParser(description="List all packages available in the repos.  Filter on substring if provided")
     parser.add_argument(dest="rootdir",
                         help='The directory for apt to use as a rootdir')
-    parser.add_argument("--substring", dest="substring", default="ros-", 
+    parser.add_argument("--substring", dest="substring", default="", 
                         help="substring to filter packages displayed")
     parser.add_argument("-u", "--update", dest="update", action='store_true', default=False, 
                         help="update the cache from the server")

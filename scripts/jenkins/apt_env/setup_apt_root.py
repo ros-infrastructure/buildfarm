@@ -27,7 +27,7 @@ class Templates(object):
     apt_conf = os.path.join(template_dir, 'apt.conf.em') #apt.conf
     arch_conf = os.path.join(template_dir, 'arch.conf.em') #arch.conf
 
-def expand(config_template, d):
+def expand_file(config_template, d):
     with open(config_template) as fh:
         file_em = fh.read()
     s = em.expand(file_em, **d)
@@ -41,7 +41,9 @@ def setup_directories(rootdir):
     dirs = ["etc/apt/sources.list.d", 
             "etc/apt/apt.conf.d",
             "etc/apt/preferences.d",
-            "var/lib/apt/lists/partial"
+            "var/lib/apt/lists/partial",
+            "var/cache/apt/archives/partial",
+            "var/lib/dpkg"
             ]
     
     for d in dirs:
@@ -58,11 +60,11 @@ def setup_conf(rootdir, arch):
 
     d = {'rootdir':rootdir}
     with open(os.path.join(rootdir, "apt.conf"), 'w') as apt_conf:
-        apt_conf.write(expand(Templates.apt_conf, d))
+        apt_conf.write(expand_file(Templates.apt_conf, d))
 
     d = {'arch':arch}
     with open(os.path.join(rootdir, "etc/apt/apt.conf.d/51Architecture"), 'w') as arch_conf:
-        arch_conf.write(expand(Templates.arch_conf, d))
+        arch_conf.write(expand_file(Templates.arch_conf, d))
 
     
 def set_default_sources(rootdir, distro, repo):
@@ -70,14 +72,14 @@ def set_default_sources(rootdir, distro, repo):
     d = {'distro':distro, 
          'repo': repo}
     with open(os.path.join(rootdir, "etc/apt/sources.list"), 'w') as sources_list:
-        sources_list.write(expand(Templates.sources, d))
+        sources_list.write(expand_file(Templates.sources, d))
 
 def set_additional_sources(rootdir, distro, repo, source_name):
     """ Set the source lists for the default ubuntu and ros sources """
     d = {'distro':distro, 
          'repo': repo}
     with open(os.path.join(rootdir, "etc/apt/sources.list.d/%s.list"%source_name), 'w') as sources_list:
-        sources_list.write(expand(Templates.ros_sources, d))
+        sources_list.write(expand_file(Templates.ros_sources, d))
     
 
 def setup_apt_rootdir(rootdir, distro, arch, mirror=None, additional_repos = []):
