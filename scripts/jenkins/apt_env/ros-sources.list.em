@@ -1,3 +1,3 @@
-deb @(repo_url) @(distro) main
-deb-src @(src_repo_url) @(distro) main
+deb @(repo) @(distro) main
+deb-src @(repo) @(distro) main
 

@@ -52,11 +52,6 @@ def setup_directories(rootdir):
                 continue
             raise ex
 
-def generate_dictonary(server, distro):
-    d = {'distro':distro, 'repo_url':"http://%(server)s/repos/building"%locals(),
-         'src_repo_url':"http://%(server)s/repos/building"%locals()}
-    return d    
-
 def setup_conf(rootdir, arch):
     """ Set the apt.conf config settings for the specific
     architecture. """
@@ -70,22 +65,40 @@ def setup_conf(rootdir, arch):
         arch_conf.write(expand(Templates.arch_conf, d))
 
     
-def set_sources(rootdir, server, distro, arch):
+def set_default_sources(rootdir, distro, repo):
     """ Set the source lists for the default ubuntu and ros sources """
-    d = generate_dictonary(server, distro)
+    d = {'distro':distro, 
+         'repo': repo}
     with open(os.path.join(rootdir, "etc/apt/sources.list"), 'w') as sources_list:
         sources_list.write(expand(Templates.sources, d))
-    with open(os.path.join(rootdir, "etc/apt/sources.list.d/ros-sources.list"), 'w') as sources_list:
+
+def set_additional_sources(rootdir, distro, repo, source_name):
+    """ Set the source lists for the default ubuntu and ros sources """
+    d = {'distro':distro, 
+         'repo': repo}
+    with open(os.path.join(rootdir, "etc/apt/sources.list.d/%s.list"%source_name), 'w') as sources_list:
         sources_list.write(expand(Templates.ros_sources, d))
     
+
+def setup_apt_rootdir(rootdir, distro, arch, mirror=None, additional_repos = []):
+    setup_directories(rootdir)
+    setup_conf(rootdir, arch)
+    if not mirror:
+        repo='http://us.archive.ubuntu.com/ubuntu/'
+    else:
+        repo = mirror
+    set_default_sources(rootdir, distro, repo)
+    for repo_url, repo_name in additional_repos:
+        set_additional_sources(rootdir, distro, repo_url, repo_name)
+
 
 def doit():
     args = parse_options()
     print(args)
 
-    setup_directories(args.rootdir)
-    setup_conf(args.rootdir, args.architecture)
-    set_sources(args.rootdir, args.fqdn, args.distro, args.architecture)
+    ros_repos = [('http://50.28.27.175/repos/building', 'ros')]
+
+    setup_apt_rootdir(args.rootdir, args.distro, args.architecture, additional_repos = ros_repos) 
 
 
 if __name__ == "__main__":
