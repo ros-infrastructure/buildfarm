@@ -53,7 +53,7 @@ def get_latest_tags(tags, rosdistro):
     tags = [x for x in tags if rosdistro in x]
     print("Filtered tags: %s" % tags)
     if len(tags) == 0:
-        print "No tags for ros distro %s... not sure what this means."
+        print("No tags for ros distro %s... not sure what this means.")
         return []
 
     #get a sorted set of version tags
