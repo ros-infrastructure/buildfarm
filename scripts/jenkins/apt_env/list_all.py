@@ -20,6 +20,8 @@ def parse_options():
 
 def list_packages(rootdir, update, substring):
     c = apt.Cache(rootdir=rootdir)
+    c.open()
+
     if update:
         c.update()
 
@@ -33,6 +35,28 @@ def list_packages(rootdir, update, substring):
     return packages
 
 
+def render_vertical(packages):
+    all_packages = set()
+    for v in packages.itervalues():
+        all_packages.update(v)
+
+    width = max([len(p) for p in all_packages])
+    pstr = "package"
+    print pstr, " "*(width-len(pstr)), ":",
+    for k in packages.iterkeys():
+        print k, "|",
+    print '' 
+
+    for p in all_packages:
+        l = len(p)
+        print p, " "*(width-l), ":",
+        for k  in packages.iterkeys():
+            if p in packages[k]:
+                print 'x'*len(k),'|', 
+            else:
+                print ' '*len(k),'|', 
+        print ''
+            
 
 if __name__ == "__main__":
     args = parse_options()
@@ -61,9 +85,8 @@ if __name__ == "__main__":
                 
                 packages[dist_arch] = list_packages(specific_rootdir, update=True, substring=args.substring)
 
-
-        for k, v in packages.iteritems():
-            print k, v
+        render_vertical(packages)
                 
     finally:
-        shutil.rmtree(rootdir)
+        if not args.rootdir: # don't delete if it's not a tempdir
+            shutil.rmtree(rootdir)
