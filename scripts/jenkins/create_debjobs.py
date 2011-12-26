@@ -5,7 +5,6 @@ import em
 import os
 from xml.sax.saxutils import escape
 import argparse
-import jenkins
 import pprint
 from construct_graph import topological_sort, buildable_graph_from_dscs
 
@@ -43,6 +42,7 @@ def expand(config_template, d):
     return s
 
 def create_jenkins(jobname, config):
+    import jenkins
     j = jenkins.Jenkins('http://hudson.willowgarage.com:8080', 'username', 'password')
     jobs = j.get_jobs()
     print("working on job", jobname)
