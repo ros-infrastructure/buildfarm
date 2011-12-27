@@ -1,12 +1,12 @@
 (mkdir export && cd export && wget -qr http://50.28.27.175/repos/building/pool/main -A dsc -nd )
 
-for repo_uri in git://github.com/wg-debs/roscpp_core.git \
-    git://github.com/wg-debs/genpybindings.git \
-    git://github.com/wg-debs/std_msgs.git \
-    git://github.com/wg-debs/genpy.git \
-    git://github.com/wg-debs/gencpp.git \
-    git://github.com/wg-debs/genmsg.git \
-    git://github.com/wg-debs/catkin.git
+for repo in \
+    catkin genmsg \
+    genpy gencpp gentypelibxml genpybindings \
+    roscpp_core std_msgs \
 do
-    ./create_debjobs.py fuerte $repo_uri --dscs export --commit
+    ./create_debjobs.py \
+        fuerte \
+        git://github.com/wg-debs/${repo}.git \
+        --dscs export --commit
 done
