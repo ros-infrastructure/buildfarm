@@ -31,13 +31,15 @@ def list_debian_tags(repo_path):
     print(tags, end='')
     marked_tags = []
     for tag in tags.split('\n'):
-         #TODO make this regex better...
-         m = re.search('debian/ros_(.+)_(\d+\.\d+\.\d+)_(.+)', tag)
-         if m:
-             ros_X = m.group(1)
-             version = m.group(2)
-             distro = m.group(3)
-             marked_tags.append((version, distro, ros_X, tag))
+        #TODO make this regex better...
+        m = re.search('debian/ros_(.+)_(\d+\.\d+\.\d+)_(.+)', tag)
+        if m:
+            ros_X = m.group(1)
+            version = m.group(2)
+            distro = m.group(3)
+            marked_tags.append((version, distro, ros_X, tag))
+else:
+        print("No debian tags?  Are you sure you pointed to the right repository?"
     marked_tags = sorted(marked_tags)
     marked_tags.reverse()
     return marked_tags
@@ -53,7 +55,7 @@ def get_latest_tags(tags, rosdistro):
     tags = [x for x in tags if rosdistro in x]
     print("Filtered tags: %s" % tags)
     if len(tags) == 0:
-        print("No tags for ros distro %s... not sure what this means.")
+        print("No tags for ros distro %s... not sure what this means." % rosdistro)
         return []
 
     #get a sorted set of version tags

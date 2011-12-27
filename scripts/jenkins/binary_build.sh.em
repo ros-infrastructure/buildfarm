@@ -36,10 +36,9 @@ sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $a
 #fi
 
 # check precondition that all dependents exist, don't check if no dependencies
-if [ @("true" if DEPENDENTS else "false") ]
-then
-    sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir @(' '.join(DEPENDENTS)) -u 
-fi
+@[if DEPENDENTS]
+sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir @(' '.join(DEPENDENTS)) -u
+@[end if]
 
 sudo rm -rf $output_dir
 mkdir -p $output_dir
@@ -61,7 +60,7 @@ then
     --distribution $distro \
     --aptconfdir $rootdir \
     --basetgz $basetgz \
-    --architecture $arch 
+    --architecture $arch
 else
   sudo pbuilder --update --basetgz $basetgz
 fi
@@ -98,7 +97,7 @@ import paramiko
 cmd = "/usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (% ros-* ), Architecture (== $arch ), Depends (% *$DEBPACKAGE* )\" "
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-ssh.connect('$ROS_REPO_FQDN', username='rosbuild') 
+ssh.connect('$ROS_REPO_FQDN', username='rosbuild')
 stdin, stdout, stderr = ssh.exec_command(cmd)
 print "Invalidation results:", stdout.readlines()
 ssh.close()
@@ -115,7 +114,7 @@ method                  = scp
 fqdn                    = $ROS_REPO_FQDN
 incoming                = /var/www/repos/building/queue/$distro
 run_dinstall            = 0
-post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro 
+post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro
 " > $output_dir/dput.cf
 
 dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes

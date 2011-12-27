@@ -29,7 +29,7 @@ def parse_options():
     import argparse
     parser = argparse.ArgumentParser(description='Creates/updates a gpb from a catkin project.')
     parser.add_argument('--repo_uri', dest='repo_uri',
-            help='Override the Release-Push feild in the stack.yaml. A pushable git buildpackage repo uri.', default=None)
+            help='Override the Release-Push field in the stack.yaml. A pushable git buildpackage repo uri.', default=None)
     parser.add_argument('--working', help='A scratch build path. Default: %(default)s', default='tmp')
     parser.add_argument(dest='upstream',
             help='The location of your sources to create an upstream snap shot from.')
