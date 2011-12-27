@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 ROS_REPO_FQDN=@(FQDN)
 ROS_PACKAGE_REPO=@(ROS_PACKAGE_REPO)
 PACKAGE=@(PACKAGE)
