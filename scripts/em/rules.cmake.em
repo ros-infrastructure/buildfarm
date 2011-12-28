@@ -13,8 +13,13 @@ export DH_OPTIONS=-v
 %:
 	dh  $@@
 
+#
+#  The CATKIN=YES is needed to make it possible for
+#  ROS packages to build under rosmake and catkin
+#
 override_dh_auto_configure:
 	dh_auto_configure -Scmake -- \
+		-DCATKIN=YES \
 		-DCMAKE_INSTALL_PREFIX="@(INSTALL_PREFIX)" \
 		-DCMAKE_PREFIX_PATH="@(INSTALL_PREFIX)"
 
