@@ -9,7 +9,7 @@ if [ ! -e catkin-debs/.git ]
 then
   git clone git://github.com/willowgarage/catkin-debs.git
 else
-  (cd catkin-debs && git pull)
+  (cd catkin-debs && git clean -dfx && git reset --hard HEAD && git pull && git log -n1)
 fi
 
 rm -rf $WORKSPACE/output

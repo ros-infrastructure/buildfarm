@@ -31,13 +31,15 @@ def list_debian_tags(repo_path):
     print(tags, end='')
     marked_tags = []
     for tag in tags.split('\n'):
-         #TODO make this regex better...
-         m = re.search('debian/ros_(.+)_(\d+\.\d+\.\d+)_(.+)', tag)
-         if m:
-             ros_X = m.group(1)
-             version = m.group(2)
-             distro = m.group(3)
-             marked_tags.append((version, distro, ros_X, tag))
+        #TODO make this regex better...
+        m = re.search('debian/ros_(.+)_(\d+\.\d+\.\d+)_(.+)', tag)
+        if m:
+            ros_X = m.group(1)
+            version = m.group(2)
+            distro = m.group(3)
+            marked_tags.append((version, distro, ros_X, tag))
+    else:
+        print("No debian tags?  Are you sure you pointed to the right repository?")
     marked_tags = sorted(marked_tags)
     marked_tags.reverse()
     return marked_tags
@@ -49,7 +51,12 @@ def version_cmp(v1, v2):
 
 def get_latest_tags(tags, rosdistro):
     #filter by ros distro
+    print("All tags: %s" % tags)
     tags = [x for x in tags if rosdistro in x]
+    print("Filtered tags: %s" % tags)
+    if len(tags) == 0:
+        print("No tags for ros distro %s... not sure what this means." % rosdistro)
+        return []
 
     #get a sorted set of version tags
     versions = sorted(list(set(zip(*tags)[0])), cmp=version_cmp)
@@ -58,7 +65,7 @@ def get_latest_tags(tags, rosdistro):
     #get grab the latest version, lexographical?
     latest = versions[0]
 
-    #now find the set of tags that are have the version 
+    #now find the set of tags that are have the version
     latest_tags = [x for x in tags if latest in x]
     return latest_tags
 

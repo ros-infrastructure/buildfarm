@@ -29,7 +29,7 @@ def parse_options():
     import argparse
     parser = argparse.ArgumentParser(description='Creates/updates a gpb from a catkin project.')
     parser.add_argument('--repo_uri', dest='repo_uri',
-            help='Override the Release-Push feild in the stack.yaml. A pushable git buildpackage repo uri.', default=None)
+            help='Override the Release-Push field in the stack.yaml. A pushable git buildpackage repo uri.', default=None)
     parser.add_argument('--working', help='A scratch build path. Default: %(default)s', default='tmp')
     parser.add_argument(dest='upstream',
             help='The location of your sources to create an upstream snap shot from.')
@@ -185,6 +185,7 @@ def expand(fname, stack_yaml, source_dir, dest_dir, filetype=''):
     ofilestr.close()
     if fname == 'rules':
         os.chmod(ofilename, 0755)
+
 def find_deps(stack_yaml, rosdeb_db, distro):
     def update_deps(ubuntu_deps, dep, dep_def, distro):
         if type(dep_def) == str:
@@ -193,7 +194,7 @@ def find_deps(stack_yaml, rosdeb_db, distro):
         elif type(dep_def) == dict:
             update_deps(ubuntu_deps, dep, dep_def[distro], distro) #recurse
         else:
-            raise RuntimeError("Poorly formatted rosdep for %s", dep)
+            raise RuntimeError("Poorly formatted rosdep for %s (type is %s) which isnt dict or str" % (dep, type(dep_def)))
     deps = stack_yaml['Depends']
     ubuntu_deps = set()
     for dep in deps:
@@ -257,6 +258,7 @@ def gbp_sourcedebs(stack_yaml, repo_path, output):
         '-S', '--git-export-dir=%s' % output,
         '--git-ignore-new', '--git-retag', '--git-tag', tag, '-uc', '-us'])
     return tag_name
+
 def main(args):
     stamp = datetime.datetime.now(dateutil.tz.tzlocal())
     stack_yaml = parse_stack_yaml(args.upstream, args.rosdistro, args.repo_uri, args=args)
