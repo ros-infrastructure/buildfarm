@@ -38,7 +38,7 @@ def parse_options():
     parser.add_argument('--output', help='The result of source deb building will go here. For debuging purposes. Default: %(default)s', default='./sourcedeb-build')
     parser.add_argument('--distros', nargs='+',
             help='A list of debian distros. Default: %(default)s',
-            default=['lucid', 'maverick', 'natty', 'oneiric', 'precise'])
+            default=['lucid', 'natty', 'oneiric'])
     parser.add_argument('--rosdep', help='Location of the remote rosdep database.', default='git://github.com/ros/rosdep_rules.git')
     parser.add_argument('--push', dest='push', help='Push it to your remote repo?', action='store_true')
     parser.add_argument('--first-release', dest='first_release', help='Is this your first release?', action='store_true')
@@ -194,7 +194,7 @@ def find_deps(stack_yaml, rosdeb_db, distro):
         elif type(dep_def) == dict:
             update_deps(ubuntu_deps, dep, dep_def[distro], distro) #recurse
         else:
-            raise RuntimeError("Poorly formatted rosdep for %s", dep)
+            raise RuntimeError("Poorly formatted rosdep for %s (type is %s) which isnt dict or str" % (dep, type(dep_def)))
     deps = stack_yaml['Depends']
     ubuntu_deps = set()
     for dep in deps:
