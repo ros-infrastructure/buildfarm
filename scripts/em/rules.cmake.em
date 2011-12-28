@@ -19,7 +19,6 @@ export DH_OPTIONS=-v
 #
 override_dh_auto_configure:
 	dh_auto_configure -Scmake -- \
-		-DCATKIN=YES \
 		-DCMAKE_INSTALL_PREFIX="@(INSTALL_PREFIX)" \
 		-DCMAKE_PREFIX_PATH="@(INSTALL_PREFIX)"
 
