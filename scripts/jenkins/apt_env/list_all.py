@@ -71,7 +71,7 @@ if __name__ == "__main__":
     distros = ['lucid', 'natty', 'oneiric']
 
 
-    ros_repos = [('http://50.28.27.175/repos/building', 'ros')]
+    ros_repos = {'ros': 'http://50.28.27.175/repos/building'}
 
     packages = {}
 

@@ -9,16 +9,22 @@ import pprint
 def parse_options():
     parser = argparse.ArgumentParser(
              description='setup a directory to be used as a rootdir for apt')
-    parser.add_argument('--fqdn', dest='fqdn',
-           help='The source repo to push to, fully qualified something...',
-           default='50.28.27.175')
+    parser.add_argument('--repo', dest='repo_urls', action='append',metavar=['REPO_NAME@REPO_URL'],
+           help='The name for the source and the url such as ros@http://50.28.27.175/repos/building')
     parser.add_argument(dest='distro',
            help='The debian release distro, lucid, oneiric, etc')
     parser.add_argument(dest='architecture',
            help='The debian binary architecture. amd64, i386, armel')
     parser.add_argument(dest='rootdir',
            help='The rootdir to use')
-    return parser.parse_args()
+    args = parser.parse_args()
+    
+    for a in args.repo_urls:
+        if not '@' in a:
+            parser.error("Invalid repo definition: %s"%a)
+    
+
+    return args
 
 class Templates(object):
     template_dir = os.path.dirname(__file__)
@@ -82,7 +88,7 @@ def set_additional_sources(rootdir, distro, repo, source_name):
         sources_list.write(expand_file(Templates.ros_sources, d))
     
 
-def setup_apt_rootdir(rootdir, distro, arch, mirror=None, additional_repos = []):
+def setup_apt_rootdir(rootdir, distro, arch, mirror=None, additional_repos = {}):
     setup_directories(rootdir)
     setup_conf(rootdir, arch)
     if not mirror:
@@ -90,15 +96,27 @@ def setup_apt_rootdir(rootdir, distro, arch, mirror=None, additional_repos = [])
     else:
         repo = mirror
     set_default_sources(rootdir, distro, repo)
-    for repo_url, repo_name in additional_repos:
+    for repo_name, repo_url in additional_repos.iteritems():
         set_additional_sources(rootdir, distro, repo_url, repo_name)
 
+def parse_repo_args(repo_args):
+    """ Split the repo argument listed as "repo_name@repo_url" into a map"""
+    ros_repos = {}
+    
+    for a in repo_args:
+        n, u = a.split('@')
+        ros_repos[n] = u
+
+    return ros_repos
 
 def doit():
     args = parse_options()
-    print(args)
+    #print(args)
+    #print( [a.split('@') for a in args.repo_urls] )
+    
+            
 
-    ros_repos = [('http://50.28.27.175/repos/building', 'ros')]
+    ros_repos = parse_repo_args(args.repo_urls)
 
     setup_apt_rootdir(args.rootdir, args.distro, args.architecture, additional_repos = ros_repos) 
 
