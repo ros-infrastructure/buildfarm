@@ -28,7 +28,7 @@ def parse_options():
     parser.add_argument('--username',dest='username')
     parser.add_argument('--password',dest='password')
     args = parser.parse_args()
-    if args.commit and not args.username or not args.password:
+    if args.commit and ( not args.username or not args.password ):
         print('If you are going to commit, you need a username and pass.',file=sys.stderr)
         sys.exit(1)
     return parser.parse_args()
