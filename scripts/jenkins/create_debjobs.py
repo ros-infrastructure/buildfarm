@@ -3,11 +3,11 @@
 from __future__ import print_function
 import em
 import os
+import sys
 from xml.sax.saxutils import escape
 import argparse
 import pprint
 from construct_graph import topological_sort, buildable_graph_from_dscs
-
 def parse_options():
     parser = argparse.ArgumentParser(
              description='Create a set of jenkins jobs '
@@ -25,6 +25,12 @@ def parse_options():
     parser.add_argument(dest='release_uri',
            help='A release repo uri..')
     parser.add_argument('--dscs', dest='dscs', help='A directory with all the dscs that jenkins builds.')
+    parser.add_argument('--username',dest='username')
+    parser.add_argument('--password',dest='password')
+    args = parser.parse_args()
+    if args.commit and ( not args.username or not args.password ):
+        print('If you are going to commit, you need a username and pass.',file=sys.stderr)
+        sys.exit(1)
     return parser.parse_args()
 
 class Templates(object):
@@ -41,9 +47,10 @@ def expand(config_template, d):
     s = em.expand(file_em, **d)
     return s
 
-def create_jenkins(jobname, config):
+def create_jenkins(jobname, config, username, password):
     import jenkins
-    j = jenkins.Jenkins('http://hudson.willowgarage.com:8080', 'username', 'password')
+    j = jenkins.Jenkins('http://hudson.willowgarage.com:8080',
+            username, password)
     jobs = j.get_jobs()
     print("working on job", jobname)
     if jobname in [job['name'] for job in jobs]:
@@ -144,7 +151,7 @@ def doit():
     jobs = [source_job] + binary_jobs
     for job_name, config in jobs:
         if args.commit:
-            create_jenkins(job_name, config)
+            create_jenkins(job_name, config, args.username, args.password)
 
     print("="*80)
     print ("Summary: %d jobs configured.  Listed below." % len(jobs))
