@@ -19,6 +19,11 @@ def parse_options():
            help='The rootdir to use')
     args = parser.parse_args()
     
+
+    if not args.repo_urls:
+        #default to devel machine for now
+        args.repo_urls = ['ros@http://50.28.27.175/repos/building']
+        
     for a in args.repo_urls:
         if not '@' in a:
             parser.error("Invalid repo definition: %s"%a)
