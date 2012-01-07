@@ -16,7 +16,19 @@ def parse_options():
                         help="substring to filter packages displayed")
     parser.add_argument("-u", "--update", dest="update", action='store_true', default=False, 
                         help="update the cache from the server")
-    return parser.parse_args()
+    parser.add_argument('--repo', dest='repo_urls', action='append',metavar=['REPO_NAME@REPO_URL'],
+           help='The name for the source and the url such as ros@http://50.28.27.175/repos/building')
+
+    args = parser.parse_args()
+
+    # default for now to use our devel server
+    if not args.repo_urls:
+        args.repo_urls =['ros@http://50.28.27.175/repos/building']
+    for a in args.repo_urls:
+        if not '@' in a:
+            parser.error("Invalid repo definition: %s"%a)
+
+    return args
 
 def list_packages(rootdir, update, substring):
     c = apt.Cache(rootdir=rootdir)
@@ -39,6 +51,10 @@ def render_vertical(packages):
     all_packages = set()
     for v in packages.itervalues():
         all_packages.update(v)
+
+    if len(all_packages) == 0:
+        print "no packages found matching string" 
+        return
 
     width = max([len(p) for p in all_packages])
     pstr = "package"
@@ -71,7 +87,7 @@ if __name__ == "__main__":
     distros = ['lucid', 'natty', 'oneiric']
 
 
-    ros_repos = {'ros': 'http://50.28.27.175/repos/building'}
+    ros_repos = setup_apt_root.parse_repo_args(args.repo_urls)
 
     packages = {}
 
