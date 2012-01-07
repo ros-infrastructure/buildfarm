@@ -56,7 +56,7 @@ sudo apt-get update -c $rootdir/apt.conf
 sudo apt-get source $DEBPACKAGE -c $rootdir/apt.conf
 
 # Setup the pbuilder environment if not existing, or update
-if [ ! -e $basetgz ]
+if [ ! -e $basetgz ] || [ ! -s $basetgz ] 
 then
   sudo pbuilder create \
     --distribution $distro \
