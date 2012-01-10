@@ -1,4 +1,8 @@
 #!/bin/bash -x
+
+#stop on error
+set -o errexit
+
 ROS_REPO_FQDN=@(FQDN)
 ROS_PACKAGE_REPO=@(ROS_PACKAGE_REPO)
 PACKAGE=@(PACKAGE)
