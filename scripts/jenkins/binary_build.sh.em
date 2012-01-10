@@ -13,6 +13,7 @@ DEBPACKAGE=ros-$ROS_DISTRO-@(PACKAGE.replace('_','-'))
 base=/var/cache/pbuilder-$ROS_DISTRO-$distro-$arch
 
 rootdir=$base/apt-conf
+aptconffile=$WORKSPACE/apt.conf
 
 basetgz=$base/base.tgz
 output_dir=$WORKSPACE/output
@@ -30,9 +31,7 @@ fi
 
 #setup the cross platform apt environment
 # using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary.
-echo "setting up apt_root"
-sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch $rootdir
-echo "results of setup $?"
+sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE
 
 # Check if this package exists, and call update which will update the cache, following calls don't need to update
 #if [ -e $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir $DEBPACKAGE -u ]
@@ -56,8 +55,8 @@ cd $work_dir
 
 
 
-sudo apt-get update -c $rootdir/apt.conf
-sudo apt-get source $DEBPACKAGE -c $rootdir/apt.conf
+sudo apt-get update -c $aptconfile
+sudo apt-get source $DEBPACKAGE -c $aptconfile
 
 # Setup the pbuilder environment if not existing, or update
 if [ ! -e $basetgz ] || [ ! -s $basetgz ] 

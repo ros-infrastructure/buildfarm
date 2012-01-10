@@ -17,6 +17,8 @@ def parse_options():
            help='The debian binary architecture. amd64, i386, armel')
     parser.add_argument(dest='rootdir',
            help='The rootdir to use')
+    parser.add_option('--local-conf-dir',dest=local_conf,
+                      help='A directory to write an apt-conf to use with apt-get update.')
     args = parser.parse_args()
     
 
@@ -65,12 +67,12 @@ def setup_directories(rootdir):
                 continue
             raise ex
 
-def setup_conf(rootdir, arch):
+def setup_conf(rootdir, arch, target_dir):
     """ Set the apt.conf config settings for the specific
     architecture. """
 
     d = {'rootdir':rootdir}
-    with open(os.path.join(rootdir, "apt.conf"), 'w') as apt_conf:
+    with open(os.path.join(target_dir, "apt.conf"), 'w') as apt_conf:
         apt_conf.write(expand_file(Templates.apt_conf, d))
 
     d = {'arch':arch}
@@ -95,7 +97,6 @@ def set_additional_sources(rootdir, distro, repo, source_name):
 
 def setup_apt_rootdir(rootdir, distro, arch, mirror=None, additional_repos = {}):
     setup_directories(rootdir)
-    setup_conf(rootdir, arch)
     if not mirror:
         repo='http://us.archive.ubuntu.com/ubuntu/'
     else:
@@ -124,6 +125,8 @@ def doit():
     ros_repos = parse_repo_args(args.repo_urls)
 
     setup_apt_rootdir(args.rootdir, args.distro, args.architecture, additional_repos = ros_repos) 
+    if args.local_conf:
+        setup_conf(rootdir, arch, args.local_conf)
 
 
 if __name__ == "__main__":
