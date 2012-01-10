@@ -12,7 +12,7 @@ arch=@(ARCH)
 DEBPACKAGE=ros-$ROS_DISTRO-@(PACKAGE.replace('_','-'))
 base=/var/cache/pbuilder-$ROS_DISTRO-$distro-$arch
 
-rootdir=$WORKSPACE/apt-conf
+rootdir=$base/apt-conf
 
 basetgz=$base/base.tgz
 output_dir=$WORKSPACE/output
