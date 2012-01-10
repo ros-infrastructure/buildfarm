@@ -20,7 +20,7 @@ output_dir=$WORKSPACE/output
 work_dir=$WORKSPACE/work
 
 sudo apt-get update
-sudo apt-get install -y pbuilder # todo move to server setup, or confirm it's there
+sudo apt-get install -y pbuilder python-empy python-argparse # todo move to server setup, or confirm it's there
 
 if [ ! -e catkin-debs/.git ]
 then
