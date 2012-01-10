@@ -58,6 +58,9 @@ sudo apt-get source $DEBPACKAGE -c $rootdir/apt.conf
 # Setup the pbuilder environment if not existing, or update
 if [ ! -e $basetgz ] || [ ! -s $basetgz ] 
 then
+  #make sure the base dir exists
+  sudo mkdir -p $base
+  #create the base image
   sudo pbuilder create \
     --distribution $distro \
     --aptconfdir $rootdir \
