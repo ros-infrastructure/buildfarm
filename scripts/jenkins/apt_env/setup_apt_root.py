@@ -126,7 +126,7 @@ def doit():
 
     setup_apt_rootdir(args.rootdir, args.distro, args.architecture, additional_repos = ros_repos) 
     if args.local_conf:
-        setup_conf(rootdir, arch, args.local_conf)
+        setup_conf(args.rootdir, args.architecture, args.local_conf)
 
 
 if __name__ == "__main__":
