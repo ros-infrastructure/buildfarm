@@ -17,7 +17,7 @@ def parse_options():
            help='The debian binary architecture. amd64, i386, armel')
     parser.add_argument(dest='rootdir',
            help='The rootdir to use')
-    parser.add_argument('--local-conf-dir',dest=local_conf,
+    parser.add_argument('--local-conf-dir',dest='local_conf',
                       help='A directory to write an apt-conf to use with apt-get update.')
     args = parser.parse_args()
     
