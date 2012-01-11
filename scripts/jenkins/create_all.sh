@@ -13,5 +13,5 @@ for repo in \
     roscpp_core std_msgs common_msgs
 do
     ./create_debjobs.py fuerte git://github.com/wg-debs/${repo}.git \
-        --dscs export --commit
+        --dscs export --commit --username $1 --password $2
 done
