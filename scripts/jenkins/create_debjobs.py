@@ -7,7 +7,8 @@ import sys
 from xml.sax.saxutils import escape
 import argparse
 import pprint
-from construct_graph import topological_sort, buildable_graph_from_dscs
+import build_job_graph_from_dscs
+
 def parse_options():
     parser = argparse.ArgumentParser(
              description='Create a set of jenkins jobs '
@@ -24,7 +25,7 @@ def parse_options():
            help='Really?', action='store_true')
     parser.add_argument(dest='release_uri',
            help='A release repo uri..')
-    parser.add_argument('--dscs', dest='dscs', help='A directory with all the dscs that jenkins builds.')
+    parser.add_argument('--dscs', dest='dscs', help='A directory with all the dscs that jenkins builds.  If unspecified the dscs will be pulled from the repo into a tempdir.')
     parser.add_argument('--username',dest='username')
     parser.add_argument('--password',dest='password')
     args = parser.parse_args()
@@ -137,30 +138,30 @@ def deb_job_graph(dscs):
     graph = buildable_graph_from_dscs(dsc_list)
     return graph
 
-def doit():
-    args = parse_options()
-    job_graph = None
-    if args.dscs:
-        job_graph = deb_job_graph(args.dscs)
+def doit(release_uri, rosdistro, distros, fqdn, job_graph, commit=False, username = None, password = None):
 
-    package = os.path.splitext(os.path.basename(args.release_uri))[0]
+    package = os.path.splitext(os.path.basename(release_uri))[0]
 
-    binary_jobs = binarydeb_jobs(package, args.rosdistro, args.distros, args.fqdn, job_graph)
+    binary_jobs = binarydeb_jobs(package, rosdistro, distros, fqdn, job_graph)
     child_projects = zip(*binary_jobs)[0] #unzip the binary_jobs tuple.
-    source_job = sourcedeb_job(package, args.rosdistro, args.distros, args.fqdn, args.release_uri, child_projects)
+    source_job = sourcedeb_job(package, rosdistro, distros, fqdn, release_uri, child_projects)
     jobs = [source_job] + binary_jobs
     for job_name, config in jobs:
-        if args.commit:
-            create_jenkins(job_name, config, args.username, args.password)
+        if commit:
+            create_jenkins(job_name, config, username, password)
 
     print("="*80)
     print ("Summary: %d jobs configured.  Listed below." % len(jobs))
     for job_name, config in jobs:
         print ("  %s" % job_name)
-    if not args.commit:
+    if not commit:
         print("This was not pushed to the server.  If you want to do so use ",
               "--commit to do it for real.")
     print("="*80)
 
 if __name__ == "__main__":
-    doit()
+    args = parse_options()
+    repo = "http://"+args.fqdn+"/repos/building"
+    job_graph = build_job_graph_from_dscs.build_graph(repo, args.dscs)
+
+    doit(args.release_uri, args.rosdistro, args.distros, args.fqdn, job_graph, args.commit, args.username, args.password)
