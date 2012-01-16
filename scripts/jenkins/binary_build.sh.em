@@ -15,7 +15,10 @@ base=/var/cache/pbuilder-$ROS_DISTRO-$distro-$arch
 rootdir=$base/apt-conf
 aptconffile=$WORKSPACE/apt.conf
 
-basetgz=$base/base.tgz
+#increment this value if you have changed something that will invalidate base tarballs. #TODO this will need cleanup eventually.
+basetgz_version=0 
+
+basetgz=$base/base-$basetgz_version.tgz
 output_dir=$WORKSPACE/output
 work_dir=$WORKSPACE/work
 
@@ -57,6 +60,8 @@ cd $work_dir
 
 sudo apt-get update -c $aptconffile
 sudo apt-get source $DEBPACKAGE -c $aptconffile
+
+sudo rm -rf $basetgz
 
 # Setup the pbuilder environment if not existing, or update
 if [ ! -e $basetgz ] || [ ! -s $basetgz ] 
