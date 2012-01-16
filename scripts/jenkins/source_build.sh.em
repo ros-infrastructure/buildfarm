@@ -3,7 +3,7 @@ RELEASE_URI=@(RELEASE_URI)
 ROS_DISTRO=@(ROS_DISTRO)
 FQDN=@(FQDN)
 
-sudo apt-get install -y git-buildpackage dput
+sudo apt-get install -y git-buildpackage dput debhelper
 
 if [ ! -e catkin-debs/.git ]
 then
