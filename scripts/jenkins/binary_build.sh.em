@@ -12,11 +12,13 @@ arch=@(ARCH)
 DEBPACKAGE=ros-$ROS_DISTRO-@(PACKAGE.replace('_','-'))
 base=/var/cache/pbuilder-$ROS_DISTRO-$distro-$arch
 
-rootdir=$base/apt-conf
+
 aptconffile=$WORKSPACE/apt.conf
 
 #increment this value if you have changed something that will invalidate base tarballs. #TODO this will need cleanup eventually.
-basetgz_version=0 
+basetgz_version=0
+
+rootdir=$base/apt-conf-$basetgz_version
 
 basetgz=$base/base-$basetgz_version.tgz
 output_dir=$WORKSPACE/output
@@ -71,7 +73,7 @@ then
   #create the base image
   sudo pbuilder create \
     --distribution $distro \
-    --aptconfdir $rootdir \
+    --aptconfdir $rootdir/etc/apt \
     --basetgz $basetgz \
     --architecture $arch
 else
