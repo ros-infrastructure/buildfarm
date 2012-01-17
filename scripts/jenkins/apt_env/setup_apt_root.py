@@ -67,7 +67,7 @@ def setup_directories(rootdir):
                 continue
             raise ex
 
-def setup_conf(rootdir, arch, target_dir):
+def setup_conf(rootdir, target_dir):
     """ Set the apt.conf config settings for the specific
     architecture. """
 
@@ -75,9 +75,6 @@ def setup_conf(rootdir, arch, target_dir):
     with open(os.path.join(target_dir, "apt.conf"), 'w') as apt_conf:
         apt_conf.write(expand_file(Templates.apt_conf, d))
 
-    d = {'arch':arch}
-    with open(os.path.join(rootdir, "etc/apt/apt.conf.d/51Architecture"), 'w') as arch_conf:
-        arch_conf.write(expand_file(Templates.arch_conf, d))
 
     
 def set_default_sources(rootdir, distro, repo):
@@ -105,6 +102,12 @@ def setup_apt_rootdir(rootdir, distro, arch, mirror=None, additional_repos = {})
     for repo_name, repo_url in additional_repos.iteritems():
         set_additional_sources(rootdir, distro, repo_url, repo_name)
 
+    d = {'arch':arch}
+    path = os.path.join(rootdir, "etc/apt/apt.conf.d/51Architecture")
+    with open(path, 'w') as arch_conf:
+        arch_conf.write(expand_file(Templates.arch_conf, d))
+
+
 def parse_repo_args(repo_args):
     """ Split the repo argument listed as "repo_name@repo_url" into a map"""
     ros_repos = {}
@@ -126,7 +129,7 @@ def doit():
 
     setup_apt_rootdir(args.rootdir, args.distro, args.architecture, additional_repos = ros_repos) 
     if args.local_conf:
-        setup_conf(args.rootdir, args.architecture, args.local_conf)
+        setup_conf(args.rootdir, args.local_conf)
 
 
 if __name__ == "__main__":
