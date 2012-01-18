@@ -57,7 +57,6 @@ def list_packages(rootdir, update, substring):
     return packages
 
 def get_packages(rootdir, update, substring, dest_dir = '.'):
-    print "processing rootdir", rootdir
     c = apt.Cache(rootdir=rootdir)
     c.open()
 
@@ -70,10 +69,9 @@ def get_packages(rootdir, update, substring, dest_dir = '.'):
     for p in [k for k in c.keys() if args.substring in k]:
         pack = c[p]
         v = pack.candidate #versions[0]
-        print ">>>>>>>>>>>>>>gettingt p", p, "arch",v.architecture, 
-        v.fetch_binary(destdir=dest_dir)
-        print "<<<<<<<<<<<<<<got p", p
-
+        print "fetching packge", p, " for arch",v.architecture, 
+        # This is going to throw some nasty tracebacks but it's just for the screen printing. https://bugs.launchpad.net/ubuntu/+source/apt/+bug/684785
+        v.fetch_binary(destdir=dest_dir) 
 
 
 def render_vertical(packages):
