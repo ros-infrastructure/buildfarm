@@ -5,7 +5,6 @@ import os
 import subprocess
 from subprocess import Popen, CalledProcessError
 import re
-from catkin_release import check_local_repo_exists, call, make_working
 
 def parse_options():
     import argparse
@@ -16,6 +15,23 @@ def parse_options():
     parser.add_argument('--output', help='The result of source deb building will go here. Default: %(default)s', default='/tmp/catkin_debs')
     parser.add_argument(dest='rosdistro', help='The ros distro. electric, fuerte, galapagos')
     return parser.parse_args()
+
+def make_working(working_dir):
+    if not os.path.exists(working_dir):
+        os.makedirs(working_dir)
+
+def call(working_dir, command, pipe=None):
+    print('+ cd %s && ' % working_dir + ' '.join(command))
+    process = Popen(command, stdout=pipe, stderr=pipe, cwd=working_dir)
+    output, unused_err = process.communicate()
+    retcode = process.poll()
+    if retcode:
+        raise CalledProcessError(retcode, command)
+    if pipe:
+        return output
+
+def check_local_repo_exists(repo_path):
+    return os.path.exists(os.path.join(repo_path, '.git'))
 
 def update_repo(working_dir, repo_path, repo_uri):
     if check_local_repo_exists(repo_path):
