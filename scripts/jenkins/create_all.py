@@ -9,6 +9,8 @@ import urllib2
 import build_job_graph_from_dscs
 import create_debjobs
 
+URL_PROTOTYPE="https://raw.github.com/willowgarage/3rdparty-debbuilds/master/%s.yaml"
+
 def parse_options():
     parser = argparse.ArgumentParser(
              description='Create a set of jenkins jobs '
@@ -51,7 +53,7 @@ if __name__ == "__main__":
     repo = "http://"+args.fqdn+"/repos/building"
     job_graph = build_job_graph_from_dscs.build_graph(repo, args.dscs)
 
-    repo_map = yaml.load(urllib2.urlopen("https://raw.github.com/willowgarage/3rdparty-debbuilds/master/%s.yaml"%args.rosdistro))
+    repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%args.rosdistro))
     print (repo_map)
     
 
