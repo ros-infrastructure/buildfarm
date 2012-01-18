@@ -14,7 +14,6 @@ Contents:
   
    brainstorm.rst
    conventions.rst
-   release.rst
    build.rst
    binaries.rst
    jenkins.rst
