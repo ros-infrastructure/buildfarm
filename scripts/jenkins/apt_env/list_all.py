@@ -42,33 +42,41 @@ def list_packages(rootdir, update, substring):
     packages = []
     for p in [k for k in c.keys() if args.substring in k]:
         v = c[p].versions[0]
-        packages.append(p)
+        packages.append(c[p])
 
     return packages
 
 
 def render_vertical(packages):
-    all_packages = set()
+    all_package_names = set()
+    package_map = {}
     for v in packages.itervalues():
-        all_packages.update(v)
+        all_package_names.update([p.name for p in v])
 
-    if len(all_packages) == 0:
-        print "no packages found matching string" 
+    if len(all_package_names) == 0:
+        print "no packages found matching substring" 
         return
 
-    width = max([len(p) for p in all_packages])
+    width = max([len(p) for p in all_package_names])
     pstr = "package"
     print pstr, " "*(width-len(pstr)), ":",
     for k in packages.iterkeys():
         print k, "|",
     print '' 
 
-    for p in all_packages:
+    
+
+    for p in all_package_names:
         l = len(p)
         print p, " "*(width-l), ":",
         for k  in packages.iterkeys():
-            if p in packages[k]:
-                print 'x'*len(k),'|', 
+            pkg_name_lookup = {}
+            for pkg in packages[k]:
+                pkg_name_lookup[pkg.name] = pkg
+            if p in pkg_name_lookup:
+                version_string = pkg_name_lookup[p].candidate.version
+                print version_string[:len(k)],'|',
+                #, 'x'*len(k),'|', 
             else:
                 print ' '*len(k),'|', 
         print ''
@@ -84,7 +92,7 @@ if __name__ == "__main__":
         rootdir = tempfile.mkdtemp()
         
     arches = ['i386', 'amd64']
-    distros = ['lucid', 'natty', 'oneiric']
+    distros = ['lucid', 'oneiric']
 
 
     ros_repos = setup_apt_root.parse_repo_args(args.repo_urls)
