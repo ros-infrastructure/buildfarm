@@ -48,11 +48,14 @@ def list_packages(rootdir, update, substring):
 
 
 def render_vertical(packages):
-    all_package_names = set()
+    all_package_names_set = set()
     package_map = {}
     for v in packages.itervalues():
-        all_package_names.update([p.name for p in v])
+        all_package_names_set.update([p.name for p in v])
 
+    all_package_names = list(all_package_names_set)
+    all_package_names.sort()
+    
     if len(all_package_names) == 0:
         print "no packages found matching substring" 
         return
