@@ -47,7 +47,7 @@ sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $a
 
 # check precondition that all dependents exist, don't check if no dependencies
 @[if DEPENDENTS]
-sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir @(' '.join(DEPENDENTS)) -u
+sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/assert_package_dependencies_present.py $rootdir $aptconffile  $DEBPACKAGE -u
 @[end if]
 
 sudo rm -rf $output_dir
