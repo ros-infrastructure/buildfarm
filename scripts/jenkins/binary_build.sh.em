@@ -120,7 +120,9 @@ DELIM
 
 echo "invalidation script contents for debugging:"
 cat invalidate.py
-python invalidate.py
+#python invalidate.py
+
+echo "INVALIDATION NOT BEING RUN due to promisquity !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 
 # push the new deb, config followed by execution
 echo "
