@@ -109,7 +109,7 @@ sudo pbuilder  --build \
 cat > invalidate.py << DELIM
 #!/usr/bin/env python
 import paramiko
-cmd = "/usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (% ros-* ), Architecture (== $arch ), ( Depends (% $DEBPACKAGE,* ) | Depends (% *$DEBPACKAGE ) )\" "
+cmd = "/usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (% ros-* ), Architecture (== $arch ), ( Depends (% *$DEBPACKAGE,* ) | Depends (% *$DEBPACKAGE ) )\" "
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect('$ROS_REPO_FQDN', username='rosbuild')
