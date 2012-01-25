@@ -6,8 +6,15 @@ import os
 import sys
 from xml.sax.saxutils import escape
 import argparse
-import pprint
-import build_job_graph_from_dscs
+
+import yaml
+import tempfile
+import shutil
+import urllib2
+
+import dependency_walker
+
+URL_PROTOTYPE="https://raw.github.com/willowgarage/rosdistro/master/%s.yaml"
 
 def parse_options():
     parser = argparse.ArgumentParser(
@@ -25,7 +32,8 @@ def parse_options():
            help='Really?', action='store_true')
     parser.add_argument(dest='release_uri',
            help='A release repo uri..')
-    parser.add_argument('--dscs', dest='dscs', help='A directory with all the dscs that jenkins builds.  If unspecified the dscs will be pulled from the repo into a tempdir.')
+    parser.add_argument('--repo-workspace', dest='repos', action='store', 
+           help='A directory into which all the repositories will be checked out into.')
     parser.add_argument('--username',dest='username')
     parser.add_argument('--password',dest='password')
     args = parser.parse_args()
@@ -131,13 +139,6 @@ def sourcedeb_job(package, rosdistro, distros, fqdn, release_uri, child_projects
     )
     return  (sourcedeb_job_name(d), create_sourcedeb_config(d))
 
-def deb_job_graph(dscs):
-    dsc_list = []
-    for subdir, _, files in os.walk(dscs):
-        dsc_list += [os.path.join(subdir, f) for f in files if os.path.splitext(f)[1] in '.dsc']
-    graph = buildable_graph_from_dscs(dsc_list)
-    return graph
-
 def doit(release_uri, rosdistro, distros, fqdn, job_graph, commit=False, username = None, password = None):
 
     package = os.path.splitext(os.path.basename(release_uri))[0]
@@ -161,7 +162,21 @@ def doit(release_uri, rosdistro, distros, fqdn, job_graph, commit=False, usernam
 
 if __name__ == "__main__":
     args = parse_options()
-    repo = "http://"+args.fqdn+"/repos/building"
-    job_graph = build_job_graph_from_dscs.build_graph(repo, args.dscs)
 
-    doit(args.release_uri, args.rosdistro, args.distros, args.fqdn, job_graph, args.commit, args.username, args.password)
+    repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%args.rosdistro))
+
+    print ("Processing repositories:", repo_map)
+    
+    workspace = args.repos
+    try:
+        if not args.repos:
+            workspace = tempfile.mkdtemp()
+            
+        dependencies = dependency_walker.get_dependencies(workspace, repo_map)
+
+    finally:
+        if not args.repos:
+            shutil.rmtree(workspace)
+
+
+    doit(args.release_uri, args.rosdistro, args.distros, args.fqdn, dependencies, args.commit, args.username, args.password)
