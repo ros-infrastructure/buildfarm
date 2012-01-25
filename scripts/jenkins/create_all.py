@@ -9,7 +9,7 @@ import urllib2
 import build_job_graph_from_dscs
 import create_debjobs
 
-URL_PROTOTYPE="https://raw.github.com/willowgarage/3rdparty-debbuilds/master/%s.yaml"
+URL_PROTOTYPE="https://raw.github.com/willowgarage/rosdistro/master/%s.yaml"
 
 def parse_options():
     parser = argparse.ArgumentParser(
