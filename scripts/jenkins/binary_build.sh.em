@@ -120,7 +120,7 @@ DELIM
 
 echo "invalidation script contents for debugging:"
 cat invalidate.py
-python invalidate.py
+# commented out for now due to spurious failures. NOT ABI SAVE python invalidate.py
 
 # push the new deb, config followed by execution
 echo "
