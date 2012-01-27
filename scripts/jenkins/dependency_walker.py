@@ -3,7 +3,7 @@
 import vcstools
 import os
 import yaml
-
+import shutil
 
 def get_dependencies(workspace, repository_list):
     if not os.path.isdir(workspace):

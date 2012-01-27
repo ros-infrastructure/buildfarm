@@ -43,12 +43,18 @@ def doit(repo_map, rosdistro, distros, fqdn, jobs_graph, commit = False, usernam
 
     for r in repo_map:
         #TODO add distros parsing 
-        #distros = r['target']
-        #if r['target'] == 'all':
-        #    distros = 
-        print (r)
+        if 'target' in r:
+            if r['target'] == 'all':
+                #TODO HACK Load from targets.yaml on github/rosdistro
+                target_distros = ['lucid', 'oneiric']
+            else:
+                target_distros = r['target']
+        else:
+            target_distros = distros
+
+        print ("Configuring %s for %s"%(r['url'], target_distros))
         
-        create_debjobs.doit(r['url'], rosdistro, distros, fqdn, jobs_graph, commit, username, password)
+        create_debjobs.doit(r['url'], rosdistro, target_distros, fqdn, jobs_graph, commit, username, password)
 
     return
 
