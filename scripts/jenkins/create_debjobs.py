@@ -165,8 +165,6 @@ if __name__ == "__main__":
 
     repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%args.rosdistro))
 
-    print ("Processing repositories:", repo_map)
-    
     workspace = args.repos
     try:
         if not args.repos:
