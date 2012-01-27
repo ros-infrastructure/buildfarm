@@ -48,7 +48,7 @@ def list_debian_tags(repo_path):
     marked_tags = []
     for tag in tags.split('\n'):
         #TODO make this regex better...
-        m = re.search('debian/ros_(.+)_(\d+\.\d+\.\d+)(.+)_(.+)', tag)
+        m = re.search('debian/ros_(.+)_(\d+\.\d+\.\d+)(.*)_(.+)', tag)
         if m:
             ros_X = m.group(1)
             version = m.group(2)
