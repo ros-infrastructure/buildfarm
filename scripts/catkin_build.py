@@ -13,8 +13,14 @@ def parse_options():
             help='A read-only git buildpackage repo uri.')
     parser.add_argument('--working', help='A scratch build path. Default: %(default)s', default='/tmp/catkin_gbp')
     parser.add_argument('--output', help='The result of source deb building will go here. Default: %(default)s', default='/tmp/catkin_debs')
+    parser.add_argument('--package_prefix', help='Look for package with this prefix, default: ros_ROSDISTRO_', default=None)
     parser.add_argument(dest='rosdistro', help='The ros distro. electric, fuerte, galapagos')
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    #Preprocess package_prefix default
+    if args.package_prefix == None:
+        args.package_prefix = 'ros_%s_'%args.rosdistro
+    return args
 
 def make_working(working_dir):
     if not os.path.exists(working_dir):
@@ -42,13 +48,13 @@ def update_repo(working_dir, repo_path, repo_uri):
         command = ('gbp-clone', repo_uri)
         call(working_dir, command)
 
-def list_debian_tags(repo_path):
+def list_debian_tags(repo_path, package_prefix):
     tags = call(repo_path, ('git', 'tag', '-l', 'debian/*'), pipe=subprocess.PIPE)
     print(tags, end='')
     marked_tags = []
     for tag in tags.split('\n'):
         #TODO make this regex better...
-        m = re.search('debian/ros_(.+)_(\d+\.\d+\.\d+)(.+)_(.+)', tag)
+        m = re.search('debian/%s(\d+\.\d+\.\d+)(.+)_(.+)'%package_prefix, tag)
         if m:
             ros_X = m.group(1)
             version = m.group(2)
@@ -97,7 +103,7 @@ if __name__ == "__main__":
     repo_path = os.path.join(args.working, repo_base)
 
     update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=args.repo_uri)
-    tags = list_debian_tags(repo_path)
+    tags = list_debian_tags(repo_path, args.package_prefix)
     latest_tags = get_latest_tags(tags, args.rosdistro)
     for version, distro, ros_distro, tag in latest_tags:
         build_source_deb(repo_path, tag, version, ros_distro, distro, args.output)
