@@ -60,7 +60,7 @@ def list_debian_tags(repo_path, package_prefix):
             version = m.group(2)
             distro = m.group(3)
             marked_tags.append((version, distro, ros_X, tag))
-    else:
+    if not marked_tags:
         print("No debian tags?  Are you sure you pointed to the right repository?")
     marked_tags = sorted(marked_tags)
     marked_tags.reverse()
