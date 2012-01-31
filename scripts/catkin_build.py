@@ -54,16 +54,12 @@ def list_debian_tags(repo_path, package_prefix):
     marked_tags = []
     for tag in tags.split('\n'):
         #TODO make this regex better...
-        m = re.search('debian/%s(\d+\.\d+\.\d+)(.+)_(.+)'%package_prefix, tag)
+        m = re.search('debian/%s(\d+\.\d+\.\d+[^_]*)_.+'%package_prefix, tag)
         if m:
-            ros_X = m.group(1)
-            version = m.group(2)
-            distro = m.group(3)
-            marked_tags.append((version, distro, ros_X, tag))
+            version = m.group(1)
+            marked_tags.append((version, tag))
     if not marked_tags:
         print("No debian tags?  Are you sure you pointed to the right repository?")
-    marked_tags = sorted(marked_tags)
-    marked_tags.reverse()
     return marked_tags
 
 def version_cmp(v1, v2):
@@ -71,14 +67,9 @@ def version_cmp(v1, v2):
         return [int(x) for x in v.split(".")]
     return cmp(normalize(v1), normalize(v2))
 
-def get_latest_tags(tags, rosdistro):
+def get_latest_tags(tags,):
     #filter by ros distro
     print("All tags: %s" % tags)
-    tags = [x for x in tags if rosdistro in x]
-    print("Filtered tags: %s" % tags)
-    if len(tags) == 0:
-        print("No tags for ros distro %s... not sure what this means." % rosdistro)
-        return []
 
     #get a sorted set of version tags
     versions = sorted(list(set(zip(*tags)[0])), cmp=version_cmp)
@@ -88,10 +79,10 @@ def get_latest_tags(tags, rosdistro):
     latest = versions[0]
 
     #now find the set of tags that are have the version
-    latest_tags = [x for x in tags if latest in x]
+    latest_tags = [x for v, x in tags if latest == v ]
     return latest_tags
 
-def build_source_deb(repo_path, tag, version, ros_distro, distro, output):
+def build_source_deb(repo_path, tag, output):
     call(repo_path, ('git', 'checkout', tag))
     call(repo_path, ('git', 'buildpackage', '--git-export-dir=%s' % output,
         '--git-ignore-new', '-S', '-uc', '-us'))
@@ -104,6 +95,6 @@ if __name__ == "__main__":
 
     update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=args.repo_uri)
     tags = list_debian_tags(repo_path, args.package_prefix)
-    latest_tags = get_latest_tags(tags, args.rosdistro)
-    for version, distro, ros_distro, tag in latest_tags:
-        build_source_deb(repo_path, tag, version, ros_distro, distro, args.output)
+    latest_tags = get_latest_tags(tags)
+    for tag in latest_tags:
+        build_source_deb(repo_path, tag, args.output)
