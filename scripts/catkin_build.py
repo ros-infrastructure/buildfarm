@@ -52,14 +52,16 @@ def list_debian_tags(repo_path, package_prefix):
     tags = call(repo_path, ('git', 'tag', '-l', 'debian/*'), pipe=subprocess.PIPE)
     print(tags, end='')
     marked_tags = []
+    print ("tags", tags )
     for tag in tags.split('\n'):
         #TODO make this regex better...
-        m = re.search('debian/%s(\d+\.\d+\.\d+[^_]*)_.+'%package_prefix, tag)
+        regex_str = 'debian/%s(\d+\.\d+\.\d+[^_]*)_.+'%package_prefix
+        m = re.search(regex_str, tag)
         if m:
             version = m.group(1)
             marked_tags.append((version, tag))
     if not marked_tags:
-        print("No debian tags?  Are you sure you pointed to the right repository?")
+        print("No debian tags?  Are you sure you pointed to the right repository?, regex %s"%regex_str)
     return marked_tags
 
 def version_cmp(v1, v2):
