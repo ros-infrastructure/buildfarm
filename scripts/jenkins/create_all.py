@@ -70,7 +70,7 @@ if __name__ == "__main__":
         if not args.repos:
             workspace = tempfile.mkdtemp()
             
-        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map)
+        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map, args.rosdistro)
 
     finally:
         if not args.repos:

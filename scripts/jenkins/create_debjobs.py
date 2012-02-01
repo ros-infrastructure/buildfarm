@@ -98,7 +98,7 @@ def add_dependent_to_dict(packagename, jobgraph):
     dependents = {}
     if jobgraph:
         if packagename in jobgraph:
-            dependents =  jobgraph[pname]
+            dependents =  jobgraph[packagename]
 
     return dependents
 
