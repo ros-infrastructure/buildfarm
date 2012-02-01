@@ -39,9 +39,10 @@ def parse_options():
         sys.exit(1)
     return parser.parse_args()
 
-def doit(repo_map, rosdistro, distros, fqdn, jobs_graph, commit = False, username = None, password=None):
+def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, commit = False, username = None, password=None):
 
     for r in repo_map:
+        url = r['url']
         #TODO add distros parsing 
         if 'target' in r:
             if r['target'] == 'all':
@@ -54,7 +55,7 @@ def doit(repo_map, rosdistro, distros, fqdn, jobs_graph, commit = False, usernam
 
         print ("Configuring %s for %s"%(r['url'], target_distros))
         
-        create_debjobs.doit(r['url'], rosdistro, target_distros, fqdn, jobs_graph, commit, username, password)
+        create_debjobs.doit(url, package_names_by_url[url], target_distros, fqdn, jobs_graph, commit, username, password)
 
     return
 
@@ -69,10 +70,10 @@ if __name__ == "__main__":
         if not args.repos:
             workspace = tempfile.mkdtemp()
             
-        dependencies = dependency_walker.get_dependencies(workspace, repo_map)
+        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map)
 
     finally:
         if not args.repos:
             shutil.rmtree(workspace)
 
-    doit(repo_map, args.rosdistro, args.distros, args.fqdn, dependencies, args.commit, args.username, args.password)
+    doit(repo_map, package_names_by_url, args.distros, args.fqdn, dependencies, args.commit, args.username, args.password)

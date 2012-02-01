@@ -32,6 +32,8 @@ def parse_options():
            help='Really?', action='store_true')
     parser.add_argument(dest='release_uri',
            help='A release repo uri..')
+    parser.add_argument(dest='package_name',
+           help='The name for the package')
     parser.add_argument('--repo-workspace', dest='repos', action='store', 
            help='A directory into which all the repositories will be checked out into.')
     parser.add_argument('--username',dest='username')
@@ -67,8 +69,8 @@ def create_jenkins(jobname, config, username, password):
     else:
         j.create_job(jobname, config)
 
-def sourcedeb_job_name(d):
-    return "%(ROS_DISTRO)s_%(PACKAGE)s_sourcedeb" % d
+def sourcedeb_job_name(packagename):
+    return "%(packagename)s_sourcedeb" % locals()
 
 def create_sourcedeb_config(d):
     #Create the bash script the runs inside the job
@@ -80,36 +82,28 @@ def create_binarydeb_config(d):
     d['COMMAND'] = escape(expand(Templates.command_binarydeb, d))
     return expand(Templates.config_binarydeb, d)
 
-def binary_begin_end(d):
-    beginning = "ros-%(ROS_DISTRO)s-" % d
-    end = "_binarydeb_%(DISTRO)s_%(ARCH)s" % d
-    return (beginning, end)
 
-def binarydeb_job_name(d):
-    beginning, end = binary_begin_end(d)
-    return beginning + d['PACKAGE'].replace('_', '-') + end
+def binarydeb_job_name(packagename, distro, arch):
+    return "%(packagename)s_binarydeb_%(distro)s_%(arch)s" % locals()
 
-def calc_child_jobs(d, jobgraph):
+def calc_child_jobs(packagename, distro, arch, jobgraph):
     children = []
-    beginning, end = binary_begin_end(d)
     if jobgraph:
-        pname = beginning + d['PACKAGE'].replace('_', '-')
         for package,deps in jobgraph.iteritems():
-            if pname in deps:
-                children.append(package + end)
-    d["CHILD_PROJECTS"] = children
+            if packagename in deps:
+                children.append(binarydeb_job_name(package, distro, arch))
+    return children
 
-def add_dependent_to_dict(d, jobgraph):
-    beginning, end = binary_begin_end(d)
-    d["DEPENDENTS"] = set()
+def add_dependent_to_dict(packagename, jobgraph):
+    dependents = {}
     if jobgraph:
-        pname = beginning + d['PACKAGE'].replace('_', '-')
-        if pname in jobgraph:
-            d["DEPENDENTS"] =  jobgraph[pname]
+        if packagename in jobgraph:
+            dependents =  jobgraph[pname]
 
-def binarydeb_jobs(package, rosdistro, distros, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
+    return dependents
+
+def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
     d = dict(
-        ROS_DISTRO=rosdistro,
         DISTROS=distros,
         FQDN=fqdn,
         ROS_PACKAGE_REPO=ros_package_repo,
@@ -120,32 +114,31 @@ def binarydeb_jobs(package, rosdistro, distros, fqdn, jobgraph, ros_package_repo
         for arch in ('i386', 'amd64'):
             d['ARCH'] = arch
             d['DISTRO'] = distro
-            calc_child_jobs(d, jobgraph)
-            add_dependent_to_dict(d, jobgraph)
+            d["CHILD_PROJECTS"] = calc_child_jobs(package, distro, arch, jobgraph)
+            d["DEPENDENTS"] = add_dependent_to_dict(package, jobgraph)
             config = create_binarydeb_config(d)
             print(config)
-            job_name = binarydeb_job_name(d)
+            job_name = binarydeb_job_name(package, distro, arch)
             jobs.append((job_name, config))
     return jobs
 
-def sourcedeb_job(package, rosdistro, distros, fqdn, release_uri, child_projects):
+def sourcedeb_job(package, distros, fqdn, release_uri, child_projects):
     d = dict(
     RELEASE_URI=release_uri,
-    ROS_DISTRO=rosdistro,
     FQDN=fqdn,
     DISTROS=distros,
     CHILD_PROJECTS=child_projects,
     PACKAGE=package
     )
-    return  (sourcedeb_job_name(d), create_sourcedeb_config(d))
+    return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
-def doit(release_uri, rosdistro, distros, fqdn, job_graph, commit=False, username = None, password = None):
+def doit(release_uri, package, distros, fqdn, job_graph, commit=False, username = None, password = None):
 
-    package = os.path.splitext(os.path.basename(release_uri))[0]
+    #package = os.path.splitext(os.path.basename(release_uri))[0]
 
-    binary_jobs = binarydeb_jobs(package, rosdistro, distros, fqdn, job_graph)
+    binary_jobs = binarydeb_jobs(package, distros, fqdn, job_graph)
     child_projects = zip(*binary_jobs)[0] #unzip the binary_jobs tuple.
-    source_job = sourcedeb_job(package, rosdistro, distros, fqdn, release_uri, child_projects)
+    source_job = sourcedeb_job(package, distros, fqdn, release_uri, child_projects)
     jobs = [source_job] + binary_jobs
     for job_name, config in jobs:
         if commit:
@@ -170,11 +163,11 @@ if __name__ == "__main__":
         if not args.repos:
             workspace = tempfile.mkdtemp()
             
-        dependencies = dependency_walker.get_dependencies(workspace, repo_map)
+        (dependencies, pkg_by_url)  = dependency_walker.get_dependencies(workspace, repo_map, args.rosdistro)
 
     finally:
         if not args.repos:
             shutil.rmtree(workspace)
 
 
-    doit(args.release_uri, args.rosdistro, args.distros, args.fqdn, dependencies, args.commit, args.username, args.password)
+    doit(args.release_uri, args.package_name, args.distros, args.fqdn, dependencies, args.commit, args.username, args.password)

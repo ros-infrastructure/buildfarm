@@ -1,7 +1,7 @@
 #!/bin/bash
 RELEASE_URI=@(RELEASE_URI)
-ROS_DISTRO=@(ROS_DISTRO)
 FQDN=@(FQDN)
+PACKAGE=@(PACKAGE)
 
 sudo apt-get install -y git-buildpackage dput debhelper
 
@@ -15,7 +15,7 @@ fi
 rm -rf $WORKSPACE/output
 rm -rf $WORKSPACE/workspace
 
-catkin-debs/scripts/catkin_build.py $RELEASE_URI $ROS_DISTRO --working $WORKSPACE/workspace --output $WORKSPACE/output
+catkin-debs/scripts/catkin_build.py $RELEASE_URI $PACKAGE --working $WORKSPACE/workspace --output $WORKSPACE/output 
 ls $WORKSPACE/output
 cd $WORKSPACE/output
 

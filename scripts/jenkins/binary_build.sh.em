@@ -6,11 +6,9 @@ set -o errexit
 ROS_REPO_FQDN=@(FQDN)
 ROS_PACKAGE_REPO=@(ROS_PACKAGE_REPO)
 PACKAGE=@(PACKAGE)
-ROS_DISTRO=@(ROS_DISTRO)
 distro=@(DISTRO)
 arch=@(ARCH)
-DEBPACKAGE=ros-$ROS_DISTRO-@(PACKAGE.replace('_','-'))
-base=/var/cache/pbuilder-$ROS_DISTRO-$distro-$arch
+base=/var/cache/pbuilder-$distro-$arch
 
 
 aptconffile=$WORKSPACE/apt.conf
@@ -39,7 +37,7 @@ fi
 sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE
 
 # Check if this package exists, and call update which will update the cache, following calls don't need to update
-#if [ -e $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir $DEBPACKAGE -u ]
+#if [ -e $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir $PACKAGE -u ]
 #then
 #    echo "no need to run this deb already exists"
 #    exit 0
@@ -47,7 +45,7 @@ sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $a
 
 # check precondition that all dependents exist, don't check if no dependencies
 @[if DEPENDENTS]
-sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/assert_package_dependencies_present.py $rootdir $aptconffile  $DEBPACKAGE -u
+sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/assert_package_dependencies_present.py $rootdir $aptconffile  $PACKAGE -u
 @[end if]
 
 sudo rm -rf $output_dir
@@ -61,7 +59,7 @@ cd $work_dir
 
 
 sudo apt-get update -c $aptconffile
-sudo apt-get source $DEBPACKAGE -c $aptconffile
+sudo apt-get source $PACKAGE -c $aptconffile
 
 sudo rm -rf $basetgz
 
@@ -109,7 +107,7 @@ sudo pbuilder  --build \
 cat > invalidate.py << DELIM
 #!/usr/bin/env python
 import paramiko
-cmd = "/usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (% ros-* ), Architecture (== $arch ), ( Depends (% *$DEBPACKAGE,* ) | Depends (% *$DEBPACKAGE ) )\" "
+cmd = "/usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (% ros-* ), Architecture (== $arch ), ( Depends (% *$PACKAGE,* ) | Depends (% *$PACKAGE ) )\" "
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect('$ROS_REPO_FQDN', username='rosbuild')
