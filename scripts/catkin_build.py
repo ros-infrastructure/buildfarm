@@ -11,15 +11,11 @@ def parse_options():
     parser = argparse.ArgumentParser(description='Creates a set of source debs from a catkin gbp repo. Creates source debs from the latest upstream version.')
     parser.add_argument(dest='repo_uri',
             help='A read-only git buildpackage repo uri.')
+    parser.add_argument('package_name', help='The package name for the package we\'re building')
     parser.add_argument('--working', help='A scratch build path. Default: %(default)s', default='/tmp/catkin_gbp')
     parser.add_argument('--output', help='The result of source deb building will go here. Default: %(default)s', default='/tmp/catkin_debs')
-    parser.add_argument('--package_prefix', help='Look for package with this prefix, default: ros_ROSDISTRO_', default=None)
-    parser.add_argument(dest='rosdistro', help='The ros distro. electric, fuerte, galapagos')
     args = parser.parse_args()
 
-    #Preprocess package_prefix default
-    if args.package_prefix == None:
-        args.package_prefix = 'ros_%s_'%args.rosdistro
     return args
 
 def make_working(working_dir):
@@ -48,14 +44,14 @@ def update_repo(working_dir, repo_path, repo_uri):
         command = ('gbp-clone', repo_uri)
         call(working_dir, command)
 
-def list_debian_tags(repo_path, package_prefix):
+def list_debian_tags(repo_path, package_name):
     tags = call(repo_path, ('git', 'tag', '-l', 'debian/*'), pipe=subprocess.PIPE)
     print(tags, end='')
     marked_tags = []
     print ("tags", tags )
     for tag in tags.split('\n'):
         #TODO make this regex better...
-        regex_str = 'debian/%s(\d+\.\d+\.\d+[^_]*)_.+'%package_prefix
+        regex_str = 'debian/%s_(\d+\.\d+\.\d+[^_]*)_.+'%package_name
         m = re.search(regex_str, tag)
         if m:
             version = m.group(1)
@@ -96,7 +92,7 @@ if __name__ == "__main__":
     repo_path = os.path.join(args.working, repo_base)
 
     update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=args.repo_uri)
-    tags = list_debian_tags(repo_path, args.package_prefix)
+    tags = list_debian_tags(repo_path, args.package_name)
     latest_tags = get_latest_tags(tags)
     for tag in latest_tags:
         build_source_deb(repo_path, tag, args.output)
