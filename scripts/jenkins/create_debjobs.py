@@ -14,7 +14,7 @@ import urllib2
 
 import dependency_walker
 
-URL_PROTOTYPE="https://raw.github.com/willowgarage/rosdistro/master/%s.yaml"
+URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
 
 def parse_options():
     parser = argparse.ArgumentParser(
@@ -27,11 +27,9 @@ def parse_options():
            help='The ros distro. electric, fuerte, galapagos')
     parser.add_argument('--distros', nargs='+',
            help='A list of debian distros. Default: %(default)s',
-           default=['lucid', 'oneiric'])
+           default=[])
     parser.add_argument('--commit', dest='commit',
            help='Really?', action='store_true')
-    parser.add_argument(dest='release_uri',
-           help='A release repo uri..')
     parser.add_argument(dest='package_name',
            help='The name for the package')
     parser.add_argument('--repo-workspace', dest='repos', action='store', 
@@ -157,17 +155,63 @@ if __name__ == "__main__":
     args = parse_options()
 
     repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%args.rosdistro))
+    if 'release-name' not in repo_map:
+        print("No 'release-name' key in yaml file")
+        sys.exit(1)
+    if repo_map['release-name'] != args.rosdistro:
+        print('release-name mismatch (%s != %s)'%(repo_map['release-name'],args.rosdistro))
+        sys.exit(1)
+    if 'gbp-repos' not in repo_map:
+        print("No 'gbp-repos' key in yaml file")
+        sys.exit(1)
 
     workspace = args.repos
     try:
         if not args.repos:
             workspace = tempfile.mkdtemp()
             
-        (dependencies, pkg_by_url)  = dependency_walker.get_dependencies(workspace, repo_map, args.rosdistro)
+        (dependencies, pkg_by_url)  = dependency_walker.get_dependencies(workspace, repo_map['gbp-repos'], args.rosdistro)
 
     finally:
         if not args.repos:
             shutil.rmtree(workspace)
 
+    # Figure out default distros.  Command-line arg takes precedence; if
+    # it's not specified, then read targets.yaml.
+    if args.distros:
+        default_distros = args.distros
+    else:
+        print("Fetching " + URL_PROTOTYPE%'targets')
+        targets_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%'targets'))
+        my_targets = [x for x in targets_map if args.rosdistro in x]
+        if len(my_targets) != 1:
+            print("Must have exactly one entry for rosdistro %s in targets.yaml"%(args.rosdistro))
+            sys.exit(1)
+        default_distros = my_targets[0][args.rosdistro]
 
-    doit(args.release_uri, args.package_name, args.distros, args.fqdn, dependencies, args.commit, args.username, args.password)
+    # We take the intersection of repo-specific targets with default
+    # targets.
+    r = [x for x in repo_map['gbp-repos'] if 'name' in x and x['name'] == args.package_name]
+    if len(r) != 1:
+        print("No such package %s"%(args.package_name))
+        sys.exit(1)
+    r = r[0]
+    if 'url' not in r or 'name' not in r:
+        print("'name' and/or 'url' keys missing for repository %s; skipping"%(r))
+        sys.exit(0)
+    url = r['url']
+    if url not in pkg_by_url:
+        print("Repo %s is missing from the list; must have been skipped (e.g., for missing a stack.yaml)"%(r))
+        sys.exit(0)
+    if 'target' in r:
+        if r['target'] == 'all':
+            target_distros = default_distros
+        else:
+            target_distros = list(set(r['target']) & default_distros)
+    else:
+        target_distros = default_distros
+
+    print ("Configuring %s for %s"%(r['url'], target_distros))
+
+
+    doit(url, pkg_by_url[url], target_distros, args.fqdn, dependencies, args.commit, args.username, args.password)

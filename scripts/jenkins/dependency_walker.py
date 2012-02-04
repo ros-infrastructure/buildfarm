@@ -20,11 +20,14 @@ def get_dependencies(workspace, repository_list, rosdistro):
     package_urls = {}
 
 
-    print repository_list
+    #print repository_list
     for r in repository_list:
+        if 'url' not in r or 'name' not in r:
+            print "'name' and/or 'url' keys missing for repository %s; skipping"%(r)
+            continue
         url = r['url']
-        name = url.split('/')[-1][:-4]
-        print name, url
+        name = r['name']
+        print "Working on repository %s at %s..."%(name, url)
         workdir = os.path.join(workspace, name)
         client = vcstools.VcsClient('git', workdir)
         if client.path_exists():
@@ -36,7 +39,11 @@ def get_dependencies(workspace, repository_list, rosdistro):
         else:
             client.checkout(url)
 
-        with open(os.path.join(workdir, 'stack.yaml'), 'r') as f:
+        stack_yaml_path = os.path.join(workdir, 'stack.yaml')
+        if not os.path.isfile(stack_yaml_path):
+            print "Warning: no stack.yaml found in repository %s at %s; skipping"%(name, url)
+            continue
+        with open(stack_yaml_path, 'r') as f:
 
             stack_contents = yaml.load(f.read())
             catkin_project_name = stack_contents['Catkin-ProjectName']
@@ -48,7 +55,7 @@ def get_dependencies(workspace, repository_list, rosdistro):
                 packages[catkin_project_name] = sanitize_package_name("ros-%s-%s"%(rosdistro, catkin_project_name))
 
 
-            if 'Depends' in stack_contents:
+            if 'Depends' in stack_contents and stack_contents['Depends']:
                 dependencies[catkin_project_name] = stack_contents['Depends'].split(', ')
             else:
                 dependencies[catkin_project_name] = []
