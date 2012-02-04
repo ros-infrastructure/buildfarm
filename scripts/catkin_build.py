@@ -93,6 +93,9 @@ if __name__ == "__main__":
 
     update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=args.repo_uri)
     tags = list_debian_tags(repo_path, args.package_name)
+    if not tags:
+        print("No tags; bailing")
+        sys.exit(1)
     latest_tags = get_latest_tags(tags)
     for tag in latest_tags:
         build_source_deb(repo_path, tag, args.output)
