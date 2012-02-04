@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-import os
+import os, sys
 import subprocess
 from subprocess import Popen, CalledProcessError
 import re
