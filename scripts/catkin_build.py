@@ -63,7 +63,36 @@ def list_debian_tags(repo_path, package_name):
 def version_cmp(v1, v2):
     def normalize(v):
         return [int(x) for x in v.split(".")]
-    return cmp(normalize(v1), normalize(v2))
+    m = re.compile("(\d+\.\d+\.\d+)(.*)")
+    # separate version from suffix
+    g1 = m.match(v1).groups()
+    g2 = m.match(v2).groups()
+    ret = cmp(normalize(g1[0]), normalize(g2[0]))
+
+    # if version is the same, look at suffixes
+    if ret == 0:
+        # if there is no suffix, we have a 'full' version
+        # and cmp() places the epmty string before the other one,
+        # so we just need to reverse the sign
+        if len(g1[1]) == 0 or len(g2[1]) == 0:
+            return -cmp(g1[1], g2[1])
+
+        # if we have numbers (e.g.: 1.2.4-RC2) we order by them as well
+        m2 = re.compile("([^\d]*)(\d*)(.*)")
+        s1 = m2.match(g1[1]).groups()
+        s2 = m2.match(g2[1]).groups()
+
+        # order non-numeric suffix alphabetically
+        ret = cmp(s1[0], s2[0])
+        if ret == 0:
+            if len(s1[1]) == 0 or len(s2[1]) == 0:
+                return -cmp(s1[1], s2[1])
+            else:
+                # order increasingly for the numeric value in the suffix
+                ret = cmp(int(s1[1]), int(s2[1]))
+                if ret == 0:
+                    return -cmp(s1[2], s2[2])
+    return ret
 
 def get_latest_tags(tags,):
     #filter by ros distro
