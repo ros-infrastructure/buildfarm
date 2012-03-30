@@ -28,6 +28,13 @@ def get_dependencies(workspace, repository_list, rosdistro):
         url = r['url']
         name = r['name']
         print "Working on repository %s at %s..."%(name, url)
+        
+        if rosdistro == 'backports':
+            packages[name] = sanitize_package_name(name)
+            dependencies[name] = []
+            package_urls[name] = url
+            continue # skip downloading and yaml parsing
+
         workdir = os.path.join(workspace, name)
         client = vcstools.VcsClient('git', workdir)
         if client.path_exists():
@@ -60,7 +67,7 @@ def get_dependencies(workspace, repository_list, rosdistro):
             else:
                 dependencies[catkin_project_name] = []
 
-        package_urls[catkin_project_name] = url
+            package_urls[catkin_project_name] = url
 
     result = {}
     urls = {}
