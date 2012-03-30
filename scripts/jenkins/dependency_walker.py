@@ -29,11 +29,6 @@ def get_dependencies(workspace, repository_list, rosdistro):
         name = r['name']
         print "Working on repository %s at %s..."%(name, url)
         
-        if rosdistro == 'backports':
-            packages[name] = sanitize_package_name(name)
-            dependencies[name] = []
-            package_urls[name] = url
-            continue # skip downloading and yaml parsing
 
         workdir = os.path.join(workspace, name)
         client = vcstools.VcsClient('git', workdir)
@@ -48,7 +43,13 @@ def get_dependencies(workspace, repository_list, rosdistro):
 
         stack_yaml_path = os.path.join(workdir, 'stack.yaml')
         if not os.path.isfile(stack_yaml_path):
-            print "Warning: no stack.yaml found in repository %s at %s; skipping"%(name, url)
+            if rosdistro == 'backports':
+                packages[name] = sanitize_package_name(name)
+                dependencies[name] = []
+                package_urls[name] = url
+                print "Processing backport %s, no stack.yaml file found in repo %s. Continuing"%(name, url)
+            else:
+                print "Warning: no stack.yaml found in repository %s at %s; skipping"%(name, url)
             continue
         with open(stack_yaml_path, 'r') as f:
 
