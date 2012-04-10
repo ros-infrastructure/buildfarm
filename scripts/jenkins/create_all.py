@@ -59,6 +59,7 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, commit = Fal
 
     # We take the intersection of repo-specific targets with default
     # targets.
+    results = {}
     for r in repo_map['gbp-repos']:
         if 'url' not in r or 'name' not in r:
             print("'name' and/or 'url' keys missing for repository %s; skipping"%(r))
@@ -77,9 +78,10 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, commit = Fal
 
         print ("Configuring %s for %s"%(r['url'], target_distros))
         
-        create_debjobs.doit(url, package_names_by_url[url], target_distros, fqdn, jobs_graph, commit, username, password)
+        results[package_names_by_url[url]] = create_debjobs.doit(url, package_names_by_url[url], target_distros, fqdn, jobs_graph, commit, username, password)
+        print ("individual results", results[package_names_by_url[url]])
 
-    return
+    return results
 
 if __name__ == "__main__":
     args = parse_options()
@@ -108,4 +110,11 @@ if __name__ == "__main__":
         if not args.repos:
             shutil.rmtree(workspace)
 
-    doit(repo_map, package_names_by_url, args.distros, args.fqdn, dependencies, args.commit, args.username, args.password)
+    results_map = doit(repo_map, package_names_by_url, args.distros, args.fqdn, dependencies, args.commit, args.username, args.password)
+    for k, v in results_map.iteritems():
+        create_debjobs.summarize_results(*v)
+
+
+    if not args.commit:
+        print("This was not pushed to the server.  If you want to do so use ",
+              "--commit to do it for real.")

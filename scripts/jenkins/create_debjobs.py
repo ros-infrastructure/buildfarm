@@ -12,6 +12,9 @@ import tempfile
 import shutil
 import urllib2
 
+
+import jenkins
+
 import dependency_walker
 
 URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
@@ -57,15 +60,19 @@ def expand(config_template, d):
     return s
 
 def create_jenkins(jobname, config, username, password):
-    import jenkins
-    j = jenkins.Jenkins('http://hudson.willowgarage.com:8080',
-            username, password)
-    jobs = j.get_jobs()
-    print("working on job", jobname)
-    if jobname in [job['name'] for job in jobs]:
-        j.reconfig_job(jobname, config)
-    else:
-        j.create_job(jobname, config)
+    try:
+        j = jenkins.Jenkins('http://hudson.willowgarage.com:8080',
+                            username, password)
+        jobs = j.get_jobs()
+        print("working on job", jobname)
+        if jobname in [job['name'] for job in jobs]:
+            j.reconfig_job(jobname, config)
+        else:
+            j.create_job(jobname, config)
+        return True
+    except jenkins.JenkinsException, ex:
+        print("Failed to configure %s with error: %s"%(jobname, ex))
+        return False
 
 def sourcedeb_job_name(packagename):
     return "%(packagename)s_sourcedeb" % locals()
@@ -115,7 +122,7 @@ def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50
             d["CHILD_PROJECTS"] = calc_child_jobs(package, distro, arch, jobgraph)
             d["DEPENDENTS"] = add_dependent_to_dict(package, jobgraph)
             config = create_binarydeb_config(d)
-            print(config)
+            #print(config)
             job_name = binarydeb_job_name(package, distro, arch)
             jobs.append((job_name, config))
     return jobs
@@ -138,18 +145,33 @@ def doit(release_uri, package, distros, fqdn, job_graph, commit=False, username 
     child_projects = zip(*binary_jobs)[0] #unzip the binary_jobs tuple.
     source_job = sourcedeb_job(package, distros, fqdn, release_uri, child_projects)
     jobs = [source_job] + binary_jobs
+    successful_jobs = []
+    failed_jobs = []
     for job_name, config in jobs:
         if commit:
-            create_jenkins(job_name, config, username, password)
+            if create_jenkins(job_name, config, username, password):
+                successful_jobs.append(job_name)
+            else:
+                failed_jobs.append(job_name)
+    unattempted_jobs = [job for (job, config) in jobs if job not in successful_jobs and job not in failed_jobs]
 
+    return (unattempted_jobs, successful_jobs, failed_jobs)
+
+def summarize_results(unattempted_jobs, successful_jobs, failed_jobs):
     print("="*80)
+    jobs = set(unattempted_jobs).union(set(successful_jobs)).union(set(failed_jobs))
     print ("Summary: %d jobs configured.  Listed below." % len(jobs))
-    for job_name, config in jobs:
+    print ("Unexecuted: %d"%len(unattempted_jobs))
+    for job_name in unattempted_jobs:
         print ("  %s" % job_name)
-    if not commit:
-        print("This was not pushed to the server.  If you want to do so use ",
-              "--commit to do it for real.")
+    print ("Successful: %d"%len(successful_jobs))
+    for job_name in successful_jobs:
+        print ("  %s" % job_name)
+    print ("Failed: %d"%len(failed_jobs))
+    for job_name in failed_jobs:
+        print ("  %s" % job_name)
     print("="*80)
+
 
 if __name__ == "__main__":
     args = parse_options()
@@ -214,4 +236,8 @@ if __name__ == "__main__":
     print ("Configuring %s for %s"%(r['url'], target_distros))
 
 
-    doit(url, pkg_by_url[url], target_distros, args.fqdn, dependencies, args.commit, args.username, args.password)
+    results = doit(url, pkg_by_url[url], target_distros, args.fqdn, dependencies, args.commit, args.username, args.password)
+    summarize_results(*results)
+    if not args.commit:
+        print("This was not pushed to the server.  If you want to do so use ",
+              "--commit to do it for real.")
