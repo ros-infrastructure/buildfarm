@@ -5,13 +5,19 @@ import os
 import argparse
 import tempfile
 import shutil
+import yaml
+import urllib2
 
 import setup_apt_root
+
+URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
 
 def parse_options():
     parser = argparse.ArgumentParser(description="List all packages available in the repos for each arch.  Filter on substring if provided")
     parser.add_argument("--rootdir", dest="rootdir", default = None,
                         help='The directory for apt to use as a rootdir')
+    parser.add_argument("--rosdistro", dest='rosdistro', default = 'fuerte',
+           help='The ros distro. electric, fuerte, galapagos')
     parser.add_argument("--substring", dest="substring", default="", 
                         help="substring to filter packages displayed")
     parser.add_argument("-u", "--update", dest="update", action='store_true', default=False, 
@@ -63,7 +69,8 @@ def render_vertical(packages):
     width = max([len(p) for p in all_package_names])
     pstr = "package"
     print pstr, " "*(width-len(pstr)), ":",
-    for k in packages.iterkeys():
+    arch_distro_list = sorted(packages.iterkeys())
+    for k in arch_distro_list:
         print k, "|",
     print '' 
 
@@ -72,7 +79,7 @@ def render_vertical(packages):
     for p in all_package_names:
         l = len(p)
         print p, " "*(width-l), ":",
-        for k  in packages.iterkeys():
+        for k  in arch_distro_list:
             pkg_name_lookup = {}
             for pkg in packages[k]:
                 pkg_name_lookup[pkg.name] = pkg
@@ -94,8 +101,17 @@ if __name__ == "__main__":
     else:  
         rootdir = tempfile.mkdtemp()
         
+
     arches = ['i386', 'amd64']
-    distros = ['lucid', 'oneiric']
+    #distros = ['lucid', 'oneiric']
+
+    print("Fetching " + URL_PROTOTYPE%'targets')
+    targets_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%'targets'))
+    my_targets = [x for x in targets_map if args.rosdistro in x]
+    if len(my_targets) != 1:
+        print("Must have exactly one entry for rosdistro %s in targets.yaml"%(args.rosdistro))
+        sys.exit(1)
+    distros = my_targets[0][args.rosdistro]
 
 
     ros_repos = setup_apt_root.parse_repo_args(args.repo_urls)
