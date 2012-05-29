@@ -12,10 +12,12 @@ import tempfile
 import shutil
 import urllib2
 
+import rosdistro
 
 import jenkins
 
 import dependency_walker
+
 
 URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
 
@@ -127,23 +129,24 @@ def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50
             jobs.append((job_name, config))
     return jobs
 
-def sourcedeb_job(package, distros, fqdn, release_uri, child_projects):
+def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro):
     d = dict(
     RELEASE_URI=release_uri,
     FQDN=fqdn,
     DISTROS=distros,
     CHILD_PROJECTS=child_projects,
-    PACKAGE=package
+    PACKAGE=package,
+    ROSDISTRO=rosdistro
     )
     return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
-def doit(release_uri, package, distros, fqdn, job_graph, commit=False, username = None, password = None):
+def doit(release_uri, package, distros, fqdn, job_graph, rosdistro, commit=False, username = None, password = None):
 
     #package = os.path.splitext(os.path.basename(release_uri))[0]
 
     binary_jobs = binarydeb_jobs(package, distros, fqdn, job_graph)
     child_projects = zip(*binary_jobs)[0] #unzip the binary_jobs tuple.
-    source_job = sourcedeb_job(package, distros, fqdn, release_uri, child_projects)
+    source_job = sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro)
     jobs = [source_job] + binary_jobs
     successful_jobs = []
     failed_jobs = []
@@ -176,16 +179,10 @@ def summarize_results(unattempted_jobs, successful_jobs, failed_jobs):
 if __name__ == "__main__":
     args = parse_options()
 
-    repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%args.rosdistro))
-    if 'release-name' not in repo_map:
-        print("No 'release-name' key in yaml file")
-        sys.exit(1)
-    if repo_map['release-name'] != args.rosdistro:
-        print('release-name mismatch (%s != %s)'%(repo_map['release-name'],args.rosdistro))
-        sys.exit(1)
-    if 'gbp-repos' not in repo_map:
-        print("No 'gbp-repos' key in yaml file")
-        sys.exit(1)
+    rd = rosdistro.Rosdistro(args.rosdistro)
+
+    # backwards compatability
+    repo_map = rd.repo_map 
 
     workspace = args.repos
     try:
@@ -203,13 +200,7 @@ if __name__ == "__main__":
     if args.distros:
         default_distros = args.distros
     else:
-        print("Fetching " + URL_PROTOTYPE%'targets')
-        targets_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%'targets'))
-        my_targets = [x for x in targets_map if args.rosdistro in x]
-        if len(my_targets) != 1:
-            print("Must have exactly one entry for rosdistro %s in targets.yaml"%(args.rosdistro))
-            sys.exit(1)
-        default_distros = my_targets[0][args.rosdistro]
+        default_distros = rosdistro.get_target_distros(args.rosdistro)
 
     # We take the intersection of repo-specific targets with default
     # targets.
@@ -236,7 +227,7 @@ if __name__ == "__main__":
     print ("Configuring %s for %s"%(r['url'], target_distros))
 
 
-    results = doit(url, pkg_by_url[url], target_distros, args.fqdn, dependencies, args.commit, args.username, args.password)
+    results = doit(url, pkg_by_url[url], target_distros, args.fqdn, dependencies, args.rosdistro, args.commit, args.username, args.password)
     summarize_results(*results)
     if not args.commit:
         print("This was not pushed to the server.  If you want to do so use ",
