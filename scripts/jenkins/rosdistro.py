@@ -21,6 +21,7 @@ class Rosdistro:
             sys.exit(1)
         self._repoinfo = {}
         for n in self.repo_map['gbp-repos']:
+            print n
             if 'name' in n and 'version' in n:
                 self._repoinfo[n['name']] = n['version']
 
