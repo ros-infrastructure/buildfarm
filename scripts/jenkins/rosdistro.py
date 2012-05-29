@@ -24,7 +24,7 @@ class Rosdistro:
             if 'name' in n and 'version' in n:
                 self._repoinfo[n['name']] = n['version']
 
-    def get_version(stack_name):
+    def get_version(self, stack_name):
         if stack_name in self._repoinfo:
             return self._repoinfo[stack_name]
         else:
