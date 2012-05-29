@@ -22,7 +22,7 @@ class Rosdistro:
         self._repoinfo = {}
         for n in self.repo_map['gbp-repos']:
             print n
-            if 'name' in n and 'version' in n:
+            if 'name' in n.keys() and 'version' in n.keys():
                 self._repoinfo[n['name']] = n['version']
 
     def get_version(self, stack_name):
