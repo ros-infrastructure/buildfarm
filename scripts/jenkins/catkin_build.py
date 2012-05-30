@@ -81,7 +81,7 @@ if __name__ == "__main__":
     repo_path = os.path.join(args.working, repo_base)
 
     update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=args.repo_uri)
-    tags = list_debian_tags(repo_path, args.short_package_name, package_version)
+    tags = list_debian_tags(repo_path, args.package_name, package_version)
     if not tags:
         print("No tags; bailing")
         sys.exit(1)

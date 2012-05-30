@@ -137,7 +137,7 @@ def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro
     CHILD_PROJECTS=child_projects,
     PACKAGE=package,
     ROSDISTRO=rosdistro,
-    SHORT_PACKAGE_NAME, short_package_name
+    SHORT_PACKAGE_NAME= short_package_name
     )
     return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
