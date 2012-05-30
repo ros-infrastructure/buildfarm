@@ -61,7 +61,6 @@ cd $work_dir
 sudo apt-get update -c $aptconffile
 sudo apt-get source $PACKAGE -c $aptconffile
 
-sudo rm -rf $basetgz
 
 # Setup the pbuilder environment if not existing, or update
 if [ ! -e $basetgz ] || [ ! -s $basetgz ] 
