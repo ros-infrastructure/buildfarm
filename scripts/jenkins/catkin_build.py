@@ -58,10 +58,9 @@ def list_debian_tags(repo_path, package_name, package_version):
         regex_str = 'debian/%s_%s_.+'%(package_name, package_version)
         m = re.search(regex_str, tag)
         if m:
-            version = m.group(1)
-            marked_tags.append((version, tag))
+            marked_tags.append(tag)
     if not marked_tags:
-        print("No matching tag found. Are you sure you pointed to the right repository or the version is right?, regex %s"%regex_str)
+        print("No matching tag found. Are you sure you pointed to the right repository or the version is right?, regex %s:\n Tags: %s"%(regex_str, tags))
     return marked_tags
 
 def build_source_deb(repo_path, tag, output):
