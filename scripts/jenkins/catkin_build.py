@@ -15,6 +15,7 @@ def parse_options():
             help='A read-only git buildpackage repo uri.')
     parser.add_argument('package_name', help='The package name for the package we\'re building')
     parser.add_argument('rosdistro', help='Which rosdistro to operate on')
+    parser.add_argument('short_package_name', help='The package name for the package we\'re building, w/o the debian extensions')
     parser.add_argument('--working', help='A scratch build path. Default: %(default)s', default='/tmp/catkin_gbp')
     parser.add_argument('--output', help='The result of source deb building will go here. Default: %(default)s', default='/tmp/catkin_debs')
     args = parser.parse_args()
@@ -73,13 +74,14 @@ if __name__ == "__main__":
 
     rd = rosdistro.Rosdistro(args.rosdistro)
 
-    package_version = rd.get_version(args.package_name)
-    print ("package name", args.package_name, "version", package_version)
+    package_version = rd.get_version(args.short_package_name)
+    print ("package name", args.short_package_name, "version", package_version)
+
     repo_base, extension = os.path.splitext(os.path.basename(args.repo_uri))
     repo_path = os.path.join(args.working, repo_base)
 
     update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=args.repo_uri)
-    tags = list_debian_tags(repo_path, args.package_name, package_version)
+    tags = list_debian_tags(repo_path, args.short_package_name, package_version)
     if not tags:
         print("No tags; bailing")
         sys.exit(1)

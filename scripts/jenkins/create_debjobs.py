@@ -129,24 +129,25 @@ def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50
             jobs.append((job_name, config))
     return jobs
 
-def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro):
+def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name):
     d = dict(
     RELEASE_URI=release_uri,
     FQDN=fqdn,
     DISTROS=distros,
     CHILD_PROJECTS=child_projects,
     PACKAGE=package,
-    ROSDISTRO=rosdistro
+    ROSDISTRO=rosdistro,
+    SHORT_PACKAGE_NAME, short_package_name
     )
     return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
-def doit(release_uri, package, distros, fqdn, job_graph, rosdistro, commit=False, username = None, password = None):
+def doit(release_uri, package, distros, fqdn, job_graph, rosdistro, short_package_name, commit=False, username = None, password = None):
 
     #package = os.path.splitext(os.path.basename(release_uri))[0]
 
     binary_jobs = binarydeb_jobs(package, distros, fqdn, job_graph)
     child_projects = zip(*binary_jobs)[0] #unzip the binary_jobs tuple.
-    source_job = sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro)
+    source_job = sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name)
     jobs = [source_job] + binary_jobs
     successful_jobs = []
     failed_jobs = []
@@ -227,7 +228,7 @@ if __name__ == "__main__":
     print ("Configuring %s for %s"%(r['url'], target_distros))
 
 
-    results = doit(url, pkg_by_url[url], target_distros, args.fqdn, dependencies, args.rosdistro, args.commit, args.username, args.password)
+    results = doit(url, pkg_by_url[url], target_distros, args.fqdn, dependencies, args.rosdistro, args.package_name, args.commit, args.username, args.password)
     summarize_results(*results)
     if not args.commit:
         print("This was not pushed to the server.  If you want to do so use ",
