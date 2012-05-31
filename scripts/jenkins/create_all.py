@@ -39,7 +39,7 @@ def parse_options():
         sys.exit(1)
     return parser.parse_args()
 
-def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, commit = False, username = None, password=None):
+def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit = False, username = None, password=None):
 
     # What ROS distro are we configuring?
     rosdistro = repo_map['release-name']
@@ -65,6 +65,7 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, commit = Fal
             print("'name' and/or 'url' keys missing for repository %s; skipping"%(r))
             continue
         url = r['url']
+        short_package_name = r['name']
         if url not in package_names_by_url:
             print("Repo %s is missing from the list; must have been skipped (e.g., for missing a stack.xml)"%(r))
             continue
@@ -78,7 +79,16 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, commit = Fal
 
         print ("Configuring %s for %s"%(r['url'], target_distros))
         
-        results[package_names_by_url[url]] = create_debjobs.doit(url, package_names_by_url[url], target_distros, fqdn, jobs_graph, commit, username, password)
+        results[package_names_by_url[url]] = create_debjobs.doit(url, 
+                                                                 package_names_by_url[url], 
+                                                                 target_distros, 
+                                                                 fqdn, 
+                                                                 jobs_graph, 
+                                                                 rosdistro = rosdistro, 
+                                                                 short_package_name = short_package_name,
+                                                                 commit=commit, 
+                                                                 username=username, 
+                                                                 password=password)
         print ("individual results", results[package_names_by_url[url]])
 
     return results
@@ -110,7 +120,15 @@ if __name__ == "__main__":
         if not args.repos:
             shutil.rmtree(workspace)
 
-    results_map = doit(repo_map, package_names_by_url, args.distros, args.fqdn, dependencies, args.commit, args.username, args.password)
+    results_map = doit(repo_map, 
+                       package_names_by_url, 
+                       args.distros, 
+                       args.fqdn, 
+                       dependencies, 
+                       rosdistro= args.rosdistro, 
+                       commit = args.commit, 
+                       username= args.username, 
+                       password= args.password)
     for k, v in results_map.iteritems():
         create_debjobs.summarize_results(*v)
 
