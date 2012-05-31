@@ -2,7 +2,7 @@
 
 import vcstools
 import os
-import yaml
+import rospkg.stack
 import shutil
 
 
@@ -19,7 +19,6 @@ def get_dependencies(workspace, repository_list, rosdistro):
     packages = {}
     package_urls = {}
 
-
     #print repository_list
     for r in repository_list:
         if 'url' not in r or 'name' not in r:
@@ -28,7 +27,6 @@ def get_dependencies(workspace, repository_list, rosdistro):
         url = r['url']
         name = r['name']
         print "Working on repository %s at %s..."%(name, url)
-        
 
         workdir = os.path.join(workspace, name)
         client = vcstools.VcsClient('git', workdir)
@@ -41,34 +39,26 @@ def get_dependencies(workspace, repository_list, rosdistro):
         else:
             client.checkout(url)
 
-        stack_yaml_path = os.path.join(workdir, 'stack.yaml')
-        if not os.path.isfile(stack_yaml_path):
+        stack_xml_path = os.path.join(workdir, 'stack.xml')
+        if not os.path.isfile(stack_xml_path):
             if rosdistro == 'backports':
                 packages[name] = sanitize_package_name(name)
                 dependencies[name] = []
                 package_urls[name] = url
-                print "Processing backport %s, no stack.yaml file found in repo %s. Continuing"%(name, url)
+                print "Processing backport %s, no stack.xml file found in repo %s. Continuing"%(name, url)
             else:
-                print "Warning: no stack.yaml found in repository %s at %s; skipping"%(name, url)
+                print "Warning: no stack.xml found in repository %s at %s; skipping"%(name, url)
             continue
-        with open(stack_yaml_path, 'r') as f:
 
-            stack_contents = yaml.load(f.read())
-            catkin_project_name = stack_contents['Catkin-ProjectName']
+        stack = rospkg.stack.parse_stack_file(stack_xml_path)
+        catkin_project_name = stack.name
 
-            print "Dependencies:", stack_contents['Depends']
-            if 'Package' in stack_contents: # todo copied from catking-generate-debian it should be syncronized better
-                packages[catkin_project_name] = stack_contents['Package']
-            else:
-                packages[catkin_project_name] = sanitize_package_name("ros-%s-%s"%(rosdistro, catkin_project_name))
+        print "Dependencies:", ', '.join([d.name for d in stack.build_depends])
+        packages[catkin_project_name] = sanitize_package_name("ros-%s-%s"%(rosdistro, catkin_project_name))
 
+        dependencies[catkin_project_name] = [d.name for d in stack.build_depends]
 
-            if 'Depends' in stack_contents and stack_contents['Depends']:
-                dependencies[catkin_project_name] = stack_contents['Depends'].split(', ')
-            else:
-                dependencies[catkin_project_name] = []
-
-            package_urls[catkin_project_name] = url
+        package_urls[catkin_project_name] = url
 
     result = {}
     urls = {}

@@ -66,7 +66,7 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, commit = Fal
             continue
         url = r['url']
         if url not in package_names_by_url:
-            print("Repo %s is missing from the list; must have been skipped (e.g., for missing a stack.yaml)"%(r))
+            print("Repo %s is missing from the list; must have been skipped (e.g., for missing a stack.xml)"%(r))
             continue
         if 'target' in r:
             if r['target'] == 'all':
