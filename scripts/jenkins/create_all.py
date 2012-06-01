@@ -73,7 +73,7 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
             if r['target'] == 'all':
                 target_distros = default_distros
             else:
-                target_distros = list(set(r['target']) & default_distros)
+                target_distros = list(set(r['target']) & set(default_distros))
         else:
             target_distros = default_distros
 
