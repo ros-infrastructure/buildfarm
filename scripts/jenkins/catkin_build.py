@@ -94,6 +94,7 @@ post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(r
         fh.close()
     time.sleep(0.1)
     try:
+        subprocess.check_call(['cat', filename])
         call('/tmp/', ['cat', filename])
         call('/tmp/', ['dput', '-u', '-c', filename, 'uploadhost', changes_arg])
     finally:
