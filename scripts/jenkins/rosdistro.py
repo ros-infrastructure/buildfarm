@@ -34,7 +34,7 @@ class Rosdistro:
 
     def get_target_distros(self):
         if self._targets is None: # Different than empty list
-            self._targets = rosdistro.get_target_distros(self._rosdistro)
+            self._targets = get_target_distros(self._rosdistro)
         return self._targets
 
 
