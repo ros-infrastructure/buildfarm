@@ -19,7 +19,6 @@ def parse_options():
     parser.add_argument('short_package_name', help='The package name for the package we\'re building, w/o the debian extensions')
     parser.add_argument('--working', help='A scratch build path. Default: %(default)s', default='/tmp/catkin_gbp')
     parser.add_argument('--output', help='The result of source deb building will go here. Default: %(default)s', default='/tmp/catkin_debs')
-    parser.add_argument('-u', help='Upload after building the debs', default=False)
     parser.add_argument('--repo-fqdn', dest='repo_fqdn', help='The fully qualified domain name of the repo machine. Default: %(default)s', default='50.28.27.175')
     parser.add_argument('--repo-path', dest='repo_path', help='The path to find the repo on the machine. Default: %(default)s', default='/var/www/repos/building')
     
@@ -115,17 +114,16 @@ if __name__ == "__main__":
             print("Failed to build source deb for tag %s on repo %s: %s"%(tag, repo_path, ex))
             report_failure = True
             
-    if args.upload:
-        for d in rd.get_target_distros():
-            try:
-                upload_source_deb(d, args.repo_fqdn, args.repo_path, 
-                                  os.path.join(args.output, 
-                                               '*'+d+'*.changes')
-                                  )
-                print("Succeeded uploading for distro %s: %s"%(d, ex))
-            except CalledProcessError, ex:
-                print("Failed uploading for distro %s: %s"%(d, ex))
-                report_failure = True
+    for d in rd.get_target_distros():
+        try:
+            upload_source_deb(d, args.repo_fqdn, args.repo_path, 
+                              os.path.join(args.output, 
+                                           '*'+d+'*.changes')
+                              )
+            print("Succeeded uploading for distro %s: %s"%(d, ex))
+        except CalledProcessError, ex:
+            print("Failed uploading for distro %s: %s"%(d, ex))
+            report_failure = True
 
     if report_failure:
         print("Errors have occurred in the source build see above. ")

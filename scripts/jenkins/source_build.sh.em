@@ -17,6 +17,4 @@ fi
 rm -rf $WORKSPACE/output
 rm -rf $WORKSPACE/workspace
 
-catkin-debs/scripts/jenkins/catkin_build.py $RELEASE_URI $PACKAGE $ROSDISTRO $SHORT_PACKAGE_NAME --working $WORKSPACE/workspace --output $WORKSPACE/output --repo-fqdn $FQDN -u
-
-
+catkin-debs/scripts/jenkins/catkin_build.py $RELEASE_URI $PACKAGE $ROSDISTRO $SHORT_PACKAGE_NAME --working $WORKSPACE/workspace --output $WORKSPACE/output --repo-fqdn $FQDN 
