@@ -83,8 +83,9 @@ def upload_source_deb(distro, repo_fqdn, repo_path, changes_arg, working_dir):
 method                  = scp
 fqdn                    = %(repo_fqdn)s
 incoming                = %(repo_path)s/queue/%(distro)s
-run_dinstall            = 0
-post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
+run_dinstall            = 0"""
+
+#post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
 
 
     d = tempfile.mkdtemp(dir=working_dir)
@@ -101,6 +102,8 @@ post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(r
         sout = call('/tmp/', ['cat', filename], pipe=subprocess.PIPE)
         print ("Cat output = %s"%sout)
         call('/tmp/', ['dput', '-u', '-c', filename, 'uploadhost', changes_arg])
+        cmd = """ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
+        call('/tmp/', cmd.split())
     finally:
         shutil.rmtree(d)
 
