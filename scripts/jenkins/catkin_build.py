@@ -85,7 +85,7 @@ run_dinstall            = 0
 post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
 
 
-    d = tempfile.mkdtemp()
+    d = tempfile.mkdtemp(dir=output)
     filename = os.path.join(d, "dput.conf")
     with open(filename, 'w+b') as fh:
         print("Writing config string:[%s]"%config_string)
@@ -94,6 +94,7 @@ post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(r
         fh.close()
     time.sleep(0.1)
     try:
+        print("Native cat")
         subprocess.check_call(['cat', filename])
         call('/tmp/', ['cat', filename])
         call('/tmp/', ['dput', '-u', '-c', filename, 'uploadhost', changes_arg])
