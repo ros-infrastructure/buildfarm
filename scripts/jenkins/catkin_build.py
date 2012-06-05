@@ -5,6 +5,7 @@ import os, sys
 import subprocess
 from subprocess import Popen, CalledProcessError
 import re
+import tempfile
 
 import rosdistro
 
@@ -18,6 +19,10 @@ def parse_options():
     parser.add_argument('short_package_name', help='The package name for the package we\'re building, w/o the debian extensions')
     parser.add_argument('--working', help='A scratch build path. Default: %(default)s', default='/tmp/catkin_gbp')
     parser.add_argument('--output', help='The result of source deb building will go here. Default: %(default)s', default='/tmp/catkin_debs')
+    parser.add_argument('--upload', help='Upload after building the debs', default=False)
+    parser.add_argument('--repo-fqdn', dest='repo_fqdn', help='The fully qualified domain name of the repo machine. Default: %(default)s', default='50.28.27.175')
+    parser.add_argument('--repo-path', dest='repo_path', help='The path to find the repo on the machine. Default: %(default)s', default='/var/www/repos/building')
+    
     args = parser.parse_args()
 
     return args
@@ -67,6 +72,22 @@ def build_source_deb(repo_path, tag, output):
     call(repo_path, ('git', 'checkout', tag))
     call(repo_path, ('git', 'buildpackage', '--git-export-dir=%s' % output,
         '--git-ignore-new', '-S', '-uc', '-us'))
+
+def upload_source_deb(distro, repo_fqdn, repo_path, changes_path):
+    
+    config_string = """
+[uploadhost]
+method                  = scp
+fqdn                    = %(repo_fqdn)s
+incoming                = %(repo_path)s/queue/%(distro)s
+run_dinstall            = 0
+post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path) --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
+
+    with tempfile.NamedTemporaryFile() as cf:
+        cf.write(config_string)
+        cf.flush()
+        call('/tmp/', ['dput', '-u', '-c', cf.name, 'uploadhost', changes_arg])
+
 if __name__ == "__main__":
     args = parse_options()
     make_working(args.working)
@@ -84,5 +105,28 @@ if __name__ == "__main__":
     if not tags:
         print("No tags; bailing")
         sys.exit(1)
+
+    report_failure = False
     for tag in tags:
-        build_source_deb(repo_path, tag, args.output)
+        try:
+            build_source_deb(repo_path, tag, args.output)
+            print("successfully created sourcedeb for tag %s on repo %s."%(tag, repo_path))
+        except CalledProcessError, ex:
+            print("Failed to build source deb for tag %s on repo %s: %s"%(tag, repo_path, ex))
+            report_failure = True
+            
+    if args.upload:
+        for d in rd.get_target_distros():
+            try:
+                upload_source_deb(d, args.repo_fqdn, args.repo_path, 
+                                  os.path.join(args.output, 
+                                               '*'+d+'*.changes')
+                                  )
+                print("Succeeded uploading for distro %s: %s"%(d, ex))
+            except CalledProcessError, ex:
+                print("Failed uploading for distro %s: %s"%(d, ex))
+                report_failure = True
+
+    if report_failure:
+        print("Errors have occurred in the source build see above. ")
+        sys.exit(1)

@@ -17,20 +17,7 @@ fi
 rm -rf $WORKSPACE/output
 rm -rf $WORKSPACE/workspace
 
-catkin-debs/scripts/jenkins/catkin_build.py $RELEASE_URI $PACKAGE $ROSDISTRO $SHORT_PACKAGE_NAME --working $WORKSPACE/workspace --output $WORKSPACE/output 
-ls $WORKSPACE/output
-cd $WORKSPACE/output
+catkin-debs/scripts/jenkins/catkin_build.py $RELEASE_URI $PACKAGE $ROSDISTRO $SHORT_PACKAGE_NAME --working $WORKSPACE/workspace --output $WORKSPACE/output --repo-fqdn $FQDN --upload
 
 
-for distro in @(' '.join(DISTROS))
-do
-    echo "
-[uploadhost]
-method                  = scp
-fqdn                    = $FQDN
-incoming                = /var/www/repos/building/queue/$distro
-run_dinstall            = 0
-post_upload_command     = ssh rosbuild@@$FQDN -- /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro
-" > $WORKSPACE/output/dput.cf
-    dput -u -c $WORKSPACE/output/dput.cf uploadhost $WORKSPACE/output/*$distro*.changes
-done
+
