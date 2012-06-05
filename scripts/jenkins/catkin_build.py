@@ -82,11 +82,16 @@ incoming                = %(repo_path)s/queue/%(distro)s
 run_dinstall            = 0
 post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
 
-    with tempfile.NamedTemporaryFile() as cf:
-        cf.write(config_string)
-        cf.flush()
+
+    cf = tempfile.NamedTemporaryFile(delete=False)
+    cf.write(config_string)
+    cf.close()
+    try:
         call('/tmp/', ['cat', cf.name])
         call('/tmp/', ['dput', '-u', '-c', cf.name, 'uploadhost', changes_arg])
+    finally:
+        os.remove(cf.name)
+
 
 if __name__ == "__main__":
     args = parse_options()
