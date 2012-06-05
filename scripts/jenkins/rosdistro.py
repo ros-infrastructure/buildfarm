@@ -31,7 +31,7 @@ class Rosdistro:
         else:
             return None
 
-    def get_target_distros():
+    def get_target_distros(self):
         if not self._targets:
             self._targets = rosdistro.get_target_distros(self._rosdistro)
         return self._targets
