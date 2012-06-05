@@ -8,6 +8,7 @@ URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
 # todo raise not exit
 class Rosdistro:
     def __init__(self, rosdistro_name):
+        self._rosdistro = rosdistro_name
         # avaliable for backwards compatability
         self.repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%rosdistro_name))
         if 'release-name' not in self.repo_map:
@@ -29,6 +30,12 @@ class Rosdistro:
             return self._repoinfo[stack_name]
         else:
             return None
+
+    def get_target_distros():
+        if not self._targets:
+            self._targets = rosdistro.get_target_distros(self._rosdistro)
+        return self._targets
+
 
 
 def get_target_distros(rosdistro):
