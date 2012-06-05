@@ -72,7 +72,7 @@ def build_source_deb(repo_path, tag, output):
     call(repo_path, ('git', 'buildpackage', '--git-export-dir=%s' % output,
         '--git-ignore-new', '-S', '-uc', '-us'))
 
-def upload_source_deb(distro, repo_fqdn, repo_path, changes_path):
+def upload_source_deb(distro, repo_fqdn, repo_path, changes_arg):
     
     config_string = """
 [uploadhost]
