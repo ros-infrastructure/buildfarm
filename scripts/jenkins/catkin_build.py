@@ -7,6 +7,7 @@ from subprocess import Popen, CalledProcessError
 import re
 import tempfile
 import time 
+import shutil
 
 import rosdistro
 
@@ -82,17 +83,21 @@ fqdn                    = %(repo_fqdn)s
 incoming                = %(repo_path)s/queue/%(distro)s
 run_dinstall            = 0
 post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
-    cf = tempfile.NamedTemporaryFile(delete=False)
-    print("Writing config string:[%s]"%config_string)
-    cf.write(config_string)
-    cf.flush()
-    cf.close()
+
+
+    d = tempfile.mkdtemp()
+    filename = os.path.join(d, "dput.conf")
+    with open(filename, 'w+b') as fh:
+        print("Writing config string:[%s]"%config_string)
+        fh.write(config_string)
+        fh.flush()
+        fh.close()
     time.sleep(0.1)
     try:
-        call('/tmp/', ['cat', cf.name])
-        call('/tmp/', ['dput', '-u', '-c', cf.name, 'uploadhost', changes_arg])
+        call('/tmp/', ['cat', filename])
+        call('/tmp/', ['dput', '-u', '-c', filename, 'uploadhost', changes_arg])
     finally:
-        os.remove(cf.name)
+        shutil.rmtree(d)
 
 
 if __name__ == "__main__":
