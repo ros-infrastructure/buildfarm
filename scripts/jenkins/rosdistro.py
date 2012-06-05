@@ -9,6 +9,7 @@ URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
 class Rosdistro:
     def __init__(self, rosdistro_name):
         self._rosdistro = rosdistro_name
+        self._targets = None
         # avaliable for backwards compatability
         self.repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%rosdistro_name))
         if 'release-name' not in self.repo_map:
@@ -32,7 +33,7 @@ class Rosdistro:
             return None
 
     def get_target_distros(self):
-        if not self._targets:
+        if self._targets is None: # Different than empty list
             self._targets = rosdistro.get_target_distros(self._rosdistro)
         return self._targets
 
