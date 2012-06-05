@@ -83,7 +83,7 @@ def upload_source_deb(distro, repo_fqdn, repo_path, changes_arg, working_dir):
 method                  = scp
 fqdn                    = %(repo_fqdn)s
 incoming                = %(repo_path)s/queue/%(distro)s
-run_dinstall            = 0"""
+run_dinstall            = 0"""%locals()
 
 #post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
 
