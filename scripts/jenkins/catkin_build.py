@@ -151,7 +151,7 @@ if __name__ == "__main__":
                                            changes_file),
                               args.working
                               )
-            print("Succeeded uploading for distro %s: %s"%(d, ex))
+            print("Succeeded uploading for distro %s."%(d))
         except CalledProcessError, ex:
             print("Failed uploading for distro %s: %s"%(d, ex))
             report_failure = True
