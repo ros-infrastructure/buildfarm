@@ -81,9 +81,8 @@ fqdn                    = %(repo_fqdn)s
 incoming                = %(repo_path)s/queue/%(distro)s
 run_dinstall            = 0
 post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
-
-
     cf = tempfile.NamedTemporaryFile(delete=False)
+    print("Writing config string:[%s]"%config_string)
     cf.write(config_string)
     cf.close()
     try:
