@@ -80,7 +80,7 @@ method                  = scp
 fqdn                    = %(repo_fqdn)s
 incoming                = %(repo_path)s/queue/%(distro)s
 run_dinstall            = 0
-post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path) --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
+post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
 
     with tempfile.NamedTemporaryFile() as cf:
         cf.write(config_string)
