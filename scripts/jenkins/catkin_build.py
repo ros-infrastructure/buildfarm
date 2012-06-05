@@ -99,7 +99,7 @@ post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(r
         print("Native cat")
         subprocess.check_call(['cat', filename])
         sout = call('/tmp/', ['cat', filename], pipe=subprocess.PIPE)
-        print "Cat output = %s"%sout
+        print ("Cat output = %s"%sout)
         call('/tmp/', ['dput', '-u', '-c', filename, 'uploadhost', changes_arg])
     finally:
         shutil.rmtree(d)
