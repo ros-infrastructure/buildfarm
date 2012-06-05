@@ -6,6 +6,7 @@ import subprocess
 from subprocess import Popen, CalledProcessError
 import re
 import tempfile
+import time 
 
 import rosdistro
 
@@ -84,7 +85,9 @@ post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(r
     cf = tempfile.NamedTemporaryFile(delete=False)
     print("Writing config string:[%s]"%config_string)
     cf.write(config_string)
+    cf.flush()
     cf.close()
+    time.sleep(0.1)
     try:
         call('/tmp/', ['cat', cf.name])
         call('/tmp/', ['dput', '-u', '-c', cf.name, 'uploadhost', changes_arg])
