@@ -105,6 +105,16 @@ post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(r
         shutil.rmtree(d)
 
 
+def find_file(directory, extension, substring=''):
+    """ Return the first file in directory which has extension and contains the substring """
+    files = os.listdir(directory)
+    for f in files:
+        if extension == os.path.splitext(f)[1] and substring in f:
+            return f
+    return None
+    
+
+
 if __name__ == "__main__":
     args = parse_options()
     make_working(args.working)
@@ -134,9 +144,11 @@ if __name__ == "__main__":
             
     for d in rd.get_target_distros():
         try:
+            changes_file = find_file(args.output, '.changes', d)
+
             upload_source_deb(d, args.repo_fqdn, args.repo_path, 
                               os.path.join(args.output, 
-                                           '*'+d+'*.changes'),
+                                           changes_file),
                               args.working
                               )
             print("Succeeded uploading for distro %s: %s"%(d, ex))
