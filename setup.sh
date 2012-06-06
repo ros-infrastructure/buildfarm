@@ -1,1 +1,2 @@
-export PATH=`pwd`/scripts:`pwd`/scripts/jenkins:$PATH
+export PATH=`pwd`/scripts:$PATH
+export PYTHONPATH=`pwd`/src:$PYTHONPATH
