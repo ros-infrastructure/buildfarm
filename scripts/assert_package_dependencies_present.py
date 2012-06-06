@@ -10,7 +10,7 @@ import tempfile
 import yaml
 
 def parse_options():
-    parser = argparse.ArgumentParser(description="Return 0 if all packages are found, else print missing packages and return 1.")
+    parser = argparse.ArgumentParser(description="Return 0 if all packages are found in the repository, else print missing packages and return 1.")
     parser.add_argument(dest="rootdir",
                         help='The directory for apt to use as a rootdir')
     parser.add_argument(dest="aptconffile",

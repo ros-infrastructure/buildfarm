@@ -6,7 +6,7 @@ import os
 import argparse
 import pprint
 
-import buildfarm
+import buildfarm.apt_root
 
 def parse_options():
     parser = argparse.ArgumentParser(
