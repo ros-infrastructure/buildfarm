@@ -1,21 +1,15 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+
+import pkg_resources
 import em
 import os
 import pprint
 
-class Templates(object):
-    template_dir = os.path.dirname(__file__)
-    sources = os.path.join(template_dir, 'sources.list.em') #basic sources
-    ros_sources = os.path.join(template_dir, 'ros-sources.list.em') #ros sources
-    apt_conf = os.path.join(template_dir, 'apt.conf.em') #apt.conf
-    arch_conf = os.path.join(template_dir, 'arch.conf.em') #arch.conf
 
-def expand_file(config_template, d):
-    with open(config_template) as fh:
-        file_em = fh.read()
-    s = em.expand(file_em, **d)
+def expand_template(config_template, d):
+    s = em.expand(config_template, **d)
     return s
 
 def setup_directories(rootdir):
@@ -45,7 +39,8 @@ def setup_conf(rootdir, target_dir):
 
     d = {'rootdir':rootdir}
     with open(os.path.join(target_dir, "apt.conf"), 'w') as apt_conf:
-        apt_conf.write(expand_file(Templates.apt_conf, d))
+        template = pkg_resources.resource_string('buildfarm', 'resources/templates/apt.conf.em')
+        apt_conf.write(expand_template(template, d))
 
 
     
@@ -54,14 +49,16 @@ def set_default_sources(rootdir, distro, repo):
     d = {'distro':distro, 
          'repo': repo}
     with open(os.path.join(rootdir, "etc/apt/sources.list"), 'w') as sources_list:
-        sources_list.write(expand_file(Templates.sources, d))
+        template = pkg_resources.resource_string('buildfarm', 'resources/templates/sources.list.em')
+        sources_list.write(expand_template(template, d))
 
 def set_additional_sources(rootdir, distro, repo, source_name):
     """ Set the source lists for the default ubuntu and ros sources """
     d = {'distro':distro, 
          'repo': repo}
     with open(os.path.join(rootdir, "etc/apt/sources.list.d/%s.list"%source_name), 'w') as sources_list:
-        sources_list.write(expand_file(Templates.ros_sources, d))
+        template = pkg_resources.resource_string('buildfarm', 'resources/templates/ros-sources.list.em')
+        sources_list.write(expand_template(template, d))
     
 
 def setup_apt_rootdir(rootdir, distro, arch, mirror=None, additional_repos = {}):
@@ -77,7 +74,8 @@ def setup_apt_rootdir(rootdir, distro, arch, mirror=None, additional_repos = {})
     d = {'arch':arch}
     path = os.path.join(rootdir, "etc/apt/apt.conf.d/51Architecture")
     with open(path, 'w') as arch_conf:
-        arch_conf.write(expand_file(Templates.arch_conf, d))
+        template = pkg_resources.resource_string('buildfarm', 'resources/templates/arch.conf.em')
+        arch_conf.write(expand_template(template, d))
 
 
 def parse_repo_args(repo_args):

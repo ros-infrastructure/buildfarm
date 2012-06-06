@@ -8,7 +8,7 @@ import shutil
 import yaml
 import urllib2
 
-import setup_apt_root
+import buildfarm.apt_root #setup_apt_root
 
 URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     distros = my_targets[0][args.rosdistro]
 
 
-    ros_repos = setup_apt_root.parse_repo_args(args.repo_urls)
+    ros_repos = buildfarm.apt_root.parse_repo_args(args.repo_urls)
 
     packages = {}
 
@@ -123,7 +123,7 @@ if __name__ == "__main__":
             for a in arches:
                 dist_arch = "%s_%s"%(d, a)
                 specific_rootdir = os.path.join(rootdir, dist_arch)
-                setup_apt_root.setup_apt_rootdir(specific_rootdir, d, a, additional_repos = ros_repos)
+                buildfarm.apt_root.setup_apt_rootdir(specific_rootdir, d, a, additional_repos = ros_repos)
                 print "setup rootdir %s"%specific_rootdir
                 
                 packages[dist_arch] = list_packages(specific_rootdir, update=True, substring=args.substring)
