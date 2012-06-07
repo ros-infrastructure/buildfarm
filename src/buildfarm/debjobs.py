@@ -24,7 +24,6 @@ class Templates(object):
     template_dir = os.path.dirname(__file__)
     config_sourcedeb = pkg_resources.resource_string('buildfarm', 'resources/templates/debjob/config.source.xml.em') #A config.xml template for sourcedebs.
     command_sourcedeb = pkg_resources.resource_string('buildfarm', 'resources/templates/debjob/source_build.sh.em') #The bash script that the sourcedebs config.xml runs.
-    config_bash = pkg_resources.resource_string('buildfarm', 'resources/templates/debjob/config.bash.xml.em') #A config.xml template for something that runs a shell script
     command_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/debjob/binary_build.sh.em') #builds binary debs.
     config_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/debjob/config.binary.xml.em') #A config.xml template for something that runs a shell script
 
