@@ -9,7 +9,7 @@ import tempfile
 import time 
 import shutil
 
-import buildfarm.rosdistro
+from buildfarm import rosdistro
 
 def parse_options():
     import argparse
