@@ -7,12 +7,14 @@ SHORT_PACKAGE_NAME=@(SHORT_PACKAGE_NAME)
 
 sudo apt-get install -y git-buildpackage dput debhelper
 
-if [ ! -e $WORKSPACE/catkin-debs/.git ]
+if [ -e $WORKSPACE/catkin-debs ]
 then
-  git clone git://github.com/willowgarage/catkin-debs.git $WORKSPACE/catkin-debs -b library
-else
-  (cd $WORKSPACE/catkin-debs && git pull origin library  && git checkout library && git clean -dfx && git reset --hard HEAD&& git log -n1)
+  rm -rf $WORKSPACE/catkin-debs
 fi
+
+git clone git://github.com/willowgarage/catkin-debs.git $WORKSPACE/catkin-debs -b library --depth 1
+
+
 
 cd $WORKSPACE/catkin-debs 
 . setup.sh
