@@ -14,7 +14,8 @@ else
   (cd catkin-debs && git checkout library && git clean -dfx && git reset --hard HEAD && git pull && git log -n1)
 fi
 
-. catkin-debs/setup.sh
+cd catkin-debs && . setup.sh
+
 
 
 rm -rf $WORKSPACE/output

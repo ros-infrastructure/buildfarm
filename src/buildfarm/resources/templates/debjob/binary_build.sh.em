@@ -32,7 +32,7 @@ else
   (cd catkin-debs && git checkout library && git clean -dfx && git reset --hard HEAD && git pull && git log -n1)
 fi
 
-. catkin-debs/setup.sh
+cd catkin-debs && . setup.sh
 
 #setup the cross platform apt environment
 # using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary.
