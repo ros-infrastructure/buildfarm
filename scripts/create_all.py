@@ -6,8 +6,7 @@ import sys
 import argparse
 import yaml
 import urllib2
-import create_debjobs
-import dependency_walker
+from buildfarm import debjobs, dependency_walker
 import tempfile
 import shutil
 
@@ -79,16 +78,16 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
 
         print ("Configuring %s for %s"%(r['url'], target_distros))
         
-        results[package_names_by_url[url]] = create_debjobs.doit(url, 
-                                                                 package_names_by_url[url], 
-                                                                 target_distros, 
-                                                                 fqdn, 
-                                                                 jobs_graph, 
-                                                                 rosdistro = rosdistro, 
-                                                                 short_package_name = short_package_name,
-                                                                 commit=commit, 
-                                                                 username=username, 
-                                                                 password=password)
+        results[package_names_by_url[url]] = debjobs.doit(url, 
+                                                          package_names_by_url[url], 
+                                                          target_distros, 
+                                                          fqdn, 
+                                                          jobs_graph, 
+                                                          rosdistro = rosdistro, 
+                                                          short_package_name = short_package_name,
+                                                          commit=commit, 
+                                                          username=username, 
+                                                          password=password)
         print ("individual results", results[package_names_by_url[url]])
 
     return results
@@ -130,7 +129,7 @@ if __name__ == "__main__":
                        username= args.username, 
                        password= args.password)
     for k, v in results_map.iteritems():
-        create_debjobs.summarize_results(*v)
+        debjobs.summarize_results(*v)
 
 
     if not args.commit:
