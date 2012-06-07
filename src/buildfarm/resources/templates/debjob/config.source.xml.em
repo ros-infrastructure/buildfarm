@@ -55,9 +55,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>
-@(COMMAND)
-      </command>
+      <command>@(COMMAND)</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

@@ -25,20 +25,20 @@ work_dir=$WORKSPACE/work
 sudo apt-get update
 sudo apt-get install -y pbuilder python-empy python-argparse debhelper # todo move to server setup, or confirm it's there
 
-if [ ! -e catkin-debs/.git ]
+if [ ! -e $WORKSPACE/catkin-debs/.git ]
 then
-  git clone git://github.com/willowgarage/catkin-debs.git -b library
+  git clone git://github.com/willowgarage/catkin-debs.git $WORKSPACE/catkin-debs -b library
 else
-  (cd catkin-debs && git checkout -b library && git clean -dfx && git reset --hard HEAD && git pull origin library && git log -n1)
+  (cd $WORKSPACE/catkin-debs && git pull origin library && git checkout library && git clean -dfx && git reset --hard HEAD && git log -n1)
 fi
 
-(cd $WORKSPACE/catkin-debs && source setup.sh)
+cd $WORKSPACE/catkin-debs
+. setup.sh
 
 #setup the cross platform apt environment
-# using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary.
-sudo chown -R rosbuild /var/cache
-
-$WORKSPACE/catkin-debs/scripts/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE
+# using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary. 
+# And you can't chown it even with sudo and recursive 
+sudo PYTHONPATH=$PYTHONPATH $WORKSPACE/catkin-debs/scripts/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE
 
 # Check if this package exists, and call update which will update the cache, following calls don't need to update
 #if [ -e $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir $PACKAGE -u ]
