@@ -29,16 +29,16 @@ if [ ! -e catkin-debs/.git ]
 then
   git clone git://github.com/willowgarage/catkin-debs.git -b library
 else
-  (cd catkin-debs && git checkout library && git clean -dfx && git reset --hard HEAD && git pull && git log -n1)
+  (cd catkin-debs && git checkout -b library && git clean -dfx && git reset --hard HEAD && git pull origin library && git log -n1)
 fi
 
-#. catkin-debs/setup.sh
-
-cd catkin-debs && source setup.sh
+(cd catkin-debs && source setup.sh)
 
 #setup the cross platform apt environment
 # using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary.
-sudo $WORKSPACE/catkin-debs/scripts/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE
+sudo chown -R rosbuild /var/cache
+
+$WORKSPACE/catkin-debs/scripts/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE
 
 # Check if this package exists, and call update which will update the cache, following calls don't need to update
 #if [ -e $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir $PACKAGE -u ]
