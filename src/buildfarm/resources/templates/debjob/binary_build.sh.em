@@ -27,14 +27,14 @@ sudo apt-get install -y pbuilder python-empy python-argparse debhelper # todo mo
 
 if [ ! -e catkin-debs/.git ]
 then
-  git clone git://github.com/willowgarage/catkin-debs.git
+  git clone git://github.com/willowgarage/catkin-debs.git -b library
 else
-  (cd catkin-debs && git pull)
+  (cd catkin-debs && git checkout library && git clean -dfx && git reset --hard HEAD && git pull && git log -n1)
 fi
 
 #setup the cross platform apt environment
 # using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary.
-sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE
+sudo $WORKSPACE/catkin-debs/scripts/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE
 
 # Check if this package exists, and call update which will update the cache, following calls don't need to update
 #if [ -e $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir $PACKAGE -u ]
@@ -45,7 +45,7 @@ sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/setup_apt_root.py $distro $a
 
 # check precondition that all dependents exist, don't check if no dependencies
 @[if DEPENDENTS]
-sudo $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/assert_package_dependencies_present.py $rootdir $aptconffile  $PACKAGE -u
+sudo $WORKSPACE/catkin-debs/scripts/assert_package_dependencies_present.py $rootdir $aptconffile  $PACKAGE -u
 @[end if]
 
 sudo rm -rf $output_dir
