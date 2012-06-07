@@ -56,7 +56,7 @@
   <builders>
     <hudson.tasks.Shell>
       <command>
-      @(COMMAND)
+@(COMMAND)
       </command>
     </hudson.tasks.Shell>
   </builders>
