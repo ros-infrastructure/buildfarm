@@ -103,7 +103,13 @@ run_dinstall            = 0"""%locals()
         print ("Cat output = %s"%sout)
         call('/tmp/', ['dput', '-u', '-c', filename, 'uploadhost', changes_arg])
         cmd = """ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
-        call('/tmp/', cmd.split())
+        try:
+            call('/tmp/', cmd.split())
+        except CalledProcessError, ex:
+            if ex.returncode == 254:
+                print("Detected return code 254, assuming duplicate upload elements. %s"ex.what())
+            else:
+                raise ex
     finally:
         shutil.rmtree(d)
 
