@@ -30,15 +30,13 @@ def parse_options():
            help='Really?', action='store_true')
     parser.add_argument('--repo-workspace', dest='repos', action='store', 
            help='A directory into which all the repositories will be checked out into.')
-    parser.add_argument('--username',dest='username')
-    parser.add_argument('--password',dest='password')
-    args = parser.parse_args()
-    if args.commit and ( not args.username or not args.password ):
-        print('If you are going to commit, you need a username and pass.',file=sys.stderr)
-        sys.exit(1)
     return parser.parse_args()
 
-def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit = False, username = None, password=None):
+def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit = False):
+    jenkins_instance = None
+    if args.commit:
+        jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_deps_config()))
+
 
     # What ROS distro are we configuring?
     rosdistro = repo_map['release-name']
@@ -86,8 +84,7 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
                                                           rosdistro = rosdistro, 
                                                           short_package_name = short_package_name,
                                                           commit=commit, 
-                                                          username=username, 
-                                                          password=password)
+                                                          jenkins_instance=jenkins_instance)
         print ("individual results", results[package_names_by_url[url]])
 
     return results
@@ -125,9 +122,7 @@ if __name__ == "__main__":
                        args.fqdn, 
                        dependencies, 
                        rosdistro= args.rosdistro, 
-                       commit = args.commit, 
-                       username= args.username, 
-                       password= args.password)
+                       commit = args.commit)
     for k, v in results_map.iteritems():
         debjobs.summarize_results(*v)
 
