@@ -107,7 +107,7 @@ run_dinstall            = 0"""%locals()
             call('/tmp/', cmd.split())
         except CalledProcessError, ex:
             if ex.returncode == 254:
-                print("Detected return code 254, assuming duplicate upload elements. %s"ex.what())
+                print("Detected return code 254, assuming duplicate upload elements. %s"%ex.what())
             else:
                 raise ex
     finally:
