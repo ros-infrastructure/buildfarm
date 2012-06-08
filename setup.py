@@ -14,7 +14,7 @@ setup(name='buildfarm',
       scripts = ['scripts/setup_apt_root.py',
                  'scripts/list_all.py'],
       package_data = {'buildfarm': ['resources/templates/*']},
-      install_requires = ['vcstools']
+      install_requires = ['vcstools', 'rospkg']
       author = "Tully Foote", 
       author_email = "tfoote@willowgarage.com",
       url = "http://www.ros.org/wiki/",

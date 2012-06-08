@@ -18,6 +18,8 @@ import jenkins
 
 import buildfarm.dependency_walker
 import buildfarm.debjobs
+import buildfarm.jenkins_support as jenkins_support
+
 
 def parse_options():
     parser = argparse.ArgumentParser(
@@ -37,12 +39,6 @@ def parse_options():
            help='The name for the package')
     parser.add_argument('--repo-workspace', dest='repos', action='store', 
            help='A directory into which all the repositories will be checked out into.')
-    parser.add_argument('--username',dest='username')
-    parser.add_argument('--password',dest='password')
-    args = parser.parse_args()
-    if args.commit and ( not args.username or not args.password ):
-        print('If you are going to commit, you need a username and pass.',file=sys.stderr)
-        sys.exit(1)
     return parser.parse_args()
 
 
@@ -98,7 +94,11 @@ if __name__ == "__main__":
     print ("Configuring %s for %s"%(r['url'], target_distros))
 
 
-    results = buildfarm.debjobs.doit(url, pkg_by_url[url], target_distros, args.fqdn, dependencies, args.rosdistro, args.package_name, args.commit, args.username, args.password)
+    jenkins_instance = None
+    if args.commit:
+        jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_deps_config()))
+
+    results = buildfarm.debjobs.doit(url, pkg_by_url[url], target_distros, args.fqdn, dependencies, args.rosdistro, args.package_name, args.commit, jenkins_instance)
     buildfarm.debjobs.summarize_results(*results)
     if not args.commit:
         print("This was not pushed to the server.  If you want to do so use ",

@@ -31,16 +31,14 @@ def expand(config_template, d):
     s = em.expand(config_template, **d)
     return s
 
-def create_jenkins(jobname, config, username, password):
+def create_jenkins_job(jobname, config, jenkins_instance):
     try:
-        j = jenkins.Jenkins('http://hudson.willowgarage.com:8080',
-                            username, password)
-        jobs = j.get_jobs()
+        jobs = jenkins_instance.get_jobs()
         print("working on job", jobname)
         if jobname in [job['name'] for job in jobs]:
-            j.reconfig_job(jobname, config)
+            jenkins_instance.reconfig_job(jobname, config)
         else:
-            j.create_job(jobname, config)
+            jenkins_instance.create_job(jobname, config)
         return True
     except jenkins.JenkinsException, ex:
         print("Failed to configure %s with error: %s"%(jobname, ex))
@@ -111,7 +109,7 @@ def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro
     )
     return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
-def doit(release_uri, package, distros, fqdn, job_graph, rosdistro, short_package_name, commit=False, username = None, password = None):
+def doit(release_uri, package, distros, fqdn, job_graph, rosdistro, short_package_name, commit, jenkins_instance):
 
     #package = os.path.splitext(os.path.basename(release_uri))[0]
 
@@ -123,7 +121,7 @@ def doit(release_uri, package, distros, fqdn, job_graph, rosdistro, short_packag
     failed_jobs = []
     for job_name, config in jobs:
         if commit:
-            if create_jenkins(job_name, config, username, password):
+            if create_jenkins_job(job_name, config, jenkins_instance):
                 successful_jobs.append(job_name)
             else:
                 failed_jobs.append(job_name)
