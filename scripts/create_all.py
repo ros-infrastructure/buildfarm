@@ -6,7 +6,7 @@ import sys
 import argparse
 import yaml
 import urllib2
-from buildfarm import debjobs, dependency_walker
+from buildfarm import debjobs, dependency_walker, jenkins_support
 import tempfile
 import shutil
 
