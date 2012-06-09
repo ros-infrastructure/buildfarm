@@ -4,10 +4,8 @@ import vcstools
 import os
 import rospkg.stack
 import shutil
+from rosdistro import sanitize_package_name, debianize_package_name
 
-
-def sanitize_package_name(name):
-    return name.replace('_', '-')
 
 
 def get_dependencies(workspace, repository_list, rosdistro):
@@ -54,7 +52,7 @@ def get_dependencies(workspace, repository_list, rosdistro):
         catkin_project_name = stack.name
 
         print "Dependencies:", ', '.join([d.name for d in stack.build_depends])
-        packages[catkin_project_name] = sanitize_package_name("ros-%s-%s"%(rosdistro, catkin_project_name))
+        packages[catkin_project_name] = debianize_package_name(rosdistro, catkin_project_name)
 
         dependencies[catkin_project_name] = [d.name for d in stack.build_depends]
 

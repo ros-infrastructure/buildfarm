@@ -9,6 +9,7 @@ import yaml
 import urllib2
 
 import buildfarm.apt_root #setup_apt_root
+import buildfarm.rosdistro
 
 URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
 
@@ -19,7 +20,7 @@ def parse_options():
     parser.add_argument("--rosdistro", dest='rosdistro', default = 'fuerte',
            help='The ros distro. electric, fuerte, galapagos')
     parser.add_argument("--substring", dest="substring", default="", 
-                        help="substring to filter packages displayed")
+                        help="substring to filter packages displayed default = 'ros-ROSDISTRO'")
     parser.add_argument("-u", "--update", dest="update", action='store_true', default=False, 
                         help="update the cache from the server")
     parser.add_argument('--repo', dest='repo_urls', action='append',metavar=['REPO_NAME@REPO_URL'],
@@ -34,7 +35,16 @@ def parse_options():
         if not '@' in a:
             parser.error("Invalid repo definition: %s"%a)
 
+    if not args.substring:
+        args.substring = 'ros-%s'%args.rosdistro
+
     return args
+
+class Package(object):
+    def __init__(self, name, version):
+        self.name = name
+        self.version = version
+
 
 def list_packages(rootdir, update, substring):
     c = apt.Cache(rootdir=rootdir)
@@ -48,9 +58,10 @@ def list_packages(rootdir, update, substring):
     packages = []
     for p in [k for k in c.keys() if args.substring in k]:
         v = c[p].versions[0]
-        packages.append(c[p])
+        packages.append(Package(p, c[p].candidate.version))
 
     return packages
+
 
 
 def render_vertical(packages):
@@ -71,7 +82,7 @@ def render_vertical(packages):
     print pstr, " "*(width-len(pstr)), ":",
     arch_distro_list = sorted(packages.iterkeys())
     for k in arch_distro_list:
-        print k, "|",
+        print k+"|",
     print '' 
 
     
@@ -84,11 +95,11 @@ def render_vertical(packages):
             for pkg in packages[k]:
                 pkg_name_lookup[pkg.name] = pkg
             if p in pkg_name_lookup:
-                version_string = pkg_name_lookup[p].candidate.version
-                print version_string[:len(k)],'|',
+                version_string = pkg_name_lookup[p].version
+                print version_string[:len(k)]+' '*max(0, len(k) -len(version_string) )+('|' if len(version_string) < len(k) else '>'),
                 #, 'x'*len(k),'|', 
             else:
-                print ' '*len(k),'|', 
+                print ' '*len(k)+'|', 
         print ''
             
 
@@ -118,6 +129,8 @@ if __name__ == "__main__":
 
     packages = {}
 
+
+
     try:
         for d in distros:
             for a in arches:
@@ -128,8 +141,14 @@ if __name__ == "__main__":
                 
                 packages[dist_arch] = list_packages(specific_rootdir, update=True, substring=args.substring)
 
-        render_vertical(packages)
                 
     finally:
         if not args.rootdir: # don't delete if it's not a tempdir
             shutil.rmtree(rootdir)
+
+    rd = buildfarm.rosdistro.Rosdistro(args.rosdistro)
+    distro_packages = rd.get_package_list()
+
+
+    packages[' '+ args.rosdistro] = [Package(buildfarm.rosdistro.debianize_package_name(args.rosdistro, p), rd.get_version(p)) for p in distro_packages]
+    render_vertical(packages)

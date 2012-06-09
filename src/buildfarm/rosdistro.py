@@ -7,6 +7,21 @@ import yaml, urllib2
 
 URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
 
+class RepoMetadata(object):
+    def __init__(self, name, url, version, status = None):
+        self.name = name
+        self.url = url
+        self.version = version
+        self.status = status
+
+
+def sanitize_package_name(name):
+    return name.replace('_', '-')
+
+
+def debianize_package_name(rosdistro, name):
+    return sanitize_package_name("ros-%s-%s"%(rosdistro, name))
+
 
 # todo raise not exit
 class Rosdistro:
@@ -26,12 +41,24 @@ class Rosdistro:
             sys.exit(1)
         self._repoinfo = {}
         for n in self.repo_map['gbp-repos']:
-            if 'name' in n.keys() and 'version' in n.keys():
-                self._repoinfo[n['name']] = n['version']
+            if 'name' and 'version' and 'url' in n.keys():
+                self._repoinfo[n['name']] = RepoMetadata(n['name'], 
+                                                         n['url'],
+                                                         n['version'])#,
+                                                         #n['status'])
 
+    def get_package_list(self):
+        return self._repoinfo.iterkeys()
+                
     def get_version(self, stack_name):
         if stack_name in self._repoinfo.keys():
-            return self._repoinfo[stack_name]
+            return self._repoinfo[stack_name].version
+        else:
+            return None
+
+    def get_status(self, stack_name):
+        if stack_name in self._repoinfo.keys():
+            return self._repoinfo[stack_name].status
         else:
             return None
 
