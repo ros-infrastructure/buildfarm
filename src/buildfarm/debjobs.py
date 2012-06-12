@@ -100,6 +100,7 @@ def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50
 def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name):
     d = dict(
     RELEASE_URI=release_uri,
+    RELEASE_BRANCH='master',
     FQDN=fqdn,
     DISTROS=distros,
     CHILD_PROJECTS=child_projects,

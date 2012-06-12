@@ -24,7 +24,7 @@
     </remoteRepositories>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>**</name>
+        <name>@(RELEASE_BRANCH)</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <mergeOptions/>
