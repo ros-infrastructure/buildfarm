@@ -7,6 +7,11 @@ import shutil
 from rosdistro import sanitize_package_name, debianize_package_name
 
 
+def _get_recursive_dependencies(dependency_dict, package_name, package_list):
+    dependencies = set(package_list[p] for p in dependency_dict[package_name] if p in package_list)
+    for p in  [ p for p in dependency_dict[package_name] if p in package_list ]:
+        dependencies.update(_get_recursive_dependencies(dependency_dict, p, package_list))
+    return dependencies
 
 def get_dependencies(workspace, repository_list, rosdistro):
     if not os.path.isdir(workspace):
@@ -60,7 +65,8 @@ def get_dependencies(workspace, repository_list, rosdistro):
 
     result = {}
     urls = {}
+
     for k, v in dependencies.iteritems():
-        result[packages[k]] = [packages[p] for p in v if p in packages]
+        result[packages[k]] = _get_recursive_dependencies(dependencies, k, packages)
         urls[package_urls[k]] = packages[k]
     return result, urls
