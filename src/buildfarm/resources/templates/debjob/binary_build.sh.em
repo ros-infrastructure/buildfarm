@@ -30,7 +30,7 @@ then
   rm -rf $WORKSPACE/catkin-debs
 fi
 
-git clone git://github.com/willowgarage/catkin-debs.git $WORKSPACE/catkin-debs -b library --depth 1
+git clone git://github.com/willowgarage/catkin-debs.git $WORKSPACE/catkin-debs -b master --depth 1
 
 
 cd $WORKSPACE/catkin-debs
