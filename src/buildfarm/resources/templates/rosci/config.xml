@@ -28,6 +28,11 @@
   <publishers>
     %(xunit_xml_fragment)s
 
+    <hudson.tasks.junit.JUnitResultArchiver>
+      <testResults>build/test_results/_hudson/*.xml</testResults>
+      <keepLongStdio>true</keepLongStdio>
+      <testDataPublishers/>
+    </hudson.tasks.junit.JUnitResultArchiver>
     <hudson.tasks.Mailer>
       <recipients>%(notification_email)s</recipients>
       <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
