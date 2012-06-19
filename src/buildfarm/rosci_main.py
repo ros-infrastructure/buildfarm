@@ -5,14 +5,14 @@ import sys
 
 from optparse import OptionParser
 
-from . import __version__
-from .jenkins_support import load_server_config_file, get_default_server_config_file, JenkinsConfig_to_handle
-from .job_creator import process_jobs, load_jobs_from_file
+#from . import __version__
+from .jenkins_support import load_server_config_file, get_default_catkin_debs_config, JenkinsConfig_to_handle
+from .rosci_creator import process_jobs, load_jobs_from_file
 
 NAME='rosci'
 
 def rosci_main():
-    print("starting rosci %s"%__version__)
+    #print("starting rosci %s"%__version__)
     parser = OptionParser(usage="usage: %prog <jobs.yaml> <rosdistro-name>", prog=NAME)
     parser.add_option("-n", dest="fake", action="store_true", help="Don't actually upload to Jenkins", default=False)
     options, args = parser.parse_args()

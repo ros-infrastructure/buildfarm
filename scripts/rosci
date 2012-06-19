@@ -1,4 +1,4 @@
 #!/usr/bin/env python
 
-from rosci.main import rosci_main
+from buildfarm.rosci_main import rosci_main
 rosci_main()
