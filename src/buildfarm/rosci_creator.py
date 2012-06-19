@@ -37,7 +37,6 @@ import pkg_resources
 import sys
 import yaml
 
-from . ci_base import InvalidCiConfig, TEMPLATES_PKG
 from . jenkins_support import VcsConfig_to_scm_fragment
 
 DISPATH_SH_URI = 'https://raw.github.com/willowgarage/buildfarm/master/dispatch.sh'
@@ -84,7 +83,7 @@ def create_JobConfig_from_dict(d):
         return JobConfig(name, job_type, vcs_config, email, label, params)
         
     except KeyError as e:
-        raise InvalidCiConfig("Missing required job config key %s\nData: %s"%(str(e), d))
+        raise KeyError("Missing required job config key %s\nData: %s"%(str(e), d))
     
 def create_jenkins_config_xml(job_config, rosdistro_name, os_name, os_platform, arch):
     # temporary until we support more configs
@@ -130,8 +129,8 @@ bash $WORKSPACE/build.sh
     #TODO
     xunit_xml_fragment = ''
     
-    assert pkg_resources.resource_exists(TEMPLATES_PKG, 'config.xml')
-    f = pkg_resources.resource_stream(TEMPLATES_PKG, 'config.xml')
+    assert pkg_resources.resource_exists('buildfarm', 'resources/templates/rosci/config.xml')
+    f = pkg_resources.resource_stream('buildfarm', 'resources/templates/rosci/config.xml')
     config_template = f.read()
     
     return config_template%locals()

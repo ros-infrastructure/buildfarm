@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+
+  %(scm_fragment)s
+
+  <assignedNode>%(label)s</assignedNode>
+
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>buildit</authToken> <!-- This allows for users to post to HUDSON/job/NAME/build?token=buildit -->
+  <triggers class="vector">
+    <hudson.triggers.SCMTrigger>
+      <spec>*/10 * * * *</spec>
+    </hudson.triggers.SCMTrigger>
+
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>%(shell_fragment)s</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    %(xunit_xml_fragment)s
+
+    <hudson.tasks.Mailer>
+      <recipients>%(notification_email)s</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
+  <buildWrappers/>
+
+</project>
+
