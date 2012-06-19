@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     jenkins_instance = None
     if args.commit:
-        jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_deps_config()))
+        jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
 
     results = buildfarm.debjobs.doit(url, pkg_by_url[url], target_distros, args.fqdn, dependencies, args.rosdistro, args.package_name, args.commit, jenkins_instance)
     buildfarm.debjobs.summarize_results(*results)

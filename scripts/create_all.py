@@ -35,7 +35,7 @@ def parse_options():
 def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit = False):
     jenkins_instance = None
     if args.commit:
-        jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_deps_config()))
+        jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
 
 
     # What ROS distro are we configuring?
