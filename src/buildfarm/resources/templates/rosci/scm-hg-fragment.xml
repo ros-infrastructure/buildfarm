@@ -1,0 +1,9 @@
+<scm class="hudson.plugins.mercurial.MercurialSCM">
+  <source>%(source)s</source>
+  <branch>%(version)s</branch>
+  <subdir>%(local_name)s</subdir>
+  <modules/>
+  <clean>false</clean>
+  <forest>false</forest>
+</scm>
+

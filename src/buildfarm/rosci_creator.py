@@ -37,10 +37,31 @@ import pkg_resources
 import sys
 import yaml
 
-from . jenkins_support import VcsConfig_to_scm_fragment
-
 DISPATH_SH_URI = 'https://raw.github.com/willowgarage/buildfarm/master/dispatch.sh'
 CATKIN_BUILDER = 'rosci-catkin-cmake-builder.sh'
+
+def get_resource_stream(name):
+    fullname = os.path.join('resources/templates/rosci', name)
+    if not pkg_resources.resource_exists('buildfarm', fullname):
+        raise RuntimeError("cannot locate template fragment: %s"%(fullname))
+    return pkg_resources.resource_stream('buildfarm', fullname)
+
+
+def VcsConfig_to_scm_fragment(vcs_config, local_name, branch='devel'):
+    # have to set local_name, source, and version variables
+    uri, version = vcs_config.get_branch(branch, anonymous=True)
+    vcs_type = vcs_config.type
+    source = uri
+    
+    if vcs_type == 'hg':
+        version = version or 'default'
+    elif vcs_type == 'svn':
+        if version is not None:
+            source = "%s@%s"%(uri, version)
+    elif vcs_type == 'git':
+        version = version or 'master'
+    f = get_resource_stream('scm-%s-fragment.xml'%vcs_type)
+    return f.read()%locals()
 
 class JobConfig(object):
 
@@ -129,8 +150,7 @@ bash $WORKSPACE/build.sh
     #TODO
     xunit_xml_fragment = ''
     
-    assert pkg_resources.resource_exists('buildfarm', 'resources/templates/rosci/config.xml')
-    f = pkg_resources.resource_stream('buildfarm', 'resources/templates/rosci/config.xml')
+    f = get_resource_stream('config.xml')
     config_template = f.read()
     
     return config_template%locals()

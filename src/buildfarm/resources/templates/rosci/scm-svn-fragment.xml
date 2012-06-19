@@ -1,0 +1,15 @@
+<scm class="hudson.scm.SubversionSCM">
+  <locations>
+    <hudson.scm.SubversionSCM_-ModuleLocation>
+      <remote>%(source)s</remote>
+      <local>%(local_name)s</local>
+    </hudson.scm.SubversionSCM_-ModuleLocation>
+  </locations>
+  <useUpdate>true</useUpdate>
+  <doRevert>false</doRevert>
+  <excludedRegions/>
+  <includedRegions/>
+  <excludedUsers/>
+  <excludedRevprop/>
+  <excludedCommitMessages/>
+</scm>
