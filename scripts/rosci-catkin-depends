@@ -13,7 +13,7 @@ def main():
     options, args = parser.parse_args()
     if len(args) < 3:
         parser.error("please specify rosdistro, os_name, os_platform and multiple rosdep-keys; e.g.: fuerte ubuntu lucid dep1 dep2 ...")
-    rosdistro_name args[0]
+    rosdistro_name = args[0]
     os_name = args[1]
     os_platform = args[2]
     rosdep_keys = args[3:]
