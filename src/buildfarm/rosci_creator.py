@@ -131,7 +131,7 @@ def create_jenkins_config_xml(job_config, rosdistro_name, os_name, os_platform, 
         'IMAGETYPE': image_type,
         'ARCH' : arch, 
         'STACK_NAME' : job_config.name,
-        'STACK_BUILD_DEPENDS': stack_build_depends,
+        'STACK_BUILD_DEPENDS': ' '.join(stack_build_depends),
         'JOB_TYPE' : job_config.type,
         'SCRIPT' : CATKIN_BUILDER,
         }
