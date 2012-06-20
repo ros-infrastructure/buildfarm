@@ -109,7 +109,7 @@ def create_JobConfig_from_dict(d):
 def create_jenkins_config_xml(job_config, rosdistro_name, os_name, os_platform, arch):
     # temporary until we support more configs
     assert job_config.type == 'catkin'
-    stack_xml_url = job_config.params['stack-xml']
+    stack_build_depends = job_config.params['stack-build-depends']
     profiles = job_config.params['profiles']
     assert profiles == ['devel'], profiles
 
@@ -131,7 +131,7 @@ def create_jenkins_config_xml(job_config, rosdistro_name, os_name, os_platform, 
         'IMAGETYPE': image_type,
         'ARCH' : arch, 
         'STACK_NAME' : job_config.name,
-        'STACK_XML_URL': stack_xml_url,
+        'STACK_BUILD_DEPENDS': stack_build_depends,
         'JOB_TYPE' : job_config.type,
         'SCRIPT' : CATKIN_BUILDER,
         }
@@ -156,11 +156,7 @@ bash $WORKSPACE/build.sh
     return config_template%locals()
 
 # SKETCH OF WHAT WE WANT TO DO IN THE SHELL
-SKETCH = """
-wget $STACK_XML_URL -O /tmp/stack.xml
-# magic script we haven't written yet
-export APT_DEPENDENCIES=`rosci-depends-to-apt /tmp/stack.xml $ROSDISTRO_NAME $OS_NAME $OS_PLATFORM`
-"""
+# export APT_DEPENDENCIES=`rosci-catkin-depends $ROSDISTRO_NAME $OS_NAME $OS_PLATFORM $STACK_BUILD_DEPENDS`
 
 def get_jenkins_job_name(project_name, rosdistro_name, os_name, os_platform, arch):
     return 'ci-devel-%(project_name)s-%(rosdistro_name)s-%(os_name)s-%(os_platform)s-%(arch)s'%(locals())

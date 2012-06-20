@@ -1,11 +1,7 @@
 #!/bin/env python
 
-import vcstools
-import os
-import rospkg.stack
-import shutil
 from rosdistro import sanitize_package_name, debianize_package_name
-
+from stack_of_remote_repository import get_stack_of_remote_repository
 
 def _get_dependencies(dependency_dict, package_name, package_list, recursive=False):
     dependencies = set(package_list[p] for p in dependency_dict[package_name] if p in package_list)
@@ -15,9 +11,6 @@ def _get_dependencies(dependency_dict, package_name, package_list, recursive=Fal
     return dependencies
 
 def get_dependencies(workspace, repository_list, rosdistro):
-    if not os.path.isdir(workspace):
-        os.makedirs(workspace)
-
     build_dependencies = {}
     runtime_dependencies = {}
 
@@ -31,21 +24,9 @@ def get_dependencies(workspace, repository_list, rosdistro):
             continue
         url = r['url']
         name = r['name']
-        print "Working on repository %s at %s..."%(name, url)
-
-        workdir = os.path.join(workspace, name)
-        client = vcstools.VcsClient('git', workdir)
-        if client.path_exists():
-            if client.get_url() == url:
-                client.update("")
-            else:
-                shutil.rmtree(workdir)
-                client.checkout(url)
-        else:
-            client.checkout(url)
-
-        stack_xml_path = os.path.join(workdir, 'stack.xml')
-        if not os.path.isfile(stack_xml_path):
+        try:
+            stack = get_stack_of_remote_repository(name, 'git', url, workspace)
+        except IOError, e:
             if rosdistro == 'backports':
                 packages[name] = sanitize_package_name(name)
                 build_dependencies[name] = []
@@ -53,10 +34,9 @@ def get_dependencies(workspace, repository_list, rosdistro):
                 package_urls[name] = url
                 print "Processing backport %s, no stack.xml file found in repo %s. Continuing"%(name, url)
             else:
-                print "Warning: no stack.xml found in repository %s at %s; skipping"%(name, url)
+                print str(e)
             continue
 
-        stack = rospkg.stack.parse_stack_file(stack_xml_path)
         catkin_project_name = stack.name
 
         packages[catkin_project_name] = debianize_package_name(rosdistro, catkin_project_name)
