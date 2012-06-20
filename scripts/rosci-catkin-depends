@@ -6,7 +6,7 @@ import optparse
 import os
 import sys
 
-import rosci.catkin_support
+from buildfarm.rosdep_support import catkin_depends_to_apt
 
 def main():
     parser = optparse.OptionParser(usage="usage: %prog <stack.xml> <rosdistro-name> <os-name> <os-platform>", prog='rosci-catkin-depends')
@@ -14,7 +14,7 @@ def main():
     if len(args) < 4:
         parser.error("please specify xml, rosdistro, os_name, and os_platform; e.g.: stack.xml fuerte ubuntu lucid")
     stack_xml_file, rosdistro_name, os_name, os_platform = args
-    retval = rosci.catkin_support.catkin_depends_to_apt(stack_xml_file, rosdistro_name, os_name, os_platform)
+    retval = catkin_depends_to_apt(stack_xml_file, rosdistro_name, os_name, os_platform)
     print(' '.join(retval))
 
 if __name__ == '__main__':
