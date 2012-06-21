@@ -23,9 +23,9 @@ def get_stack_of_remote_repository(name, type, url, workspace=None):
             client.update('')
         else:
             shutil.rmtree(workdir)
-            client.checkout(url)
+            client.checkout(url, shallow=True)
     else:
-        client.checkout(url)
+        client.checkout(url, shallow=True)
 
     # parse stack.xml
     stack_xml_path = os.path.join(workdir, 'stack.xml')
