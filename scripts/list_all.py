@@ -18,7 +18,7 @@ def parse_options():
     parser.add_argument("--rootdir", dest="rootdir", default = None,
                         help='The directory for apt to use as a rootdir')
     parser.add_argument("--rosdistro", dest='rosdistro', default = 'fuerte',
-           help='The ros distro. electric, fuerte, galapagos')
+           help='The ros distro. electric, fuerte, groovy')
     parser.add_argument("--substring", dest="substring", default="", 
                         help="substring to filter packages displayed default = 'ros-ROSDISTRO'")
     parser.add_argument("-u", "--update", dest="update", action='store_true', default=False, 
