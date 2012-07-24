@@ -98,10 +98,6 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
             for e in v:
                 configured_jobs.update(set(e))
 
-
-        print ('configured', configured_jobs)
-
-
         existing_jobs = set([j['name'] for j in jenkins_instance.get_jobs()])
         relevant_jobs = existing_jobs - configured_jobs
         relevant_jobs = [ j for j in relevant_jobs if rosdistro in j and ('sourcedeb' in j or 'binarydeb' in j) ]
