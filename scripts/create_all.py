@@ -28,13 +28,15 @@ def parse_options():
            default=[])
     parser.add_argument('--commit', dest='commit',
            help='Really?', action='store_true')
+    parser.add_argument('--delete', dest='delete',
+           help='Delete extra jobs', action='store_true')
     parser.add_argument('--repo-workspace', dest='repos', action='store', 
            help='A directory into which all the repositories will be checked out into.')
     return parser.parse_args()
 
-def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit = False):
+def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit = False, delete_extra_jobs = False):
     jenkins_instance = None
-    if args.commit:
+    if args.commit or delete_extra_jobs:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
 
 
@@ -87,6 +89,30 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
                                                           jenkins_instance=jenkins_instance)
         print ("individual results", results[package_names_by_url[url]])
 
+    if delete_extra_jobs:
+        # clean up extra jobs
+        configured_jobs = set()
+
+        for k, v in results.iteritems():
+            debjobs.summarize_results(*v)
+            for e in v:
+                configured_jobs.update(set(e))
+
+
+        print ('configured', configured_jobs)
+
+
+        existing_jobs = set([j['name'] for j in jenkins_instance.get_jobs()])
+        relevant_jobs = existing_jobs - configured_jobs
+        relevant_jobs = [ j for j in relevant_jobs if rosdistro in j and ('sourcedeb' in j or 'binarydeb' in j) ]
+
+        for j in relevant_jobs:
+            print("Job %s detected as extra"%j)
+            if commit:
+                jenkins_instance.delete_job(j)
+                print("Deleted job %s"%j)
+
+
     return results
 
 if __name__ == "__main__":
@@ -122,10 +148,8 @@ if __name__ == "__main__":
                        args.fqdn, 
                        dependencies, 
                        rosdistro= args.rosdistro, 
-                       commit = args.commit)
-    for k, v in results_map.iteritems():
-        debjobs.summarize_results(*v)
-
+                       commit = args.commit, 
+                       delete_extra_jobs = args.delete)
 
     if not args.commit:
         print("This was not pushed to the server.  If you want to do so use ",
