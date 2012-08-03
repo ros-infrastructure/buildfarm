@@ -72,7 +72,7 @@ def list_debian_tags(repo_path, package_name, package_version):
 def build_source_deb(repo_path, tag, output):
     call(repo_path, ('git', 'checkout', tag))
     call(repo_path, ('git', 'buildpackage', '--git-export-dir=%s' % output,
-        '--git-ignore-new', '-S', '-uc', '-us'))
+        '--git-ignore-new', '-S', '-uc', '-us', '--lintian-opts', '--suppress-tags', 'newer-standards-version'))
     print("Successfully created changes in %s"%output)
     call(repo_path, ['ls', output])
 
