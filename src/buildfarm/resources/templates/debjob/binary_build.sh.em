@@ -91,7 +91,7 @@ then
     --basetgz $basetgz \
     --architecture $arch \
     --mirror $mirror \
-    --debootstrap_type $debootstrap_type \
+    --debootstrap $debootstrap_type \
     --debootstrapopts --arch=$arch
 else
   sudo pbuilder --update --basetgz $basetgz
