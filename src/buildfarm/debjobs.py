@@ -86,7 +86,7 @@ def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50
     )
     jobs = []
     for distro in distros:
-        for arch in ('i386', 'amd64', 'armel'):
+        for arch in ('i386', 'amd64'): #, 'armel' #removed armel as it as qemu debootstrap is segfaulting
             d['ARCH'] = arch
             d['DISTRO'] = distro
             d["CHILD_PROJECTS"] = calc_child_jobs(package, distro, arch, jobgraph)
