@@ -22,18 +22,6 @@ basetgz=$base/base-$basetgz_version.tgz
 output_dir=$WORKSPACE/output
 work_dir=$WORKSPACE/work
 
-
-
-if [ $arch == armel ]
-then
-    mirror=http://ports.ubuntu.com/ubuntu-ports
-    debootstrap_type='qemu-debootstrap'
-else
-    mirror=http://aptproxy.willowgarage.com/us.archive.ubuntu.com/ubuntu
-    debootstrap_type='debootstrap'
-fi
-
-
 sudo apt-get update
 sudo apt-get install -y pbuilder python-empy python-argparse debhelper # todo move to server setup, or confirm it's there
 
@@ -51,7 +39,7 @@ cd $WORKSPACE/catkin-debs
 #setup the cross platform apt environment
 # using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary. 
 # And you can't chown it even with sudo and recursive 
-sudo PYTHONPATH=$PYTHONPATH $WORKSPACE/catkin-debs/scripts/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE --mirror $mirror
+sudo PYTHONPATH=$PYTHONPATH $WORKSPACE/catkin-debs/scripts/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE
 
 # Check if this package exists, and call update which will update the cache, following calls don't need to update
 #if [ -e $WORKSPACE/catkin-debs/scripts/jenkins/apt_env/check_package_built.py $rootdir $PACKAGE -u ]
@@ -89,10 +77,7 @@ then
     --distribution $distro \
     --aptconfdir $rootdir/etc/apt \
     --basetgz $basetgz \
-    --architecture $arch \
-    --mirror $mirror \
-    --debootstrap_type $debootstrap_type \
-    --debootstrapopts --arch=$arch
+    --architecture $arch
 else
   sudo pbuilder --update --basetgz $basetgz
 fi
