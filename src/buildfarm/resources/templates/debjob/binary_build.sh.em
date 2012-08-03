@@ -75,7 +75,7 @@ cd $work_dir
 
 
 
-sudo apt-get update -c $aptconffile
+sudo apt-get update -c $aptconffile -o Apt::Architecture=$arch
 sudo apt-get source $PACKAGE -c $aptconffile
 
 
