@@ -37,8 +37,8 @@ import sys
 
 import rospkg.stack
 from rospkg.os_detect import OS_UBUNTU
-from rosdep2.catkin_support import get_apt_installer, get_catkin_view, resolve_for_apt, get_ubuntu_targets
-
+from rosdep2.catkin_support import get_catkin_view, resolve_for_apt, get_ubuntu_targets
+from rosdep2..platforms.debian import APT_INSTALLER
 #NOTE: this code is very similar to code in catkin-generate-distribution and rosrelease
 
 def resolve_rosdeps(rosdep_keys, rosdistro_name, os_name, os_platform):
@@ -54,7 +54,7 @@ def resolve_rosdeps(rosdep_keys, rosdistro_name, os_name, os_platform):
     # use the catkin_support module in rosdep2 as it does the same business
 
     # apt-install resolves data
-    apt_installer = get_apt_installer()
+    apt_installer = get_installer(APT_INSTALLER)
     # rosdep view is our view into the rosdep database
     rosdep_view = get_catkin_view(rosdistro_name, os_name, os_platform)
 
