@@ -22,7 +22,7 @@ def parse_options():
            help='The source repo to push to, fully qualified something...',
            default='50.28.27.175')
     parser.add_argument(dest='rosdistro',
-           help='The ros distro. electric, fuerte, galapagos')
+           help='The ros distro. electric, fuerte, groovy')
     parser.add_argument('--distros', nargs='+',
            help='A list of debian distros. Default: %(default)s',
            default=[])
