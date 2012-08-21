@@ -36,16 +36,13 @@ class Rosdistro:
         if self.repo_map['release-name'] != rosdistro_name:
             print('release-name mismatch (%s != %s)'%(self.repo_map['release-name'],rosdistro_name))
             sys.exit(1)
-        if 'gbp-repos' not in self.repo_map:
-            print("No 'gbp-repos' key in yaml file")
+        if 'repositories' not in self.repo_map:
+            print("No 'repositories' key in yaml file")
             sys.exit(1)
         self._repoinfo = {}
-        for n in self.repo_map['gbp-repos']:
-            if 'name' and 'version' and 'url' in n.keys():
-                self._repoinfo[n['name']] = RepoMetadata(n['name'], 
-                                                         n['url'],
-                                                         n['version'])#,
-                                                         #n['status'])
+        for name, n in self.repo_map['repositories'].items():
+            if 'url' in n.keys() and 'version' in n.keys():
+                self._repoinfo[name] = RepoMetadata(name, n['url'], n['version'])
 
     def get_package_list(self):
         return self._repoinfo.iterkeys()
@@ -96,7 +93,7 @@ class Rosdistro:
 
 
     def compute_rosinstall_distro(self, rosdistro, distro_name):
-        rosinstall_data = [self.compute_rosinstall_snippet(r['name'], r['url'], r['version'], rosdistro) for r in self.repo_map['gbp-repos'] if 'url' in r and 'name' in r and 'version' in r]
+        rosinstall_data = [self.compute_rosinstall_snippet(name, r['url'], r['version'], rosdistro) for name, r in self.repo_map['repositories'].items() if 'url' in r and 'version' in r]
         return rosinstall_data
         
 

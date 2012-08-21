@@ -10,20 +10,19 @@ def _get_dependencies(dependency_dict, package_name, package_list, recursive=Fal
             dependencies.update(_get_dependencies(dependency_dict, p, package_list, recursive))
     return dependencies
 
-def get_dependencies(workspace, repository_list, rosdistro):
+def get_dependencies(workspace, repository_dict, rosdistro):
     build_dependencies = {}
     runtime_dependencies = {}
 
     packages = {}
     package_urls = {}
 
-    #print repository_list
-    for r in repository_list:
-        if 'url' not in r or 'name' not in r:
-            print "'name' and/or 'url' keys missing for repository %s; skipping"%(r)
+    #print repository_dict
+    for name, r in repository_dict.items():
+        if 'url' not in r:
+            print "'url' key missing for repository %s; skipping"%(r)
             continue
         url = r['url']
-        name = r['name']
         try:
             stack = get_stack_of_remote_repository(name, 'git', url, workspace)
         except IOError, e:

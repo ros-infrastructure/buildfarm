@@ -56,7 +56,7 @@ if __name__ == "__main__":
         if not args.repos:
             workspace = tempfile.mkdtemp()
             
-        (dependencies, pkg_by_url)  = buildfarm.dependency_walker.get_dependencies(workspace, repo_map['gbp-repos'], args.rosdistro)
+        (dependencies, pkg_by_url)  = buildfarm.dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro)
 
     finally:
         if not args.repos:
@@ -71,11 +71,10 @@ if __name__ == "__main__":
 
     # We take the intersection of repo-specific targets with default
     # targets.
-    r = [x for x in repo_map['gbp-repos'] if 'name' in x and x['name'] == args.package_name]
-    if len(r) != 1:
+    if args.package_name not in repo_map['repositories']:
         print("No such package %s"%(args.package_name))
         sys.exit(1)
-    r = r[0]
+    r = repo_map['repositories'][args.package_name]
     if 'url' not in r or 'name' not in r:
         print("'name' and/or 'url' keys missing for repository %s; skipping"%(r))
         sys.exit(0)
@@ -83,13 +82,10 @@ if __name__ == "__main__":
     if url not in pkg_by_url:
         print("Repo %s is missing from the list; must have been skipped (e.g., for missing a stack.xml)"%(r))
         sys.exit(0)
-    if 'target' in r:
-        if r['target'] == 'all':
-            target_distros = default_distros
-        else:
-            target_distros = list(set(r['target']) & default_distros)
-    else:
+    if 'target' not in r or r['target'] == 'all':
         target_distros = default_distros
+    else:
+        target_distros = list(set(r['target']) & default_distros)
 
     print ("Configuring %s for %s"%(r['url'], target_distros))
 

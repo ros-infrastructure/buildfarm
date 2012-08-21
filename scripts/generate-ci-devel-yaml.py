@@ -42,10 +42,9 @@ def generate_ci_devel_yaml(yaml_filename, workspace=None):
     #for k in y.keys():
     #    print k
     source_repos = []
-    release_repos = y['gbp-repos']
+    release_repos = y['repositories']
     #print release_repos
-    for release_repo in release_repos:
-        name = release_repo['name']
+    for name, release_repo in release_repos.items():
         url = release_repo['url']
         prefix = 'git://github.com/'
         suffix = '.git'

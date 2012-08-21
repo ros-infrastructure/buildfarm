@@ -59,22 +59,18 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
     # We take the intersection of repo-specific targets with default
     # targets.
     results = {}
-    for r in repo_map['gbp-repos']:
-        if 'url' not in r or 'name' not in r:
-            print("'name' and/or 'url' keys missing for repository %s; skipping"%(r))
+    for short_package_name, r in repo_map['repositories'].items():
+        if 'url' not in r:
+            print("'url' key missing for repository %s; skipping"%(r))
             continue
         url = r['url']
-        short_package_name = r['name']
         if url not in package_names_by_url:
             print("Repo %s is missing from the list; must have been skipped (e.g., for missing a stack.xml)"%(r))
             continue
-        if 'target' in r:
-            if r['target'] == 'all':
-                target_distros = default_distros
-            else:
-                target_distros = list(set(r['target']) & set(default_distros))
-        else:
+        if 'target' not in r or r['target'] == 'all':
             target_distros = default_distros
+        else:
+            target_distros = list(set(r['target']) & set(default_distros))
 
         print ("Configuring %s for %s"%(r['url'], target_distros))
         
@@ -123,8 +119,10 @@ if __name__ == "__main__":
     if repo_map['release-name'] != args.rosdistro:
         print('release-name mismatch (%s != %s)'%(repo_map['release-name'],args.rosdistro))
         sys.exit(1)
-    if 'gbp-repos' not in repo_map:
-        print("No 'gbp-repos' key in yaml file")
+    if 'repositories' not in repo_map:
+        print("No 'repositories' key in yaml file")
+    if 'type' not in repo_map or repo_map['type'] != 'gbp':
+        print("Wrong type value in yaml file")
         sys.exit(1)
 
     workspace = args.repos
@@ -132,7 +130,7 @@ if __name__ == "__main__":
         if not args.repos:
             workspace = tempfile.mkdtemp()
             
-        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['gbp-repos'], args.rosdistro)
+        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro)
 
     finally:
         if not args.repos:
