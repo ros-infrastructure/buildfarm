@@ -92,6 +92,7 @@ then
     --basetgz $basetgz \
     --architecture $arch \
     --mirror $mirror \
+    --keyring /etc/apt/trusted.gpg \
     --debootstrap $debootstrap_type \
     --debootstrapopts --arch=$arch \
     --debootstrapopts --keyring=/etc/apt/trusted.gpg
