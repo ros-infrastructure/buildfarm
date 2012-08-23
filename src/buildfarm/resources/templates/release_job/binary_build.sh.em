@@ -93,7 +93,8 @@ then
     --architecture $arch \
     --mirror $mirror \
     --debootstrap $debootstrap_type \
-    --debootstrapopts --arch=$arch --keyring=/etc/apt/trusted.gpg
+    --debootstrapopts --arch=$arch \
+    --debootstrapopts --keyring=/etc/apt/trusted.gpg
 else
   sudo pbuilder --update --basetgz $basetgz
 fi
