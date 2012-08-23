@@ -14,7 +14,7 @@ base=/var/cache/pbuilder-$distro-$arch
 aptconffile=$WORKSPACE/apt.conf
 
 #increment this value if you have changed something that will invalidate base tarballs. #TODO this will need cleanup eventually.
-basetgz_version=3
+basetgz_version=4
 
 rootdir=$base/apt-conf-$basetgz_version
 
@@ -93,7 +93,7 @@ then
     --architecture $arch \
     --mirror $mirror \
     --debootstrap $debootstrap_type \
-    --debootstrapopts --arch=$arch
+    --debootstrapopts --arch=$arch --keyring=/etc/apt/trusted.gpg
 else
   sudo pbuilder --update --basetgz $basetgz
 fi
