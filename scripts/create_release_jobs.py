@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-import sys
 import argparse
-import yaml
-import urllib2
-from buildfarm import dependency_walker, jenkins_support, release_jobs
-import tempfile
 import shutil
+import sys
+import tempfile
+import urllib2
+import yaml
+
+from buildfarm import dependency_walker, jenkins_support, release_jobs
 
 #import pprint # for debugging only, remove
 
