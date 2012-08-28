@@ -61,6 +61,7 @@ def clean_results(test_results_dir, output_dir, filter):
     """
     Read results from test_results_dir and write them into output_dir.
     """
+    results = junitxml.Result('sum', 0, 0, 0)
     for d in os.listdir(test_results_dir):
         if filter and d in filter:
             continue
@@ -79,12 +80,16 @@ def clean_results(test_results_dir, output_dir, filter):
             file = os.path.join(test_dir, file)
             try:
                 result = junitxml.read(file, test_name)
+                if result.num_errors or result.num_failures:
+                    print("Errors: %d  Failures: %d in %s (%s)" % (result.num_errors, result.num_failures, test_name, file))
+                results.accumulate(result)
                 output_path = os.path.join(output_dir, "%s.xml"%test_name)
                 with open(output_path, 'w') as f:
                     print("re-writing", output_path)
                     f.write(result.xml().encode('utf-8'))
             except Exception as e:
                 sys.stderr.write("ignoring [%s]: %s\n"%(file, e))
+    return results
 
 def main():
     
@@ -95,10 +100,16 @@ def main():
     
     print("[clean_junit_xml]: writing aggregated test results to %s"%output_dir)
     
-    clean_results(test_results_dir, output_dir, [output_dir_name, '.svn'])
+    results = clean_results(test_results_dir, output_dir, [output_dir_name, '.svn'])
     
     print("[clean_junit_xml]: FINISHED")
-  
+
+    print('Tests: %d  Passed: %d  Errors: %d  Failures: %d  Duration: %fs' % (results.num_tests, results.num_tests - results.num_errors - results.num_failures, results.num_errors, results.num_failures, results.time))
+    passed = 0
+    for test_case_result in results.test_case_results:
+        if not test_case_result.passed:
+            print('- %s %s' % (test_case_result.name, test_case_result.classname))
+
 if __name__ == '__main__':
     main()
   
