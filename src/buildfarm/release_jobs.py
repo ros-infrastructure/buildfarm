@@ -5,6 +5,12 @@ import em
 import pkg_resources
 import os
 from xml.sax.saxutils import escape
+import urllib
+import yaml
+
+import rospkg.distro
+
+from rosdistro import debianize_package_name
 
 import jenkins
 
@@ -15,6 +21,8 @@ class Templates(object):
     command_sourcedeb = pkg_resources.resource_string('buildfarm', 'resources/templates/release_job/source_build.sh.em')  # The bash script that the sourcedebs config.xml runs.
     command_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/release_job/binary_build.sh.em')  # builds binary debs.
     config_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/release_job/config.binary.xml.em')  # A config.xml template for something that runs a shell script
+    config_dry_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/dry_release/config.xml.em')  # A config.xml template for something that runs a shell script
+    command_dry_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/dry_release/build.sh.em')  # A config.xml template for something that runs a shell script
 
 
 def expand(config_template, d):
@@ -51,6 +59,10 @@ def create_binarydeb_config(d):
     d['COMMAND'] = escape(expand(Templates.command_binarydeb, d))
     return expand(Templates.config_binarydeb, d)
 
+def create_dry_binarydeb_config(d):
+    d['COMMAND'] = escape(expand(Templates.command_dry_binarydeb, d))
+    return expand(Templates.config_binarydeb, d)
+
 
 def binarydeb_job_name(packagename, distro, arch):
     return "%(packagename)s_binarydeb_%(distro)s_%(arch)s" % locals()
@@ -65,6 +77,24 @@ def calc_child_jobs(packagename, distro, arch, jobgraph):
     return children
 
 
+def dry_calc_child_jobs(distro, arch, dependencies):
+    children = []
+    for package in dependencies:
+        children.append(binarydeb_job_name(package, distro, arch))
+    return children
+
+def dry_get_stack_info(stackname, version):
+    y = urllib.urlopen('https://code.ros.org/svn/release/download/stacks/%(stackname)s/%(stackname)s-%(version)s/%(stackname)s-%(version)s.yaml' % locals() )
+    return yaml.load(y.read())
+                 
+def dry_get_stack_version(stackname, rosdistro):
+    d = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))
+    if not stackname in d.stacks:
+        raise Exception("Stack %s not in distro %s" % (stackname, rosdistro))
+    st = d.stacks[stackname]
+    return st.version
+
+
 def add_dependent_to_dict(packagename, jobgraph):
     dependents = {}
     if jobgraph:
@@ -72,6 +102,31 @@ def add_dependent_to_dict(packagename, jobgraph):
             dependents = jobgraph[packagename]
     return dependents
 
+def dry_binarydeb_jobs(stackname, rosdistro, distros):
+    package_version = dry_get_stack_version(stackname, rosdistro)
+    package_info = dry_get_stack_info(stackname, package_version)
+    package = debianize_package_name(rosdistro, stackname)
+    d = dict(
+        PACKAGE=package,
+        ROSDISTRO=rosdistro
+    )
+    jobs = []
+    for distro in distros:
+        for arch in ('i386', 'amd64'):  # removed 'armel' as it as qemu debootstrap is segfaulting
+            d['ARCH'] = arch
+            d['DISTRO'] = distro
+            if 'depends' in package_info:
+                depends = [debianize_package_name(rosdistro, p) for p in package_info['depends'] ]
+            else:
+                depends = []
+            d["CHILD_PROJECTS"] = dry_calc_child_jobs(distro, arch, depends)
+            d["DEPENDENTS"] = "True"
+            config = create_dry_binarydeb_config(d)
+            #print(config)
+            job_name = binarydeb_job_name(package, distro, arch)
+            jobs.append((job_name, config))
+            print ("config of %s is %s" % (job_name, config))
+    return jobs
 
 def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
     d = dict(
@@ -106,6 +161,24 @@ def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro
     SHORT_PACKAGE_NAME=short_package_name
     )
     return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
+
+
+def dry_doit(package, distros,  rosdistro, commit, jenkins_instance):
+
+
+    jobs = dry_binarydeb_jobs(package, rosdistro, distros)
+
+    successful_jobs = []
+    failed_jobs = []
+    for job_name, config in jobs:
+        if commit:
+            if create_jenkins_job(job_name, config, jenkins_instance):
+                successful_jobs.append(job_name)
+            else:
+                failed_jobs.append(job_name)
+    unattempted_jobs = [job for (job, config) in jobs if job not in successful_jobs and job not in failed_jobs]
+
+    return (unattempted_jobs, successful_jobs, failed_jobs)
 
 
 def doit(release_uri, package, distros, fqdn, job_graph, rosdistro, short_package_name, commit, jenkins_instance):
