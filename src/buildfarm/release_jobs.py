@@ -30,6 +30,21 @@ def expand(config_template, d):
     return s
 
 
+def dry_get_versioned_dependency_tree(rosdistro):
+    d = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))    
+    dependency_tree = {}
+    versions = {}
+    for s in d.stacks:
+        version = d.stacks[s].version
+        versions[s] = version
+        yaml_info = dry_get_stack_info(s, version)
+        if 'depends' in yaml_info:
+            dependency_tree[s] = yaml_info['depends']
+        else:
+            dependency_tree[s] = []
+    return dependency_tree, versions
+
+
 def create_jenkins_job(jobname, config, jenkins_instance):
     try:
         jobs = jenkins_instance.get_jobs()
@@ -61,7 +76,7 @@ def create_binarydeb_config(d):
 
 def create_dry_binarydeb_config(d):
     d['COMMAND'] = escape(expand(Templates.command_dry_binarydeb, d))
-    return expand(Templates.config_binarydeb, d)
+    return expand(Templates.config_dry_binarydeb, d)
 
 
 def binarydeb_job_name(packagename, distro, arch):
@@ -74,13 +89,6 @@ def calc_child_jobs(packagename, distro, arch, jobgraph):
         for package, deps in jobgraph.iteritems():
             if packagename in deps:
                 children.append(binarydeb_job_name(package, distro, arch))
-    return children
-
-
-def dry_calc_child_jobs(distro, arch, dependencies):
-    children = []
-    for package in dependencies:
-        children.append(binarydeb_job_name(package, distro, arch))
     return children
 
 def dry_get_stack_info(stackname, version):
@@ -102,24 +110,31 @@ def add_dependent_to_dict(packagename, jobgraph):
             dependents = jobgraph[packagename]
     return dependents
 
-def dry_binarydeb_jobs(stackname, rosdistro, distros):
+def dry_generate_jobgraph(rosdistro):
+    (stack_depends, versions) = dry_get_versioned_dependency_tree(rosdistro)
+    
+    jobgraph = {}
+    for key, val in stack_depends.iteritems():
+        jobgraph[debianize_package_name(rosdistro, key)] = [debianize_package_name(rosdistro, p) for p in val ]
+    return jobgraph
+
+
+def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
     package_version = dry_get_stack_version(stackname, rosdistro)
     package_info = dry_get_stack_info(stackname, package_version)
     package = debianize_package_name(rosdistro, stackname)
     d = dict(
         PACKAGE=package,
-        ROSDISTRO=rosdistro
+        ROSDISTRO=rosdistro,
+        STACK_NAME=stackname
     )
     jobs = []
     for distro in distros:
         for arch in ('i386', 'amd64'):  # removed 'armel' as it as qemu debootstrap is segfaulting
             d['ARCH'] = arch
             d['DISTRO'] = distro
-            if 'depends' in package_info:
-                depends = [debianize_package_name(rosdistro, p) for p in package_info['depends'] ]
-            else:
-                depends = []
-            d["CHILD_PROJECTS"] = dry_calc_child_jobs(distro, arch, depends)
+
+            d["CHILD_PROJECTS"] = calc_child_jobs(package, distro, arch, jobgraph)
             d["DEPENDENTS"] = "True"
             config = create_dry_binarydeb_config(d)
             #print(config)
@@ -165,8 +180,8 @@ def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro
 
 def dry_doit(package, distros,  rosdistro, commit, jenkins_instance):
 
-
-    jobs = dry_binarydeb_jobs(package, rosdistro, distros)
+    jobgraph = dry_generate_jobgraph(rosdistro) 
+    jobs = dry_binarydeb_jobs(package, rosdistro, distros, jobgraph)
 
     successful_jobs = []
     failed_jobs = []
