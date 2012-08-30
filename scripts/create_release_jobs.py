@@ -9,6 +9,10 @@ from buildfarm import dependency_walker, jenkins_support, release_jobs
 import tempfile
 import shutil
 
+import rospkg.distro
+
+from buildfarm.rosdistro import debianize_package_name
+
 #import pprint # for debugging only, remove
 
 URL_PROTOTYPE = 'https://raw.github.com/ros/rosdistro/master/releases/%s.yaml'
@@ -85,6 +89,19 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
              jenkins_instance=jenkins_instance)
         print ('individual results', results[package_names_by_url[url]])
 
+
+        
+
+    #dry stacks
+    print ("DRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRY")
+    d = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))
+    
+    jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro) 
+
+    for s in d.stacks:
+        print ("Configuring DRY job [%s]" % s)
+        results[debianize_package_name(rosdistro, s) ] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobgraph, commit=commit, jenkins_instance=jenkins_instance)
+
     if delete_extra_jobs:
         # clean up extra jobs
         configured_jobs = set()
@@ -143,6 +160,7 @@ if __name__ == '__main__':
         rosdistro=args.rosdistro,
         commit=args.commit,
         delete_extra_jobs=args.delete)
+
 
     if not args.commit:
         print('This was not pushed to the server.  If you want to do so use "--commit" to do it for real.')

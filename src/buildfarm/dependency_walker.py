@@ -23,6 +23,7 @@ def get_dependencies(workspace, repository_dict, rosdistro):
             print "'url' key missing for repository %s; skipping"%(r)
             continue
         url = r['url']
+        print "downloading from %s into %s to be able to trace dependencies" % (url, workspace)
         try:
             stack = get_stack_of_remote_repository(name, 'git', url, workspace)
         except IOError, e:

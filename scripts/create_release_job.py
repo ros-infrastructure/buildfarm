@@ -74,7 +74,9 @@ if __name__ == '__main__':
 
     if args.dry:
         print('Configuring "%s" for "%s"' % (args.package_name, default_distros))
-        results = buildfarm.release_jobs.dry_doit(args.package_name, default_distros, args.rosdistro, args.commit, jenkins_instance)
+        jobgraph = buildfarm.release_jobs.dry_generate_jobgraph(args.rosdistro) 
+
+        results = buildfarm.release_jobs.dry_doit(args.package_name, default_distros, args.rosdistro, jobgraph, args.commit, jenkins_instance)
 
 
 

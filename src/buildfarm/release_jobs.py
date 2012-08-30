@@ -178,9 +178,8 @@ def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro
     return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
 
-def dry_doit(package, distros,  rosdistro, commit, jenkins_instance):
+def dry_doit(package, distros,  rosdistro, jobgraph, commit, jenkins_instance):
 
-    jobgraph = dry_generate_jobgraph(rosdistro) 
     jobs = dry_binarydeb_jobs(package, rosdistro, distros, jobgraph)
 
     successful_jobs = []
