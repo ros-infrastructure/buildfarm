@@ -47,6 +47,8 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
 
     # What ROS distro are we configuring?
     rosdistro = repo_map['release-name']
+    
+    
 
     # Figure out default distros.  Command-line arg takes precedence; if
     # it's not specified, then read targets.yaml.
@@ -77,7 +79,7 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
         else:
             target_distros = list(set(r['target']) & set(default_distros))
 
-        print ('Configuring "%s" for "%s"' % (r['url'], target_distros))
+        print ('Configuring WET stack "%s" for "%s"' % (r['url'], target_distros))
 
         results[package_names_by_url[url]] = release_jobs.doit(url,
              package_names_by_url[url],
@@ -94,14 +96,12 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
         
 
     #dry stacks
-    print ("DRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRYDRY")
+    # dry dependencies
     d = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))
-    
-    jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro) 
 
     for s in d.stacks:
         print ("Configuring DRY job [%s]" % s)
-        results[debianize_package_name(rosdistro, s) ] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobgraph, commit=commit, jenkins_instance=jenkins_instance)
+        results[debianize_package_name(rosdistro, s) ] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
 
     if delete_extra_jobs:
         # clean up extra jobs
@@ -148,6 +148,13 @@ if __name__ == '__main__':
         if not args.repos:
             workspace = tempfile.mkdtemp()
         (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro)
+        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro) 
+        
+        combined_jobgraph = {}
+        for k, v in dependencies.iteritems():
+            combined_jobgraph[k] = v
+        for k, v in dry_jobgraph.iteritems():
+            combined_jobgraph[k] = v
 
     finally:
         if not args.repos:
@@ -157,7 +164,7 @@ if __name__ == '__main__':
         package_names_by_url,
         args.distros,
         args.fqdn,
-        dependencies,
+        combined_jobgraph,
         rosdistro=args.rosdistro,
         commit=args.commit,
         delete_extra_jobs=args.delete)

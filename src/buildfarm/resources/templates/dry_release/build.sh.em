@@ -17,7 +17,7 @@ source /opt/ros/cturtle/setup.sh
 export ROS_PACKAGE_PATH=$WORKSPACE/ros_release:$WORKSPACE/release:$ROS_PACKAGE_PATH
 
 #noupload while testing
-rosrun rosdeb single_deb.py $DISTRO_NAME $STACK_NAME $OS_PLATFORM $ARCH --noupload
+rosrun rosdeb single_deb.py $DISTRO_NAME $STACK_NAME $OS_PLATFORM $ARCH
 DELIM
 
 bash $WORKSPACE/build.bash

@@ -37,6 +37,8 @@ def parse_options():
     return parser.parse_args()
 
 
+
+
 def get_dependencies(workspace, repositories, rosdistro):
 
     if not workspace:
@@ -71,10 +73,15 @@ if __name__ == '__main__':
         default_distros = rd.get_target_distros()
 
 
+    # Create a unified dependency tree in jobgraph
+    jobgraph = buildfarm.release_jobs.dry_generate_jobgraph(args.rosdistro) 
+    (dependencies, pkg_by_url) = get_dependencies(args.repos, rd.repo_map['repositories'], args.rosdistro)
+    for k, v in dependencies.iteritems():
+        jobgraph[k] = v
 
     if args.dry:
         print('Configuring "%s" for "%s"' % (args.package_name, default_distros))
-        jobgraph = buildfarm.release_jobs.dry_generate_jobgraph(args.rosdistro) 
+
 
         results = buildfarm.release_jobs.dry_doit(args.package_name, default_distros, args.rosdistro, jobgraph, args.commit, jenkins_instance)
 
@@ -83,9 +90,8 @@ if __name__ == '__main__':
 
     else:
 
-        workspace = args.repos
         
-        (dependencies, pkg_by_url) = get_dependencies(workspace, rd.repo_map['repositories'], args.rosdistro)
+
 
         # Figure out default distros.  Command-line arg takes precedence; if
         # it's not specified, then read targets.yaml.
@@ -100,8 +106,8 @@ if __name__ == '__main__':
             print('No such package %s' % args.package_name)
             sys.exit(1)
         r = rd.repo_map['repositories'][args.package_name]
-        if 'url' not in r or 'name' not in r:
-            print('"name" and/or "url" keys missing for repository "%s"; skipping' % r)
+        if 'url' not in r:
+            print('"name" and/or "url" keys missing for repository "%s" for key %s; skipping' % (r, args.package_name) )
             sys.exit(0)
         url = r['url']
         if url not in pkg_by_url:
@@ -115,7 +121,7 @@ if __name__ == '__main__':
         print('Configuring "%s" for "%s"' % (r['url'], target_distros))
 
 
-        results = buildfarm.release_jobs.doit(url, pkg_by_url[url], target_distros, args.fqdn, dependencies, args.rosdistro, args.package_name, args.commit, jenkins_instance)
+        results = buildfarm.release_jobs.doit(url, pkg_by_url[url], target_distros, args.fqdn, jobgraph, args.rosdistro, args.package_name, args.commit, jenkins_instance)
 
 
     buildfarm.release_jobs.summarize_results(*results)

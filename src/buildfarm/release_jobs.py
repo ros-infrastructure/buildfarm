@@ -8,7 +8,8 @@ from xml.sax.saxutils import escape
 import urllib
 import yaml
 
-import rospkg.distro
+
+from rospkg.distro import load_distro, distro_uri
 
 from rosdistro import debianize_package_name
 
@@ -30,8 +31,22 @@ def expand(config_template, d):
     return s
 
 
+# dry dependencies
+def dry_get_stack_info(stackname, version):
+    y = urllib.urlopen('https://code.ros.org/svn/release/download/stacks/%(stackname)s/%(stackname)s-%(version)s/%(stackname)s-%(version)s.yaml' % locals() )
+    return yaml.load(y.read())
+                 
+
+def dry_get_stack_version(stackname, rosdistro):
+    d = load_distro(distro_uri(rosdistro))
+    if not stackname in d.stacks:
+        raise Exception("Stack %s not in distro %s" % (stackname, rosdistro))
+    st = d.stacks[stackname]
+    return st.version
+
+
 def dry_get_versioned_dependency_tree(rosdistro):
-    d = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))    
+    d = load_distro(distro_uri(rosdistro))    
     dependency_tree = {}
     versions = {}
     for s in d.stacks:
@@ -43,6 +58,18 @@ def dry_get_versioned_dependency_tree(rosdistro):
         else:
             dependency_tree[s] = []
     return dependency_tree, versions
+
+def dry_generate_jobgraph(rosdistro):
+    if rosdistro == 'backports':
+        return {}
+
+    (stack_depends, versions) = dry_get_versioned_dependency_tree(rosdistro)
+    
+    jobgraph = {}
+    for key, val in stack_depends.iteritems():
+        jobgraph[debianize_package_name(rosdistro, key)] = [debianize_package_name(rosdistro, p) for p in val ]
+    return jobgraph
+
 
 
 def create_jenkins_job(jobname, config, jenkins_instance):
@@ -91,16 +118,6 @@ def calc_child_jobs(packagename, distro, arch, jobgraph):
                 children.append(binarydeb_job_name(package, distro, arch))
     return children
 
-def dry_get_stack_info(stackname, version):
-    y = urllib.urlopen('https://code.ros.org/svn/release/download/stacks/%(stackname)s/%(stackname)s-%(version)s/%(stackname)s-%(version)s.yaml' % locals() )
-    return yaml.load(y.read())
-                 
-def dry_get_stack_version(stackname, rosdistro):
-    d = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))
-    if not stackname in d.stacks:
-        raise Exception("Stack %s not in distro %s" % (stackname, rosdistro))
-    st = d.stacks[stackname]
-    return st.version
 
 
 def add_dependent_to_dict(packagename, jobgraph):
@@ -110,13 +127,6 @@ def add_dependent_to_dict(packagename, jobgraph):
             dependents = jobgraph[packagename]
     return dependents
 
-def dry_generate_jobgraph(rosdistro):
-    (stack_depends, versions) = dry_get_versioned_dependency_tree(rosdistro)
-    
-    jobgraph = {}
-    for key, val in stack_depends.iteritems():
-        jobgraph[debianize_package_name(rosdistro, key)] = [debianize_package_name(rosdistro, p) for p in val ]
-    return jobgraph
 
 
 def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
