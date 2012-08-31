@@ -157,10 +157,10 @@ class TestCaseResult(object):
         self.errors.append(error)
 
     def xml(self):
-        return u'  <testcase classname="%s" name="%s" time="%s">\n'%(xml_escape(self.classname), xml_escape(self.name), xml_escape(self.time))+\
-               '\n    '.join([f.xml() for f in self.failures])+\
-               '\n    '.join([e.xml() for e in self.errors])+\
-               '  </testcase>'
+        return u'    <testcase classname="%s" name="%s" time="%s">\n'%(xml_escape(self.classname), xml_escape(self.name), xml_escape(self.time))+\
+               ''.join(['      %s\n' % f.xml() for f in self.failures])+\
+               ''.join(['      %s\n' % e.xml() for e in self.errors])+\
+               '    </testcase>'
         
 class Result(object):
     __slots__ = ['name', 'num_errors', 'num_failures', 'num_tests', \
@@ -203,12 +203,12 @@ class Result(object):
         """
         @return: document as unicode (UTF-8 declared) XML according to Ant JUnit spec
         """
-        return u'<?xml version="1.0" encoding="utf-8"?>'+\
-               '<testsuite name="%s" tests="%s" errors="%s" failures="%s" time="%s">'%\
+        return u'<?xml version="1.0" encoding="utf-8"?>\n'+\
+               '  <testsuite name="%s" tests="%s" errors="%s" failures="%s" time="%s">\n'%\
                (xml_escape(self.name), self.num_tests, self.num_errors, self.num_failures, self.time)+\
-               '\n'.join([tc.xml() for tc in self.test_case_results])+\
-               '  <system-out><![CDATA[%s]]></system-out>'%self.system_out+\
-               '  <system-err><![CDATA[%s]]></system-err>'%self.system_err+\
+               ''.join(['%s\n' % tc.xml() for tc in self.test_case_results])+\
+               '  <system-out><![CDATA[%s]]></system-out>\n'%self.system_out+\
+               '  <system-err><![CDATA[%s]]></system-err>\n'%self.system_err+\
                '</testsuite>'
 
 def _text(tag):
