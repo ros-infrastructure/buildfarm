@@ -11,6 +11,8 @@ import urllib2
 import buildfarm.apt_root #setup_apt_root
 import buildfarm.rosdistro
 
+import rospkg.distro
+
 URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
 
 def parse_options():
@@ -149,6 +151,12 @@ if __name__ == "__main__":
     rd = buildfarm.rosdistro.Rosdistro(args.rosdistro)
     distro_packages = rd.get_package_list()
 
+    wet_stacks = [Package(buildfarm.rosdistro.debianize_package_name(args.rosdistro, p), rd.get_version(p)) for p in distro_packages]
 
-    packages[' '+ args.rosdistro] = [Package(buildfarm.rosdistro.debianize_package_name(args.rosdistro, p), rd.get_version(p)) for p in distro_packages]
+    dry_distro = rospkg.distro.load_distro(rospkg.distro.distro_uri(args.rosdistro))
+    
+    
+    dry_stacks = [Package(buildfarm.rosdistro.debianize_package_name(args.rosdistro, sn), dry_distro.released_stacks[sn].version) for sn in dry_distro.released_stacks]
+
+    packages[' '+ args.rosdistro] = wet_stacks + dry_stacks
     render_vertical(packages)
