@@ -32,9 +32,11 @@ def parse_options():
            help='A list of debian distros. Default: %(default)s',
            default=[])
     parser.add_argument('--commit', dest='commit',
-           help='Really?', action='store_true')
+           help='Really?', action='store_true', default=False)
     parser.add_argument('--delete', dest='delete',
-           help='Delete extra jobs', action='store_true')
+           help='Delete extra jobs', action='store_true', default=False)
+    parser.add_argument('--wet-only', dest='wet_only',
+           help='Only setup wet jobs', action='store_true', default=False)
     parser.add_argument('--repo-workspace', dest='repos', action='store',
            help='A directory into which all the repositories will be checked out into.')
     return parser.parse_args()
@@ -93,7 +95,9 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
         print ('individual results', results[package_names_by_url[url]])
 
 
-        
+    if args.wet_only:
+        print ("wet only selected, skipping dry and delete")
+        return results
 
     #dry stacks
     # dry dependencies
