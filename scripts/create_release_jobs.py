@@ -103,6 +103,9 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
         print ("Configuring DRY job [%s]" % s)
         results[debianize_package_name(rosdistro, s) ] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
 
+    # special metapackages job
+    results[debianize_package_name(rosdistro, 'metapackages') ] = release_jobs.dry_doit('metapackages', default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
+
     if delete_extra_jobs:
         # clean up extra jobs
         configured_jobs = set()
@@ -155,6 +158,9 @@ if __name__ == '__main__':
             combined_jobgraph[k] = v
         for k, v in dry_jobgraph.iteritems():
             combined_jobgraph[k] = v
+
+        # setup a job triggered by all other debjobs 
+        combined_jobgraph['metapackages'] = combined_jobgraph.keys()
 
     finally:
         if not args.repos:

@@ -130,8 +130,6 @@ def add_dependent_to_dict(packagename, jobgraph):
 
 
 def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
-    package_version = dry_get_stack_version(stackname, rosdistro)
-    package_info = dry_get_stack_info(stackname, package_version)
     package = debianize_package_name(rosdistro, stackname)
     d = dict(
         PACKAGE=package,
@@ -150,7 +148,7 @@ def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
             #print(config)
             job_name = binarydeb_job_name(package, distro, arch)
             jobs.append((job_name, config))
-            print ("config of %s is %s" % (job_name, config))
+            #print ("config of %s is %s" % (job_name, config))
     return jobs
 
 def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
