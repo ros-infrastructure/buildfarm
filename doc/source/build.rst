@@ -4,13 +4,13 @@ Build Script
 .. highlight:: ectosh
 
 
-Given a gbp maintianed by the release script we would like to regenerate source
+Given a gbp maintained by the release script we would like to regenerate source
 debs from it.
 
 The script
 ----------
 
-.. program-output:: catkin_build.py --help
+.. programoutput:: catkin_build.py --help
    :prompt:
 
 Usage

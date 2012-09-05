@@ -9,11 +9,11 @@ Have a look under ``scripts/jenkins``
    git clone git://github.com/willowgarage/catkin-debs.git
    export PATH=`pwd`/catkin-debs/scripts/jenkins:$PATH
 
-create_debjobs.py
+create_all.py
 -----------------
 
 This script creates a few jobs and commits them to a jenkins server.
 
 
-.. program-output:: create_debjobs.py --help
+.. program-output:: create_all.py --help
    :prompt:
