@@ -160,7 +160,7 @@ if __name__ == '__main__':
             combined_jobgraph[k] = v
 
         # setup a job triggered by all other debjobs 
-        combined_jobgraph['metapackages'] = combined_jobgraph.keys()
+        combined_jobgraph[debianize_package_name(args.rosdistro, 'metapackages')] = combined_jobgraph.keys()
 
     finally:
         if not args.repos:
