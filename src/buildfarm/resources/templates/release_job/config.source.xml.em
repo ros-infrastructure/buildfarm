@@ -51,9 +51,11 @@
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
+    <!--
     <hudson.triggers.SCMTrigger>
       <spec>*/5 * * * *</spec>
     </hudson.triggers.SCMTrigger>
+    -->
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
