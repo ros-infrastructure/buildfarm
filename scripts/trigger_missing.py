@@ -41,6 +41,31 @@ def parse_options():
 
 
 
+def trigger_if_not_building(jobname, instance):
+    try:
+        job_info = instance.get_job_info(jobname)
+        #import pprint
+        #pp = pprint.PrettyPrinter()
+        #pp.pprint(job_info)
+        
+
+        if 'inQueue' in job_info:
+            if job_info['inQueue']:
+
+                print ("Skipping trigger of job %s because it's already queued" % jobname)
+                return True
+        if not 'color' in job_info:
+            raise Exception("'building' not in job_info as expected")
+        if not 'anime' in job_info['color']:
+            print ("Triggering %s" % (job_name) )
+            jenkins_instance.build_job(job_name)
+        else:
+            print ("Skipping trigger of job %s because it's already running" % jobname)
+        return True
+    except Exception, ex:
+        print ("Failed to trigger %s: %s" % (job_name, ex))
+        return False
+
 
 if __name__ == '__main__':
     args = parse_options()
@@ -64,22 +89,13 @@ if __name__ == '__main__':
         for s, dist_archs in missing.iteritems():
             if 'source' in dist_archs:
                 job_name = '%s_sourcedeb' % (debianize_package_name(args.rosdistro, s) )
-                print ("Triggering %s" % (job_name) )
-                try:
-                    jenkins_instance.build_job(job_name)
-                except Exception, ex:
-                    print ("Failed to trigger %s: %s" % (job_name, ex))
-                # don't trigger binaries as the sourcedeb will trigger them anyway
+                trigger_if_not_building(job_name, jenkins_instance)
+                print ("Skipping debbuilds for this package [%s] as the sourcedeb will trigger them automatically" % s)
                 continue
     
             for da in dist_archs:
                 job_name = '%s_binarydeb_%s' % (debianize_package_name(args.rosdistro, s), da )
-                print ("Triggering %s" % (job_name) )
-                try: 
-                    jenkins_instance.build_job(job_name)
-                except Exception, ex:
-                    print ("Failed to trigger %s: %s" % (job_name, ex) )
-
+                trigger_if_not_building(job_name, jenkins_instance)
 
     else:
         
