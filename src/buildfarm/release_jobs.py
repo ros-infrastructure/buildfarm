@@ -87,7 +87,7 @@ def compute_missing(distros, fqdn, rosdistro):
         else:
             target_distros = list(set(r['target']) & set(default_distros))
 
-        print ('Analyzing WET stack "%s" for "%s"' % (r['url'], target_distros))
+        #print ('Analyzing WET stack "%s" for "%s"' % (r['url'], target_distros))
         
         # todo check if sourcedeb is present with the right version
         deb_name = debianize_package_name(rosdistro, short_package_name)
@@ -124,7 +124,7 @@ def compute_missing(distros, fqdn, rosdistro):
             distro_arches.append( (d, a) )
 
     for s in dist.stacks:
-        print ("Analyzing DRY job [%s]" % s)
+        #print ("Analyzing DRY job [%s]" % s)
         missing[s] = []
         # for each distro arch check if the deb is present. If not trigger the build. 
         for (d, a) in distro_arches:
