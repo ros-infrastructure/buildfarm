@@ -188,7 +188,7 @@ if __name__ == '__main__':
         args.fqdn,
         rosdistro=args.rosdistro)
 
-    print (display_missing_table(missing))
+    #print (display_missing_table(missing))
 
 
     debianized_missing = debianize_missing(missing)
