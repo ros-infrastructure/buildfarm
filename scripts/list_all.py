@@ -105,6 +105,14 @@ def render_vertical(packages):
         print ''
             
 
+    print "Totals", " "*(width - len("Totals")), ":",
+    for k in arch_distro_list:
+        pkg_name_lookup = {}
+        for pkg in packages[k]:
+            pkg_name_lookup[pkg.name] = pkg
+        count_string = str(len(pkg_name_lookup.keys()))
+        print count_string[:len(k)]+' '*max(0, len(k) -len(count_string) )+('|' if len(count_string) < len(k) else '>'),
+
 if __name__ == "__main__":
     args = parse_options()
 
