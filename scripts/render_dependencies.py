@@ -49,10 +49,10 @@ def display_missing_table(missing):
                
 
 class BlockingAnalysis(object):
-    def __init__(self, missing, jobgraph, distarch):
-        self.missing_list = [m for m, v in missing.iteritems() if distarch in v]
+    def __init__(self, missing, jobgraph, distro, arch):
+        self.distarch = '%s_%s' % (distro, arch)
+        self.missing_list = [m for m, v in missing.iteritems() if self.distarch in v]
         self.jobgraph = jobgraph
-        self.distarch = distarch
         self.__cache = {}
 
     def display_blocking(self):
@@ -95,7 +95,7 @@ class BlockingAnalysis(object):
         self.__cache[stack] = outstr
         return outstr
 
-    def _compute_critical_packages(self):
+    def compute_critical_packages(self):
         reverse_deps = {}
         critical_package_list = []
         for m in self.missing_list:
@@ -121,7 +121,7 @@ class BlockingAnalysis(object):
 
     def display_critical_packages(self):
         outstr = ''
-        for p, deps in self._compute_critical_packages().iteritems():
+        for p, deps in self.compute_critical_packages().iteritems():
             
             outstr += "package %s is blocking:\n" % p
             for d in deps:
@@ -182,8 +182,7 @@ if __name__ == '__main__':
 
     print (display_missing_table(missing))
 
-    ba = BlockingAnalysis(debianized_missing, combined_jobgraph, 'precise_amd64')
-    ba = BlockingAnalysis(debianized_missing, combined_jobgraph, 'precise_i386')
+    ba = BlockingAnalysis(debianized_missing, combined_jobgraph, 'precise', 'amd64')
     print ("Blocking analysis output:", ba.display_blocking())
 
     print ("critical packages are:")
