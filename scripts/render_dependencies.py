@@ -123,11 +123,26 @@ class BlockingAnalysis(object):
         outstr = ''
         for p, deps in self.compute_critical_packages().iteritems():
             
-            outstr += "package %s is blocking:\n" % p
+            outstr += "package %s is blocking: " % p
+            if deps:
+                outstr += "\n"
+            else:
+                outstr += "None\n"
+                
+            
             for d in deps:
                 outstr += "    %s\n" % d
 
         return outstr
+
+
+def debianize_missing(missing):
+
+    debianized_missing = {}
+    for s, v in missing.iteritems():
+        debianized_missing[debianize_package_name(args.rosdistro, s)] = v
+    return debianized_missing
+
 
 
 if __name__ == '__main__':
@@ -152,7 +167,7 @@ if __name__ == '__main__':
     try:
         if not args.repos:
             workspace = tempfile.mkdtemp()
-        dependencies = {}#(dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro)
+        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro)
         dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro) 
         
         combined_jobgraph = {}
@@ -173,17 +188,15 @@ if __name__ == '__main__':
         args.fqdn,
         rosdistro=args.rosdistro)
 
-
-    debianized_missing = {}
-    for s, v in missing.iteritems():
-        debianized_missing[debianize_package_name(args.rosdistro, s)] = v
-
-
-
     print (display_missing_table(missing))
 
+
+    debianized_missing = debianize_missing(missing)
+
+
+
     ba = BlockingAnalysis(debianized_missing, combined_jobgraph, 'precise', 'amd64')
-    print ("Blocking analysis output:", ba.display_blocking())
+    #print ("Blocking analysis output:", ba.display_blocking())
 
     print ("critical packages are:")
     print (ba.display_critical_packages())
