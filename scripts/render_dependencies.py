@@ -9,7 +9,7 @@ import urllib2
 import yaml
 
 
-from buildfarm import dependency_walker, jenkins_support, release_jobs
+from buildfarm import dependency_walker, release_jobs
 
 import rospkg.distro
 
@@ -22,18 +22,9 @@ URL_PROTOTYPE = 'https://raw.github.com/ros/rosdistro/master/releases/%s.yaml'
 
 def parse_options():
     parser = argparse.ArgumentParser(
-             description='Create a set of jenkins jobs '
-             'for source debs and binary debs for a catkin package.')
-    parser.add_argument('--fqdn', dest='fqdn',
-           help='The source repo to push to, fully qualified something...',
-           default='50.28.27.175')
+             description='Render blocking dependencies ')
     parser.add_argument(dest='rosdistro',
            help='The ros distro. electric, fuerte, groovy')
-    parser.add_argument('--distros', nargs='+',
-           help='A list of debian distros. Default: %(default)s',
-           default=[])
-    parser.add_argument('--commit', dest='commit',
-           help='Really?', action='store_true', default=False)
     parser.add_argument('--repo-workspace', dest='repos', action='store',
            help='A directory into which all the repositories will be checked out into.')
     return parser.parse_args()
