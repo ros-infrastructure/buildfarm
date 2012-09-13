@@ -19,6 +19,8 @@ from buildfarm.rosdistro import debianize_package_name
 
 URL_PROTOTYPE = 'https://raw.github.com/ros/rosdistro/master/releases/%s.yaml'
 
+BUILD_JOB_LINK_URL = 'http://jenkins.willowgarage.com:8080/job/%s_binarydeb_quantal_amd64/'
+
 
 def parse_options():
     parser = argparse.ArgumentParser(
@@ -124,7 +126,7 @@ class BlockingAnalysis(object):
             
             outstr += "package %s is blocking: " % p
             if deps:
-                outstr += "\n"
+                outstr += BUILD_JOB_LINK_URL % p + "\n"
             else:
                 outstr += "None\n"
                 
