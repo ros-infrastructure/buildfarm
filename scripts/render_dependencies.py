@@ -19,7 +19,7 @@ from buildfarm.rosdistro import debianize_package_name
 
 URL_PROTOTYPE = 'https://raw.github.com/ros/rosdistro/master/releases/%s.yaml'
 
-BUILD_JOB_LINK_URL = 'http://jenkins.willowgarage.com:8080/job/%s_binarydeb_quantal_amd64/'
+BUILD_JOB_LINK_URL = 'http://jenkins.willowgarage.com:8080/job/%s_binarydeb_%s_%s/'
 
 
 def parse_options():
@@ -51,6 +51,8 @@ def display_missing_table(missing):
 
 class BlockingAnalysis(object):
     def __init__(self, missing, jobgraph, distro, arch):
+        self.distro = distro
+        self.arch = arch
         self.distarch = '%s_%s' % (distro, arch)
         self.missing_list = [m for m, v in missing.iteritems() if self.distarch in v]
         self.jobgraph = jobgraph
@@ -126,7 +128,7 @@ class BlockingAnalysis(object):
             
             outstr += "package %s is blocking: " % p
             if deps:
-                outstr += BUILD_JOB_LINK_URL % p + "\n"
+                outstr += BUILD_JOB_LINK_URL % (p, self.distro, self.arch) + "\n"
             else:
                 outstr += "None\n"
                 
