@@ -87,7 +87,14 @@ if __name__ == '__main__':
 
 
         for s, dist_archs in missing.iteritems():
-            if 'source' in dist_archs:
+
+            detected_source = False
+            for da in dist_archs:
+                if 'source' in da:
+                    print("Source missing for %s" % da)
+                    detected_source = True
+
+            if detected_source:
                 job_name = '%s_sourcedeb' % (debianize_package_name(args.rosdistro, s) )
                 trigger_if_not_building(job_name, jenkins_instance)
                 print ("Skipping debbuilds for this package [%s] as the sourcedeb will trigger them automatically" % s)
