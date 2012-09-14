@@ -154,6 +154,9 @@ def deb_in_repo(repo_url, deb_name, deb_version, os_platform, arch, use_regex=Tr
     """
     if source:
         packagelist = get_source_Packages(repo_url, os_platform, cache)
+
+        M = re.search('^Package: %s.*\n.*\n.*\n.*\nVersion: %s'%(deb_name, deb_version), packagelist, re.MULTILINE)
+        return M is not None
     else:
         packagelist = get_Packages(repo_url, os_platform, arch, cache)
     if not use_regex:

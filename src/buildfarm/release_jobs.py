@@ -92,15 +92,13 @@ def compute_missing(distros, fqdn, rosdistro):
         # todo check if sourcedeb is present with the right version
         deb_name = debianize_package_name(rosdistro, short_package_name)
         
-
-        missing = {}
+        missing[short_package_name] = []
         for d in target_distros:
-            missing[deb_name] = []
             if not repo.deb_in_repo(repo_url, deb_name, ".*", d, arch='na', source=True):
-                missing[deb_name].append('source')
+                missing[short_package_name].append('%s_source' % d)
             for a in arches:
                 if not repo.deb_in_repo(repo_url, deb_name, ".*", d, a):
-                    missing[deb_name].append('%s_%s' % (d, a))
+                    missing[short_package_name].append('%s_%s' % (d, a))
 
                                                
         # if not trigger sourcedeb
