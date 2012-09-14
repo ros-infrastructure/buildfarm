@@ -148,6 +148,11 @@ def get_repo_version(repo_url, distro, os_platform, arch, source=False):
     return max(['0'] + [x[1][x[1].find('-')+1:x[1].find('~')] for x in packagelist if x[3] == distro.release_name])
 
 
+def count_packages(repo_url, rosdistro, os_platform, arch, cache=None):
+    packagelist = get_Packages(repo_url, os_platform, arch, cache)
+    M = re.findall('^Package: ros-%s-.*$' % (rosdistro), packagelist, re.MULTILINE)
+    return len(M)
+
 def deb_in_repo(repo_url, deb_name, deb_version, os_platform, arch, use_regex=True, cache=None, source=False):
     """
     @param cache: dictionary to store Packages list for caching
