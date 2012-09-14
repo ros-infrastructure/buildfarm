@@ -8,7 +8,8 @@ from xml.sax.saxutils import escape
 import urllib
 import urllib2
 import yaml
-
+import getpass
+import datetime
 
 from rospkg.distro import load_distro, distro_uri
 
@@ -196,15 +197,21 @@ def create_sourcedeb_config(d):
     #Create the bash script the runs inside the job
     #need the command to be safe for xml.
     d['COMMAND'] = escape(expand(Templates.command_sourcedeb, d))
+    d['USERNAME'] = getpass.getuser()
+    d['TIMESTAMP'] = datetime.datetime.now()
     return expand(Templates.config_sourcedeb, d)
 
 
 def create_binarydeb_config(d):
+    d['USERNAME'] = getpass.getuser()
+    d['TIMESTAMP'] = datetime.datetime.now()
     d['COMMAND'] = escape(expand(Templates.command_binarydeb, d))
     return expand(Templates.config_binarydeb, d)
 
 def create_dry_binarydeb_config(d):
     d['COMMAND'] = escape(expand(Templates.command_dry_binarydeb, d))
+    d['USERNAME'] = getpass.getuser()
+    d['TIMESTAMP'] = datetime.datetime.now()
     return expand(Templates.config_dry_binarydeb, d)
 
 
