@@ -124,7 +124,7 @@ class BlockingAnalysis(object):
 
     def display_critical_packages(self):
         outstr = ''
-        for p, deps in self.compute_critical_packages().iteritems():
+        for p, deps in sorted(self.compute_critical_packages().iteritems()):
             
             outstr += "package %s is blocking: " % p
             if deps:
@@ -133,7 +133,7 @@ class BlockingAnalysis(object):
                 outstr += "None\n"
                 
             
-            for d in deps:
+            for d in sorted(deps):
                 outstr += "    %s\n" % d
 
         return outstr
