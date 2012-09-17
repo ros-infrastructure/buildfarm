@@ -202,4 +202,10 @@ if __name__ == '__main__':
     #print ("Blocking analysis output:", ba.display_blocking())
 
     print ("critical packages are:")
-    print (ba.display_critical_packages())
+    critical_packages = ba.display_critical_packages()
+    print (critical_packages)
+
+    filename = 'groovy_critical_dependencies.txt'
+    with open(filename, 'w') as fh:
+        fh.write(critical_packages)
+        print("Wrote critical dependencies to %s" % filename )
