@@ -130,10 +130,12 @@ class BlockingAnalysis(object):
         for p, deps in sorted(self.compute_critical_packages().iteritems()):
             
             outstr += "package %s is blocking: " % p
-            if deps:
-                outstr += BUILD_JOB_LINK_URL % (p, self.distro, self.arch) + "\n"
+            if not deps:
+                outstr += "None "
             else:
-                outstr += "None\n"
+                outstr += "     "
+
+            outstr += BUILD_JOB_LINK_URL % (p, self.distro, self.arch) + "\n"
                 
             
             for d in sorted(deps):
