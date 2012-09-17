@@ -23,6 +23,8 @@ def parse_options():
            help='The ros distro. electric, fuerte, groovy')
     parser.add_argument("--substring", dest="substring", default="", 
                         help="substring to filter packages displayed default = 'ros-ROSDISTRO'")
+    parser.add_argument("-O", "--outfile", dest="outfile", default=None, 
+                        help="File to write out to.")
     parser.add_argument("-u", "--update", dest="update", action='store_true', default=False, 
                         help="update the cache from the server")
     parser.add_argument('--repo', dest='repo_urls', action='append',metavar=['REPO_NAME@REPO_URL'],
@@ -67,6 +69,7 @@ def list_packages(rootdir, update, substring):
 
 
 def render_vertical(packages):
+    outstr = ""
     all_package_names_set = set()
     package_map = {}
     for v in packages.itervalues():
@@ -81,37 +84,39 @@ def render_vertical(packages):
 
     width = max([len(p) for p in all_package_names])
     pstr = "package"
-    print pstr, " "*(width-len(pstr)), ":",
+    outstr += pstr + " "*(width-len(pstr))+ ":"
     arch_distro_list = sorted(packages.iterkeys())
     for k in arch_distro_list:
-        print k+"|",
-    print '' 
+        outstr += k+"|"
+    outstr += '\n' 
 
     
 
     for p in all_package_names:
         l = len(p)
-        print p, " "*(width-l), ":",
+        outstr += p + " "*(width-l) + ":"
         for k  in arch_distro_list:
             pkg_name_lookup = {}
             for pkg in packages[k]:
                 pkg_name_lookup[pkg.name] = pkg
             if p in pkg_name_lookup:
                 version_string = pkg_name_lookup[p].version
-                print version_string[:len(k)]+' '*max(0, len(k) -len(version_string) )+('|' if len(version_string) < len(k) else '>'),
+                outstr += version_string[:len(k)]+' '*max(0, len(k) -len(version_string) )+('|' if len(version_string) < len(k) else '>')
                 #, 'x'*len(k),'|', 
             else:
-                print ' '*len(k)+'|', 
-        print ''
+                outstr+= ' '*len(k)+'|'
+        outstr += '\n'
             
 
-    print "Totals", " "*(width - len("Totals")), ":",
+    outstr += "Totals" + " "*(width - len("Totals")) + ":"
     for k in arch_distro_list:
         pkg_name_lookup = {}
         for pkg in packages[k]:
             pkg_name_lookup[pkg.name] = pkg
         count_string = str(len(pkg_name_lookup.keys()))
-        print count_string[:len(k)]+' '*max(0, len(k) -len(count_string) )+('|' if len(count_string) < len(k) else '>'),
+        outstr += count_string[:len(k)]+' '*max(0, len(k) -len(count_string) )+('|' if len(count_string) < len(k) else '>')
+
+    return outstr
 
 if __name__ == "__main__":
     args = parse_options()
@@ -167,4 +172,13 @@ if __name__ == "__main__":
     dry_stacks = [Package(buildfarm.rosdistro.debianize_package_name(args.rosdistro, sn), dry_distro.released_stacks[sn].version) for sn in dry_distro.released_stacks]
 
     packages[' '+ args.rosdistro] = wet_stacks + dry_stacks
-    render_vertical(packages)
+
+
+    outstr = render_vertical(packages)
+    print outstr
+
+
+    if args.outfile:
+        with open(args.outfile, 'w') as of:
+            of.write(outstr)
+            print "Wrote output to file %s" % args.outfile

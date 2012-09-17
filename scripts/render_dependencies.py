@@ -30,9 +30,12 @@ def parse_options():
            default='50.28.27.175')
     parser.add_argument(dest='rosdistro',
            help='The ros distro. electric, fuerte, groovy')
-    parser.add_argument('--distros', nargs='+',
-           help='A list of debian distros. Default: %(default)s',
-           default=[])
+    parser.add_argument('--distro', dest='distro', 
+           help='Distros',
+           default='precise')
+    parser.add_argument('--arch', dest='arch', 
+           help='Architecture ',
+           default='amd64')
     parser.add_argument('--commit', dest='commit',
            help='Really?', action='store_true', default=False)
     parser.add_argument('--repo-workspace', dest='repos', action='store',
@@ -187,7 +190,7 @@ if __name__ == '__main__':
             shutil.rmtree(workspace)
 
     missing = release_jobs.compute_missing(
-        args.distros,
+        [],
         args.fqdn,
         rosdistro=args.rosdistro)
 
@@ -198,14 +201,14 @@ if __name__ == '__main__':
 
 
 
-    ba = BlockingAnalysis(debianized_missing, combined_jobgraph, 'precise', 'amd64')
+    ba = BlockingAnalysis(debianized_missing, combined_jobgraph, args.distro, args.arch)
     #print ("Blocking analysis output:", ba.display_blocking())
 
     print ("critical packages are:")
     critical_packages = ba.display_critical_packages()
     print (critical_packages)
 
-    filename = 'groovy_critical_dependencies.txt'
+    filename = 'groovy_%s_%s_critical_dependencies.txt' % (args.distro, args.arch)
     with open(filename, 'w') as fh:
         fh.write(critical_packages)
         print("Wrote critical dependencies to %s" % filename )
