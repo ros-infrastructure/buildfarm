@@ -208,7 +208,7 @@ if __name__ == '__main__':
     critical_packages = ba.display_critical_packages()
     print (critical_packages)
 
-    filename = 'groovy_%s_%s_critical_dependencies.txt' % (args.distro, args.arch)
+    filename = 'groovy_critical_dependencies_%s_%s.txt' % (args.distro, args.arch)
     with open(filename, 'w') as fh:
         fh.write(critical_packages)
         print("Wrote critical dependencies to %s" % filename )
