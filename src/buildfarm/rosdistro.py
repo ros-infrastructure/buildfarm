@@ -8,11 +8,12 @@ import yaml, urllib2
 URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
 
 class RepoMetadata(object):
-    def __init__(self, name, url, version, status = None):
+    def __init__(self, name, url, version, packages = {}, status = None):
         self.name = name
         self.url = url
         self.version = version
         self.status = status
+        self.packages = packages
 
 
 def sanitize_package_name(name):
@@ -43,9 +44,27 @@ class Rosdistro:
         for name, n in self.repo_map['repositories'].items():
             if 'url' in n.keys() and 'version' in n.keys():
                 self._repoinfo[name] = RepoMetadata(name, n['url'], n['version'])
+                if 'packages' in n.keys():
+                    self._repoinfo[name].packages = n['packages']
+                else:
+                    print("Missing required 'packages' for %s" % name)
+            else:
+                print("Missing required 'url' or 'version' for %s" % name)
+
+    def debianize_package_name(self, package_name):
+        return debianize_package_name(self._rosdistro, package_name)
+
+    def get_repo_list(self):
+        return self._repoinfo.iterkeys()
+
+    def get_repos(self):
+        return self._repoinfo.itervalues()
 
     def get_package_list(self):
-        return self._repoinfo.iterkeys()
+        packages = set()
+        for repo in self._repoinfo:
+            packages += set(repo.packages.keys())
+        return packages
                 
     def get_version(self, stack_name):
         if stack_name in self._repoinfo.keys():
@@ -75,6 +94,7 @@ class Rosdistro:
     def get_stack_rosinstall_snippet(self, distro = None):
         if not distro:
             distro = self.get_default_target()
+        raise NotImplemented
             
 
     def compute_rosinstall_snippet(self, local_name, gbp_url, version, distro_name):

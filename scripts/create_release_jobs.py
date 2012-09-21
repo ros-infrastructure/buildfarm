@@ -12,9 +12,7 @@ from buildfarm import dependency_walker, jenkins_support, release_jobs
 
 import rospkg.distro
 
-from buildfarm.rosdistro import debianize_package_name
-
-#import pprint # for debugging only, remove
+from buildfarm.rosdistro import Rosdistro, debianize_package_name
 
 URL_PROTOTYPE = 'https://raw.github.com/ros/rosdistro/master/releases/%s.yaml'
 
@@ -50,49 +48,45 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
     # What ROS distro are we configuring?
     rosdistro = repo_map['release-name']
     
-    
+    rd = Rosdistro(rosdistro)    
 
     # Figure out default distros.  Command-line arg takes precedence; if
     # it's not specified, then read targets.yaml.
     if distros:
         default_distros = distros
     else:
-        print('Fetching "%s"' % (URL_PROTOTYPE % 'targets'))
-        targets_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE % 'targets'))
-        my_targets = [x for x in targets_map if rosdistro in x]
-        if len(my_targets) != 1:
-            print('Must have exactly one entry for rosdistro "%s" in targets.yaml' % rosdistro)
-            sys.exit(1)
-        default_distros = my_targets[0][rosdistro]
+        default_distros = rd.get_target_distros()
 
     # We take the intersection of repo-specific targets with default
     # targets.
     results = {}
-    for short_package_name, r in repo_map['repositories'].items():
-        if 'url' not in r:
-            print('"url" key missing for repository "%s"; skipping' % r)
-            continue
-        url = r['url']
-        if url not in package_names_by_url:
-            print('Repo "%s" is missing from the list; must have been skipped (e.g., for missing a stack.xml)' % r)
-            continue
-        if 'target' not in r or r['target'] == 'all':
-            target_distros = default_distros
-        else:
-            target_distros = list(set(r['target']) & set(default_distros))
 
-        print ('Configuring WET stack "%s" for "%s"' % (r['url'], target_distros))
 
-        results[package_names_by_url[url]] = release_jobs.doit(url,
-             package_names_by_url[url],
-             target_distros,
-             fqdn,
-             jobs_graph,
-             rosdistro=rosdistro,
-             short_package_name=short_package_name,
-             commit=commit,
-             jenkins_instance=jenkins_instance)
-        print ('individual results', results[package_names_by_url[url]])
+    #for short_package_name, r in repo_map['repositories'].items():
+    for r in rd.get_repos():
+        #todo add support for specific targets, needed in rosdistro.py too
+        #if 'target' not in r or r['target'] == 'all':
+        target_distros = default_distros
+        #else:
+        #    target_distros = list(set(r['target']) & set(default_distros))
+
+        print ('Configuring WET repo "%s" at "%s" for "%s"' % (r.name, r.url, target_distros))
+
+
+
+        for p in r.packages.iterkeys():
+
+            pkg_name = rd.debianize_package_name(p)
+            results[pkg_name] = release_jobs.doit(r.url,
+                 pkg_name,
+                 target_distros,
+                 fqdn,
+                 jobs_graph,
+                 rosdistro=rosdistro,
+                 short_package_name=p,
+                 commit=commit,
+                 jenkins_instance=jenkins_instance)
+            print ('individual results', results[pkg_name])
 
 
     if args.wet_only:
@@ -105,10 +99,10 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
 
     for s in d.stacks:
         print ("Configuring DRY job [%s]" % s)
-        results[debianize_package_name(rosdistro, s) ] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
+        results[rd.debianize_package_name(s) ] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
 
     # special metapackages job
-    results[debianize_package_name(rosdistro, 'metapackages') ] = release_jobs.dry_doit('metapackages', default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
+    results[rd.debianize_package_name('metapackages') ] = release_jobs.dry_doit('metapackages', default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
 
     if delete_extra_jobs:
         # clean up extra jobs
