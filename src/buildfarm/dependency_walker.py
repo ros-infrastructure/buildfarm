@@ -1,7 +1,7 @@
 #!/bin/env python
 
 from rosdistro import sanitize_package_name, debianize_package_name
-from stack_of_remote_repository import get_stack_of_remote_repository
+from stack_of_remote_repository import get_packages_of_remote_repository
 
 def _get_dependencies(dependency_dict, package_name, package_list, recursive=False):
     dependencies = set(package_list[p] for p in dependency_dict[package_name] if p in package_list)
@@ -25,26 +25,31 @@ def get_dependencies(workspace, repository_dict, rosdistro):
         url = r['url']
         print "downloading from %s into %s to be able to trace dependencies" % (url, workspace)
         try:
-            stack = get_stack_of_remote_repository(name, 'git', url, workspace)
-        except IOError, e:
+            packages = get_packages_of_remote_repository(name, 'git', url, workspace)
+        except VcsError, e:
+            print "Failed checking out repo:", str(e)
+            continue
+        if not packages:
             if rosdistro == 'backports':
                 packages[name] = sanitize_package_name(name)
                 build_dependencies[name] = []
                 runtime_dependencies[name] = []
                 package_urls[name] = url
-                print "Processing backport %s, no stack.xml file found in repo %s. Continuing"%(name, url)
+                print "Processing backport %s, no stack.xml file found in repo %s. Continuing" % (name, url)
             else:
-                print str(e)
+                print "No Packages found in %s from %s" % (name, url)
             continue
 
-        catkin_project_name = stack.name
+        for p in packages:
 
-        packages[catkin_project_name] = debianize_package_name(rosdistro, catkin_project_name)
+            catkin_project_name = p.name
 
-        build_dependencies[catkin_project_name] = [d.name for d in stack.build_depends]
-        runtime_dependencies[catkin_project_name] = [d.name for d in stack.depends]
+            packages[catkin_project_name] = debianize_package_name(rosdistro, catkin_project_name)
 
-        package_urls[catkin_project_name] = url
+            build_dependencies[catkin_project_name] = [d.name for d in p.build_depends] + [d.name for d in p.buildtool_depends]
+            runtime_dependencies[catkin_project_name] = [d.name for d in p.run_depends]
+
+            package_urls[catkin_project_name] = url
 
     result = {}
     urls = {}
