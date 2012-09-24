@@ -5,6 +5,7 @@ import em
 import pkg_resources
 import os
 from xml.sax.saxutils import escape
+import xml.etree.ElementTree as ET
 import urllib
 import urllib2
 import yaml
@@ -174,13 +175,53 @@ def dry_generate_jobgraph(rosdistro):
     return jobgraph
 
 
+    
+
+def compare_configs(a, b):
+    """Return True if the configs are the same, except the
+    description, else False"""
+    aroot = ET.fromstring(a)
+    broot = ET.fromstring(b)
+
+    return compare_xml_elements(aroot, broot)
+
+def compare_xml_elements(a, b):
+    for child in a:
+        tag = child.tag
+        if tag == 'description':
+            continue
+
+        b_found = b.findall(tag)
+        if not b_found:
+            print("Failed to find tags %s" % tag)
+            return False
+        if not len(b_found) == 1:
+            print("Found multiple tags %s" % tag)
+            return False
+        b_equiv = b_found[0]
+        if not b_equiv.text == child.text:
+            print("For tag: %s text %s does not match %s" %(tag, b_equiv.text, child.text) )
+            return False
+        if not b_equiv.attrib == child.attrib:
+            print("For tag: %s attrib %s does not match %s" %(tag, b_equiv.attrib, child.attriv ) )
+            return False
+        if not compare_xml_elements(child, b_equiv):
+            return False
+        
+    return True
+    
 
 def create_jenkins_job(jobname, config, jenkins_instance):
     try:
         jobs = jenkins_instance.get_jobs()
         print("working on job", jobname)
         if jobname in [job['name'] for job in jobs]:
-            jenkins_instance.reconfig_job(jobname, config)
+            remote_config = jenkins_instance.get_job_config(jobname)
+            if not compare_configs(remote_config, config):
+                jenkins_instance.reconfig_job(jobname, config)
+            else:
+                print("Skipping %s as config is the same" % jobname)
+
         else:
             jenkins_instance.create_job(jobname, config)
         return True
