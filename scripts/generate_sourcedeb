@@ -102,7 +102,7 @@ run_dinstall            = 0"""%locals()
         sout = call('/tmp/', ['cat', filename], pipe=subprocess.PIPE)
         print ("Cat output = %s"%sout)
         call('/tmp/', ['dput', '-u', '-c', filename, 'uploadhost', changes_arg])
-        cmd = """ssh rosbuild@%(repo_fqdn)s -- "( flock 200; /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s ) >%(repo_path)s/lock" """%locals()
+        cmd = """ssh rosbuild@%(repo_fqdn)s -- "( flock 200; /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s ) 200>%(repo_path)s/lock" """%locals()
         try:
             call('/tmp/', cmd.split())
         except CalledProcessError, ex:
