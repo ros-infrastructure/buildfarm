@@ -78,7 +78,7 @@ def build_source_deb(repo_path, tag, output):
 
 def remove_upstream_source(distro, repo_fqdn, repo_path, package):
     # clear existing debs if they exits
-    cmd = ['ssh', 'rosbuild@%(repo_fqdn)s' %locals(), '--',"( flock 200; /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V -T dsc listfilter %(distro)s \"Package (== %(package)s ) \" ) 200>%(repo_path)s/lock" %locals()]
+    cmd = ['ssh', 'rosbuild@%(repo_fqdn)s' %locals(), '--',"( flock 200; /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V -T dsc removefilter %(distro)s \"Package (== %(package)s ) \" ) 200>%(repo_path)s/lock" %locals()]
     call('/tmp/', cmd)
     
 
