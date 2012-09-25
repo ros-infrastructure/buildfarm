@@ -153,7 +153,7 @@ method                  = scp
 fqdn                    = $ROS_REPO_FQDN
 incoming                = /var/www/repos/building/queue/$distro
 run_dinstall            = 0
-post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- "( flock 200; /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro ) 200>/var/www/repos/building/lock"
+post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- '( flock 200; /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro ) 200>/var/www/repos/building/lock'
 """ > $output_dir/dput.cf
 
 dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
