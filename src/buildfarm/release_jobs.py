@@ -4,6 +4,7 @@ from __future__ import print_function
 import em
 import pkg_resources
 import os
+import sys
 from xml.sax.saxutils import escape
 import xml.etree.ElementTree as ET
 import urllib
@@ -183,9 +184,21 @@ def compare_configs(a, b):
     aroot = ET.fromstring(a)
     broot = ET.fromstring(b)
 
-    return compare_xml_elements(aroot, broot)
+    return compare_xml_children(aroot, broot)
 
-def compare_xml_elements(a, b):
+def compare_xml_text_and_attribute(a, b):
+    if not a.text == b.text:
+        print("For tag: %s text %s does not match %s" %(tag, a.text, b.text) )
+        return False
+#    else:
+#        print("Matched text: \n-----\n%s \n======\n %s \n----" % (a.text, b.text) )
+    if not a.attrib == b.attrib:
+        print("For tag: %s attrib %s does not match %s" %(tag, a.attrib, b.attrib ) )
+        return False
+    return True
+
+
+def compare_xml_children(a, b):
     for child in a:
         tag = child.tag
         if tag == 'description':
@@ -195,17 +208,16 @@ def compare_xml_elements(a, b):
         if not b_found:
             print("Failed to find tags %s" % tag)
             return False
-        if not len(b_found) == 1:
-            print("Found multiple tags %s" % tag)
-            return False
-        b_equiv = b_found[0]
-        if not b_equiv.text == child.text:
-            print("For tag: %s text %s does not match %s" %(tag, b_equiv.text, child.text) )
-            return False
-        if not b_equiv.attrib == child.attrib:
-            print("For tag: %s attrib %s does not match %s" %(tag, b_equiv.attrib, child.attriv ) )
-            return False
-        if not compare_xml_elements(child, b_equiv):
+
+        #If multple of the same tags try them all
+        match_found = False
+        for b_child in b_found:
+            match_found = compare_xml_children(b_child, child) and compare_xml_children(b_child, child)
+            if match_found:
+                continue
+
+        if not match_found:
+            print("Found %d tags %s, none matched" % (len(b_found), tag ))
             return False
         
     return True
