@@ -126,10 +126,15 @@ def compute_missing(distros, fqdn, rosdistro):
 
     for s in dist.stacks:
         #print ("Analyzing DRY job [%s]" % s)
+        expected_version = dry_get_stack_version(s, dist)
+        
+        # sanitize undeclared versions for string substitution
+        if not expected_version:
+            expected_version = ''
         missing[s] = []
         # for each distro arch check if the deb is present. If not trigger the build. 
         for (d, a) in distro_arches:
-            if not repo.deb_in_repo(repo_url, debianize_package_name(rosdistro, s), ".*", d, a):
+            if not repo.deb_in_repo(repo_url, debianize_package_name(rosdistro, s), expected_version+".*", d, a):
                 missing[s].append( '%s_%s' % (d, a) )
 
 
@@ -142,11 +147,10 @@ def dry_get_stack_info(stackname, version):
     return yaml.load(y.read())
                  
 
-def dry_get_stack_version(stackname, rosdistro):
-    d = load_distro(distro_uri(rosdistro))
-    if not stackname in d.stacks:
-        raise Exception("Stack %s not in distro %s" % (stackname, rosdistro))
-    st = d.stacks[stackname]
+def dry_get_stack_version(stackname, rosdistro_obj):
+    if not stackname in rosdistro_obj.stacks:
+        raise Exception("Stack %s not in distro %s" % (stackname, rosdistro_obj.release_name))
+    st = rosdistro_obj.stacks[stackname]
     return st.version
 
 
