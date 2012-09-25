@@ -123,21 +123,14 @@ if __name__ == "__main__":
 
 
     if args.rootdir:
+        # TODO: resolve rootdir to an absolute path
         rootdir = args.rootdir
     else:  
         rootdir = tempfile.mkdtemp()
         
 
     arches = ['i386', 'amd64']
-    #distros = ['lucid', 'oneiric']
-
-    print("Fetching " + URL_PROTOTYPE%'targets')
-    targets_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%'targets'))
-    my_targets = [x for x in targets_map if args.rosdistro in x]
-    if len(my_targets) != 1:
-        print("Must have exactly one entry for rosdistro %s in targets.yaml"%(args.rosdistro))
-        sys.exit(1)
-    distros = my_targets[0][args.rosdistro]
+    distros = buildfarm.rosdistro.get_target_distros(args.rosdistro)
 
 
     ros_repos = buildfarm.apt_root.parse_repo_args(args.repo_urls)
@@ -154,7 +147,7 @@ if __name__ == "__main__":
                 buildfarm.apt_root.setup_apt_rootdir(specific_rootdir, d, a, additional_repos = ros_repos)
                 print "setup rootdir %s"%specific_rootdir
                 
-                packages[dist_arch] = list_packages(specific_rootdir, update=True, substring=args.substring)
+                packages[dist_arch] = list_packages(specific_rootdir, update=args.update, substring=args.substring)
 
                 
     finally:
@@ -180,5 +173,5 @@ if __name__ == "__main__":
 
     if args.outfile:
         with open(args.outfile, 'w') as of:
-            of.write(outstr)
+            of.write(outstr + '\n')
             print "Wrote output to file %s" % args.outfile
