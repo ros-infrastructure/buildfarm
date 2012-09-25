@@ -92,7 +92,7 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
              short_package_name=short_package_name,
              commit=commit,
              jenkins_instance=jenkins_instance)
-        print ('individual results', results[package_names_by_url[url]])
+        #print ('individual results', results[package_names_by_url[url]])
 
 
     if args.wet_only:
