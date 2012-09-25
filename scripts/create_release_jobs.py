@@ -33,6 +33,8 @@ def parse_options():
            help='Really?', action='store_true', default=False)
     parser.add_argument('--delete', dest='delete',
            help='Delete extra jobs', action='store_true', default=False)
+    parser.add_argument('--no-update', dest='skip_update',
+           help='Assume packages have already been downloaded', action='store_true', default=False)
     parser.add_argument('--wet-only', dest='wet_only',
            help='Only setup wet jobs', action='store_true', default=False)
     parser.add_argument('--repo-workspace', dest='repos', action='store',
@@ -148,7 +150,7 @@ if __name__ == '__main__':
     try:
         if not args.repos:
             workspace = tempfile.mkdtemp()
-        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro)
+        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro, skip_update=args.skip_update)
         dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro) 
         
         combined_jobgraph = {}

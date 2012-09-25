@@ -9,7 +9,7 @@ import vcstools
 
 from catkin_pkg.packages import find_packages
 
-def get_packages_of_remote_repository(name, type, url, workspace=None, version=None):
+def get_packages_of_remote_repository(name, type, url, workspace=None, version=None, skip_update=False):
     if workspace is None:
         workspace = tempfile.mkdtemp()
     if not os.path.isdir(workspace):
@@ -20,7 +20,8 @@ def get_packages_of_remote_repository(name, type, url, workspace=None, version=N
     client = vcstools.VcsClient(type, workdir)
     if client.path_exists():
         if client.get_url() == url:
-            client.update(version if version is not None else '')
+            if not skip_update:
+                client.update(version if version is not None else '')
         else:
             shutil.rmtree(workdir)
             client.checkout(url, version=version if version is not None else '', shallow=True)

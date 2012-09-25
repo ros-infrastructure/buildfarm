@@ -10,7 +10,7 @@ def _get_dependencies(dependency_dict, package_name, package_list, recursive=Fal
             dependencies.update(_get_dependencies(dependency_dict, p, package_list, recursive))
     return dependencies
 
-def get_dependencies(workspace, repository_dict, rosdistro):
+def get_dependencies(workspace, repository_dict, rosdistro, skip_update=False):
     build_dependencies = {}
     runtime_dependencies = {}
 
@@ -25,7 +25,7 @@ def get_dependencies(workspace, repository_dict, rosdistro):
         url = r['url']
         print "downloading from %s into %s to be able to trace dependencies" % (url, workspace)
         try:
-            packages = get_packages_of_remote_repository(name, 'git', url, workspace)
+            packages = get_packages_of_remote_repository(name, 'git', url, workspace, skip_update = skip_update)
         except VcsError, e:
             print "Failed checking out repo:", str(e)
             continue
