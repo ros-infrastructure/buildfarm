@@ -13,8 +13,6 @@ import buildfarm.rosdistro
 
 import rospkg.distro
 
-URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
-
 def parse_options():
     parser = argparse.ArgumentParser(description="List all packages available in the repos for each arch.  Filter on substring if provided")
     parser.add_argument("--rootdir", dest="rootdir", default = None,
