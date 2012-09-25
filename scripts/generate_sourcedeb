@@ -76,6 +76,12 @@ def build_source_deb(repo_path, tag, output):
     print("Successfully created changes in %s"%output)
     call(repo_path, ['ls', output])
 
+def remove_upstream_source(distro, repo_fqdn, repo_path, package):
+    # clear existing debs if they exits
+    cmd = ['ssh', 'rosbuild@%(repo_fqdn)s' %locals(), '--',"( flock 200; /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V -T dsc listfilter %(distro)s \"Package (== %(package)s ) \" ) 200>%(repo_path)s/lock" %locals()]
+    call('/tmp/', cmd)
+    
+
 def upload_source_deb(distro, repo_fqdn, repo_path, changes_arg, working_dir):
     
     config_string = """
@@ -102,6 +108,8 @@ run_dinstall            = 0"""%locals()
         sout = call('/tmp/', ['cat', filename], pipe=subprocess.PIPE)
         print ("Cat output = %s"%sout)
         call('/tmp/', ['dput', '-u', '-c', filename, 'uploadhost', changes_arg])
+
+        
         cmd = ['ssh', 'rosbuild@%(repo_fqdn)s' %locals(), '--',"( flock 200; /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s ) 200>%(repo_path)s/lock" %locals()]
         try:
             call('/tmp/', cmd)
@@ -154,6 +162,9 @@ if __name__ == "__main__":
     for d in rd.get_target_distros():
         try:
             changes_file = find_file(args.output, '.changes', d)
+
+            # remove upstream so it doesn't error if we're downgrading
+            remove_upstream_source(d, args.repo_fqdn, args.repo_path, args.package_name)
 
             upload_source_deb(d, args.repo_fqdn, args.repo_path, 
                               os.path.join(args.output, 
