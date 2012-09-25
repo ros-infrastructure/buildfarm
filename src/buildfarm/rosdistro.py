@@ -47,7 +47,8 @@ class Rosdistro:
                 if 'packages' in n.keys():
                     self._repoinfo[name].packages = n['packages']
                 else:
-                    print("Missing required 'packages' for %s" % name)
+                    print("Missing required 'packages' for %s.  Assuming this is a unary stack" % name)
+                    self._repoinfo[name].packages = {name: None}
             else:
                 print("Missing required 'url' or 'version' for %s" % name)
 
