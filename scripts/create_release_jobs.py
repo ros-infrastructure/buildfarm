@@ -42,13 +42,11 @@ def parse_options():
     return parser.parse_args()
 
 
-def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=False):
+def doit(package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=False):
     jenkins_instance = None
     if args.commit or delete_extra_jobs:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
 
-    # What ROS distro are we configuring?
-    rosdistro = repo_map['release-name']
     
     rd = Rosdistro(rosdistro)    
 
@@ -64,7 +62,6 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
     results = {}
 
 
-    #for short_package_name, r in repo_map['repositories'].items():
     for r in rd.get_repos():
         #todo add support for specific targets, needed in rosdistro.py too
         #if 'target' not in r or r['target'] == 'all':
@@ -128,29 +125,24 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
     return results
 
 
+
+
 if __name__ == '__main__':
     args = parse_options()
     repo = 'http://%s/repos/building' % args.fqdn
 
-    print('Fetching "%s"' % (URL_PROTOTYPE % args.rosdistro))
-    repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE % args.rosdistro))
-    if 'release-name' not in repo_map:
-        print('No "release-name" key in yaml file')
-        sys.exit(1)
-    if repo_map['release-name'] != args.rosdistro:
-        print('release-name mismatch (%s != %s)' % (repo_map['release-name'], args.rosdistro))
-        sys.exit(1)
-    if 'repositories' not in repo_map:
-        print('No "repositories" key in yaml file')
-    if 'type' not in repo_map or repo_map['type'] != 'gbp':
-        print('Wrong type value in yaml file')
-        sys.exit(1)
+    print('Loading rosdistro %s' % args.rosdistro )
+
+    rd = Rosdistro(args.rosdistro)    
 
     workspace = args.repos
     try:
         if not args.repos:
             workspace = tempfile.mkdtemp()
-        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro, skip_update=args.skip_update)
+        package_co_info = rd.get_package_checkout_info()
+            
+        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, package_co_info, args.rosdistro, skip_update=args.skip_update)
+
         dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro) 
         
         combined_jobgraph = {}
@@ -166,7 +158,7 @@ if __name__ == '__main__':
         if not args.repos:
             shutil.rmtree(workspace)
 
-    results_map = doit(repo_map,
+    results_map = doit(
         package_names_by_url,
         args.distros,
         args.fqdn,

@@ -66,6 +66,14 @@ class Rosdistro:
         for repo in self._repoinfo:
             packages += set(repo.packages.keys())
         return packages
+
+    def get_package_checkout_info(self):
+        packages = {}
+        for repo, info  in self._repoinfo.iteritems():
+            for p in info.packages:
+                # todo make this a tagged version in the future
+                packages[p] = {'url': info.url, 'version': 'release/%s' % p}
+        return packages
                 
     def get_version(self, stack_name):
         if stack_name in self._repoinfo.keys():

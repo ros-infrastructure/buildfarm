@@ -21,6 +21,7 @@ def get_packages_of_remote_repository(name, type, url, workspace=None, version=N
     if client.path_exists():
         if client.get_url() == url:
             if not skip_update:
+                print ("Getting version %s" % version)
                 client.update(version if version is not None else '')
         else:
             shutil.rmtree(workdir)
@@ -29,4 +30,10 @@ def get_packages_of_remote_repository(name, type, url, workspace=None, version=N
         client.checkout(url, version=version if version is not None else '', shallow=True)
 
 
-    return find_packages(workdir)
+    packages = find_packages(workdir)
+    
+    if not packages:
+        print ("Failed to find packages in", workdir, os.listdir(workdir))
+    else:
+        print ("Found packages", packages)
+    return packages

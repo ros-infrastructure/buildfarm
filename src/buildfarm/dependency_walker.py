@@ -23,13 +23,19 @@ def get_dependencies(workspace, repository_dict, rosdistro, skip_update=False):
             print "'url' key missing for repository %s; skipping"%(r)
             continue
         url = r['url']
-        print "downloading from %s into %s to be able to trace dependencies" % (url, workspace)
+        if 'version' not in r:
+            print "'version' key missing for repository %s; assuming master"%(r)
+            version = 'master'
+        else:
+            version = r['version']
+
+        print "downloading from %s version %s into %s to be able to trace dependencies" % (url, version, workspace)
         try:
-            packages = get_packages_of_remote_repository(name, 'git', url, workspace, skip_update = skip_update)
+            found_packages = get_packages_of_remote_repository(name, 'git', url, workspace, version = version, skip_update = skip_update)
         except VcsError, e:
             print "Failed checking out repo:", str(e)
             continue
-        if not packages:
+        if not found_packages:
             if rosdistro == 'backports':
                 packages[name] = sanitize_package_name(name)
                 build_dependencies[name] = []
@@ -40,16 +46,19 @@ def get_dependencies(workspace, repository_dict, rosdistro, skip_update=False):
                 print "No Packages found in %s from %s" % (name, url)
             continue
 
-        for p in packages:
 
-            catkin_project_name = p.name
+        for p in found_packages.itervalues():
+            
+            packages[p.name] = debianize_package_name(rosdistro, p.name)
 
-            packages[catkin_project_name] = debianize_package_name(rosdistro, catkin_project_name)
+            build_dependencies[p.name] = [d.name for d in p.build_depends] + [d.name for d in p.buildtool_depends]
+            runtime_dependencies[p.name] = [d.name for d in p.run_depends]
 
-            build_dependencies[catkin_project_name] = [d.name for d in p.build_depends] + [d.name for d in p.buildtool_depends]
-            runtime_dependencies[catkin_project_name] = [d.name for d in p.run_depends]
+            package_urls[p.name] = url
 
-            package_urls[catkin_project_name] = url
+
+    print "build_dependencies", build_dependencies
+    print "runtime_dependencies", runtime_dependencies
 
     result = {}
     urls = {}
