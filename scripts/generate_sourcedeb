@@ -61,7 +61,7 @@ def list_debian_tags(repo_path, package_name, package_version, distros):
     print ("tags", tags )
     expected_tags = []
     for d in distros:
-        expected_tags.append('debian/%s_%s_%s'%(package_name, package_version, d)
+        expected_tags.append('debian/%s_%s_%s'%(package_name, package_version, d) )
 
     for tag in tags.split('\n'):
         if tag in expected_tags:
