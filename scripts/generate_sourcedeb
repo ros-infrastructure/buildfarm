@@ -54,16 +54,17 @@ def update_repo(working_dir, repo_path, repo_uri):
         command = ('gbp-clone', repo_uri)
         call(working_dir, command)
 
-def list_debian_tags(repo_path, package_name, package_version):
+def list_debian_tags(repo_path, package_name, package_version, distros):
     tags = call(repo_path, ('git', 'tag', '-l', 'debian/*'), pipe=subprocess.PIPE)
     print(tags, end='')
     marked_tags = []
     print ("tags", tags )
+    expected_tags = []
+    for d in distros:
+        expected_tags.append('debian/%s_%s_%s'%(package_name, package_version, d)
+
     for tag in tags.split('\n'):
-        #TODO make this regex better...
-        regex_str = 'debian/%s_%s_.+'%(package_name, package_version)
-        m = re.search(regex_str, tag)
-        if m:
+        if tag in expected_tags:
             marked_tags.append(tag)
     if not marked_tags:
         print("No matching tag found. Are you sure you pointed to the right repository or the version is right?, regex %s:\n Tags: %s"%(regex_str, tags))
@@ -145,7 +146,8 @@ if __name__ == "__main__":
     repo_path = os.path.join(args.working, repo_base)
 
     update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=args.repo_uri)
-    tags = list_debian_tags(repo_path, args.package_name, package_version)
+
+    tags = list_debian_tags(repo_path, args.package_name, package_version, rd.get_target_distros())
     if not tags:
         print("No tags; bailing")
         sys.exit(1)
