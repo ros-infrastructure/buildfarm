@@ -102,8 +102,6 @@ run_dinstall            = 0"""%locals()
         fh.close()
     time.sleep(0.1)
     try:
-        print("Native cat")
-        subprocess.check_call(['cat', filename])
         sout = call('/tmp/', ['cat', filename], pipe=subprocess.PIPE)
         print ("Cat output = %s"%sout)
         call('/tmp/', ['dput', '-u', '-c', filename, 'uploadhost', changes_arg])
@@ -167,6 +165,7 @@ if __name__ == "__main__":
         try:
             changes_file = find_file(args.output, '.changes', d)
             print("Changes file is %s" % changes_file) 
+            print(os.listdir(args.output))
 
             # remove upstream so it doesn't error if we're downgrading
             remove_upstream_source(d, args.repo_fqdn, args.repo_path, args.package_name)
