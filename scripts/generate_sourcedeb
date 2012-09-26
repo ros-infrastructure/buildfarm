@@ -56,13 +56,11 @@ def update_repo(working_dir, repo_path, repo_uri):
 
 def verify_debian_tag(repo_path, package_name, package_version, distro):
     tags = call(repo_path, ('git', 'tag', '-l', 'debian/*'), pipe=subprocess.PIPE)
-    print(tags, end='')
-    marked_tags = []
-    print ("tags", tags )
-    expected_tag = 'debian/%s_%s_%s'%(package_name, package_version, distro)
 
+    expected_tag = 'debian/%s_%s_%s'%(package_name, package_version, distro)
     tag_list = tags.split('\n')
-    if expected_tag in tags:
+
+    if expected_tag in tag_list:
         return expected_tag
     else:
         print("No matching tag found. Are you sure you pointed to the right repository or the version is right?, expected %s:\n Tags: %s"%(expected_tag, tags))
