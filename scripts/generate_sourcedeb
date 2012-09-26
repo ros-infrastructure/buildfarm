@@ -112,6 +112,10 @@ run_dinstall            = 0"""%locals()
             if ex.returncode == 254:
                 print("Detected return code 254, assuming duplicate upload elements. %s"%ex)
             else:
+                if ex.returncode == 239:
+                    print("Detected return code 239 this seems to indicate that the repo "
+                          "was locked for another process.  This shouldn't happen unless "
+                          "someone is not using the flock correctly.")
                 raise ex
     finally:
         shutil.rmtree(d)
