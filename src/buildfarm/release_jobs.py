@@ -4,7 +4,9 @@ from __future__ import print_function
 import em
 import pkg_resources
 import os
+import sys
 from xml.sax.saxutils import escape
+import xml.etree.ElementTree as ET
 import urllib
 import urllib2
 import yaml
@@ -92,13 +94,19 @@ def compute_missing(distros, fqdn, rosdistro):
         
         # todo check if sourcedeb is present with the right version
         deb_name = debianize_package_name(rosdistro, short_package_name)
+        if not 'version' in r:
+            print('"version" key missing for repository %s; skipping' % r)
+            continue
+        expected_version = r['version']
+        if not expected_version:
+            expected_version = ''
         
         missing[short_package_name] = []
         for d in target_distros:
-            if not repo.deb_in_repo(repo_url, deb_name, ".*", d, arch='na', source=True):
+            if not repo.deb_in_repo(repo_url, deb_name, expected_version+".*", d, arch='na', source=True):
                 missing[short_package_name].append('%s_source' % d)
             for a in arches:
-                if not repo.deb_in_repo(repo_url, deb_name, ".*", d, a):
+                if not repo.deb_in_repo(repo_url, deb_name, expected_version+".*", d, a):
                     missing[short_package_name].append('%s_%s' % (d, a))
 
                                                
@@ -124,10 +132,15 @@ def compute_missing(distros, fqdn, rosdistro):
 
     for s in dist.stacks:
         #print ("Analyzing DRY job [%s]" % s)
+        expected_version = dry_get_stack_version(s, dist)
+        
+        # sanitize undeclared versions for string substitution
+        if not expected_version:
+            expected_version = ''
         missing[s] = []
         # for each distro arch check if the deb is present. If not trigger the build. 
         for (d, a) in distro_arches:
-            if not repo.deb_in_repo(repo_url, debianize_package_name(rosdistro, s), ".*", d, a):
+            if not repo.deb_in_repo(repo_url, debianize_package_name(rosdistro, s), expected_version+".*", d, a):
                 missing[s].append( '%s_%s' % (d, a) )
 
 
@@ -140,11 +153,10 @@ def dry_get_stack_info(stackname, version):
     return yaml.load(y.read())
                  
 
-def dry_get_stack_version(stackname, rosdistro):
-    d = load_distro(distro_uri(rosdistro))
-    if not stackname in d.stacks:
-        raise Exception("Stack %s not in distro %s" % (stackname, rosdistro))
-    st = d.stacks[stackname]
+def dry_get_stack_version(stackname, rosdistro_obj):
+    if not stackname in rosdistro_obj.stacks:
+        raise Exception("Stack %s not in distro %s" % (stackname, rosdistro_obj.release_name))
+    st = rosdistro_obj.stacks[stackname]
     return st.version
 
 
@@ -174,13 +186,62 @@ def dry_generate_jobgraph(rosdistro):
     return jobgraph
 
 
+    
+
+def compare_configs(a, b):
+    """Return True if the configs are the same, except the
+    description, else False"""
+    aroot = ET.fromstring(a)
+    broot = ET.fromstring(b)
+
+    return compare_xml_children(aroot, broot)
+
+def compare_xml_text_and_attribute(a, b):
+    if not a.text == b.text:
+        #print("text %s does not match %s" %( a.text, b.text) )
+        return False
+    if not a.attrib == b.attrib:
+        #print("attrib %s does not match %s" %(a.attrib, b.attrib ) )
+        return False
+    return True
+
+
+def compare_xml_children(a, b):
+    for child in a:
+        tag = child.tag
+        if tag == 'description':
+            continue
+
+        b_found = b.findall(tag)
+        if not b_found:
+            print("Failed to find tags %s" % tag)
+            return False
+
+        #If multple of the same tags try them all
+        match_found = False
+        for b_child in b_found:
+            match_found = compare_xml_children(b_child, child) and compare_xml_text_and_attribute(b_child, child)
+            if match_found:
+                continue
+
+        if not match_found:
+            #print("Found %d tags %s, none matched" % (len(b_found), tag ))
+            return False
+        
+    return True
+    
 
 def create_jenkins_job(jobname, config, jenkins_instance):
     try:
         jobs = jenkins_instance.get_jobs()
         print("working on job", jobname)
         if jobname in [job['name'] for job in jobs]:
-            jenkins_instance.reconfig_job(jobname, config)
+            remote_config = jenkins_instance.get_job_config(jobname)
+            if not compare_configs(remote_config, config):
+                jenkins_instance.reconfig_job(jobname, config)
+            else:
+                print("Skipping %s as config is the same" % jobname)
+
         else:
             jenkins_instance.create_job(jobname, config)
         return True

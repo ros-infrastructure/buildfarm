@@ -54,20 +54,17 @@ def update_repo(working_dir, repo_path, repo_uri):
         command = ('gbp-clone', repo_uri)
         call(working_dir, command)
 
-def list_debian_tags(repo_path, package_name, package_version):
+def verify_debian_tag(repo_path, package_name, package_version, distro):
     tags = call(repo_path, ('git', 'tag', '-l', 'debian/*'), pipe=subprocess.PIPE)
-    print(tags, end='')
-    marked_tags = []
-    print ("tags", tags )
-    for tag in tags.split('\n'):
-        #TODO make this regex better...
-        regex_str = 'debian/%s_%s_.+'%(package_name, package_version)
-        m = re.search(regex_str, tag)
-        if m:
-            marked_tags.append(tag)
-    if not marked_tags:
-        print("No matching tag found. Are you sure you pointed to the right repository or the version is right?, regex %s:\n Tags: %s"%(regex_str, tags))
-    return marked_tags
+
+    expected_tag = 'debian/%s_%s_%s'%(package_name, package_version, distro)
+    tag_list = tags.split('\n')
+
+    if expected_tag in tag_list:
+        return expected_tag
+    else:
+        print("No matching tag found. Are you sure you pointed to the right repository or the version is right?, expected %s:\n Tags: %s"%(expected_tag, tags))
+    return None
 
 def build_source_deb(repo_path, tag, output):
     call(repo_path, ('git', 'checkout', tag))
@@ -75,6 +72,12 @@ def build_source_deb(repo_path, tag, output):
         '--git-ignore-new', '-S', '-uc', '-us', '--lintian-opts', '--suppress-tags', 'newer-standards-version'))
     print("Successfully created changes in %s"%output)
     call(repo_path, ['ls', output])
+
+def remove_upstream_source(distro, repo_fqdn, repo_path, package):
+    # clear existing debs if they exits
+    cmd = ['ssh', 'rosbuild@%(repo_fqdn)s' %locals(), '--',"( flock 200; /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V -T dsc removefilter %(distro)s \"Package (== %(package)s ) \" ) 200>%(repo_path)s/lock" %locals()]
+    call('/tmp/', cmd)
+    
 
 def upload_source_deb(distro, repo_fqdn, repo_path, changes_arg, working_dir):
     
@@ -97,18 +100,22 @@ run_dinstall            = 0"""%locals()
         fh.close()
     time.sleep(0.1)
     try:
-        print("Native cat")
-        subprocess.check_call(['cat', filename])
         sout = call('/tmp/', ['cat', filename], pipe=subprocess.PIPE)
         print ("Cat output = %s"%sout)
         call('/tmp/', ['dput', '-u', '-c', filename, 'uploadhost', changes_arg])
-        cmd = """ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
+
+        
+        cmd = ['ssh', 'rosbuild@%(repo_fqdn)s' %locals(), '--',"( flock 200; /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s ) 200>%(repo_path)s/lock" %locals()]
         try:
-            call('/tmp/', cmd.split())
+            call('/tmp/', cmd)
         except CalledProcessError, ex:
             if ex.returncode == 254:
                 print("Detected return code 254, assuming duplicate upload elements. %s"%ex)
             else:
+                if ex.returncode == 239:
+                    print("Detected return code 239 this seems to indicate that the repo "
+                          "was locked for another process.  This shouldn't happen unless "
+                          "someone is not using the flock correctly.")
                 raise ex
     finally:
         shutil.rmtree(d)
@@ -137,23 +144,33 @@ if __name__ == "__main__":
     repo_path = os.path.join(args.working, repo_base)
 
     update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=args.repo_uri)
-    tags = list_debian_tags(repo_path, args.package_name, package_version)
-    if not tags:
-        print("No tags; bailing")
-        sys.exit(1)
+
 
     report_failure = False
-    for tag in tags:
+    for d in rd.get_target_distros():
+
+        tag = verify_debian_tag(repo_path, args.package_name, package_version, d)
+        if not tag:
+            print("No tag; bailing")
+            report_failure = True
+            continue
+
+
         try:
             build_source_deb(repo_path, tag, args.output)
             print("successfully created sourcedeb for tag %s on repo %s."%(tag, repo_path))
         except CalledProcessError, ex:
             print("Failed to build source deb for tag %s on repo %s: %s"%(tag, repo_path, ex))
             report_failure = True
+            continue
             
-    for d in rd.get_target_distros():
         try:
             changes_file = find_file(args.output, '.changes', d)
+            print("Changes file is %s" % changes_file) 
+            print(os.listdir(args.output))
+
+            # remove upstream so it doesn't error if we're downgrading
+            remove_upstream_source(d, args.repo_fqdn, args.repo_path, args.package_name)
 
             upload_source_deb(d, args.repo_fqdn, args.repo_path, 
                               os.path.join(args.output, 
@@ -164,6 +181,7 @@ if __name__ == "__main__":
         except CalledProcessError, ex:
             print("Failed uploading for distro %s: %s"%(d, ex))
             report_failure = True
+            continue
 
     if report_failure:
         print("Errors have occurred in the source build see above. ")

@@ -85,7 +85,7 @@ def doit(package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit=Fals
                  short_package_name=p,
                  commit=commit,
                  jenkins_instance=jenkins_instance)
-            print ('individual results', results[pkg_name])
+            #print ('individual results', results[pkg_name])
 
 
     if args.wet_only:

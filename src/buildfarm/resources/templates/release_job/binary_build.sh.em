@@ -133,7 +133,7 @@ sudo pbuilder  --build \
 cat > invalidate.py << DELIM
 #!/usr/bin/env python
 import paramiko
-cmd = "/usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (% ros-* ), Architecture (== $arch ), ( Depends (% *$PACKAGE[, ]* ) | Depends (% *$PACKAGE ) )\" "
+cmd = "( flock 200; /usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (% ros-* ), Architecture (== $arch ), ( Depends (% *$PACKAGE[, ]* ) | Depends (% *$PACKAGE ) )\" ) 200>/var/www/repos/building/lock"
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect('$ROS_REPO_FQDN', username='rosbuild')
@@ -147,15 +147,13 @@ cat invalidate.py
 python invalidate.py
 
 # push the new deb, config followed by execution
-echo "
+echo """
 [debtarget]
 method                  = scp
 fqdn                    = $ROS_REPO_FQDN
 incoming                = /var/www/repos/building/queue/$distro
 run_dinstall            = 0
-post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro
-" > $output_dir/dput.cf
+post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- '( flock 200; /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro ) 200>/var/www/repos/building/lock'
+""" > $output_dir/dput.cf
 
-# retry the dput if it fails.  This is a hack to avoid spurious failures caused due to collisions.  
-
-dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes || dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
+dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
