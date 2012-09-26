@@ -54,21 +54,19 @@ def update_repo(working_dir, repo_path, repo_uri):
         command = ('gbp-clone', repo_uri)
         call(working_dir, command)
 
-def list_debian_tags(repo_path, package_name, package_version, distros):
+def verify_debian_tag(repo_path, package_name, package_version, distro):
     tags = call(repo_path, ('git', 'tag', '-l', 'debian/*'), pipe=subprocess.PIPE)
     print(tags, end='')
     marked_tags = []
     print ("tags", tags )
-    expected_tags = []
-    for d in distros:
-        expected_tags.append('debian/%s_%s_%s'%(package_name, package_version, d) )
+    expected_tag = 'debian/%s_%s_%s'%(package_name, package_version, d)
 
-    for tag in tags.split('\n'):
-        if tag in expected_tags:
-            marked_tags.append(tag)
-    if not marked_tags:
-        print("No matching tag found. Are you sure you pointed to the right repository or the version is right?, regex %s:\n Tags: %s"%(regex_str, tags))
-    return marked_tags
+    tag_list = tags.split('\n'):
+    if expected_tag in tags:
+        return expected_tag
+    else:
+        print("No matching tag found. Are you sure you pointed to the right repository or the version is right?, expected %s:\n Tags: %s"%(expected_tag, tags))
+    return None
 
 def build_source_deb(repo_path, tag, output):
     call(repo_path, ('git', 'checkout', tag))
@@ -147,21 +145,25 @@ if __name__ == "__main__":
 
     update_repo(working_dir=args.working, repo_path=repo_path, repo_uri=args.repo_uri)
 
-    tags = list_debian_tags(repo_path, args.package_name, package_version, rd.get_target_distros())
-    if not tags:
-        print("No tags; bailing")
-        sys.exit(1)
 
     report_failure = False
-    for tag in tags:
+    for d in rd.get_target_distros():
+
+        tag = verify_debian_tag(repo_path, args.package_name, package_version, rd.get_target_distros())
+        if not tag:
+            print("No tag; bailing")
+            report_failure = True
+            continue
+
+
         try:
             build_source_deb(repo_path, tag, args.output)
             print("successfully created sourcedeb for tag %s on repo %s."%(tag, repo_path))
         except CalledProcessError, ex:
             print("Failed to build source deb for tag %s on repo %s: %s"%(tag, repo_path, ex))
             report_failure = True
+            continue
             
-    for d in rd.get_target_distros():
         try:
             changes_file = find_file(args.output, '.changes', d)
 
@@ -177,6 +179,7 @@ if __name__ == "__main__":
         except CalledProcessError, ex:
             print("Failed uploading for distro %s: %s"%(d, ex))
             report_failure = True
+            continue
 
     if report_failure:
         print("Errors have occurred in the source build see above. ")
