@@ -41,14 +41,18 @@ class Rosdistro:
             print("No 'repositories' key in yaml file")
             sys.exit(1)
         self._repoinfo = {}
+        self._package_in_repo = {}
         for name, n in self.repo_map['repositories'].items():
             if 'url' in n.keys() and 'version' in n.keys():
                 self._repoinfo[name] = RepoMetadata(name, n['url'], n['version'])
                 if 'packages' in n.keys():
                     self._repoinfo[name].packages = n['packages']
+                    for p in n['packages']:
+                        self._package_in_repo[p] = name
                 else:
                     print("Missing required 'packages' for %s.  Assuming this is a unary stack" % name)
                     self._repoinfo[name].packages = {name: None}
+                    self._package_in_repo[name] = name
             else:
                 print("Missing required 'url' or 'version' for %s" % name)
 
@@ -75,9 +79,9 @@ class Rosdistro:
                 packages[p] = {'url': info.url, 'version': 'release/%s' % p}
         return packages
                 
-    def get_version(self, stack_name):
-        if stack_name in self._repoinfo.keys():
-            return self._repoinfo[stack_name].version
+    def get_version(self, package_name):
+        if package_name in self._package_in_repo:
+            return self._repoinfo[self._package_in_repo[package_name]].version
         else:
             return None
 
