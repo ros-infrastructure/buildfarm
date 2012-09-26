@@ -33,7 +33,7 @@
       </threshold>
     </hudson.tasks.BuildTrigger>
     <hudson.plugins.descriptionsetter.DescriptionSetterPublisher>
-      <regexp>package name [^\s]+ version ([^\s]+)</regexp>
+      <regexp>^package name [^\s]+ version ([^\s]+)$</regexp>
       <regexpForFailed/>
       <setForMatrix>false</setForMatrix>
     </hudson.plugins.descriptionsetter.DescriptionSetterPublisher>
