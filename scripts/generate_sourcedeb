@@ -59,7 +59,7 @@ def verify_debian_tag(repo_path, package_name, package_version, distro):
     print(tags, end='')
     marked_tags = []
     print ("tags", tags )
-    expected_tag = 'debian/%s_%s_%s'%(package_name, package_version, d)
+    expected_tag = 'debian/%s_%s_%s'%(package_name, package_version, distro)
 
     tag_list = tags.split('\n'):
     if expected_tag in tags:
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     report_failure = False
     for d in rd.get_target_distros():
 
-        tag = verify_debian_tag(repo_path, args.package_name, package_version, rd.get_target_distros())
+        tag = verify_debian_tag(repo_path, args.package_name, package_version, d)
         if not tag:
             print("No tag; bailing")
             report_failure = True
@@ -166,6 +166,7 @@ if __name__ == "__main__":
             
         try:
             changes_file = find_file(args.output, '.changes', d)
+            print("Changes file is %s" % changes_file) 
 
             # remove upstream so it doesn't error if we're downgrading
             remove_upstream_source(d, args.repo_fqdn, args.repo_path, args.package_name)
