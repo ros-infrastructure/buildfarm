@@ -61,7 +61,7 @@ def verify_debian_tag(repo_path, package_name, package_version, distro):
     print ("tags", tags )
     expected_tag = 'debian/%s_%s_%s'%(package_name, package_version, distro)
 
-    tag_list = tags.split('\n'):
+    tag_list = tags.split('\n')
     if expected_tag in tags:
         return expected_tag
     else:
