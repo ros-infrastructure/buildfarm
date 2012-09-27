@@ -82,12 +82,41 @@ def list_packages(rootdir, update, substring):
 
     packages = []
     for p in [k for k in c.keys() if args.substring in k]:
-        v = c[p].versions[0]
+#        v = c[p].versions[0]
         packages.append(Package(p, c[p].candidate.version))
 
     return packages
 
-
+def render_html(packages, rosdistro):
+   # TODO: use the same template engine that apt_root.py uses
+   outstr = """<html>
+<head>
+<title>%s debbuild report</title>
+<style type="text/css">
+body {
+  font-family: Helvetica, Arial, Verdana, sans-serif;
+  font-size: 12px;
+}
+.title {
+  background-color: lightgrey;
+  padding: 10px;
+}
+table {
+  border: 1px solid lightgrey;
+}
+th {
+  border: 1px solid lightgrey;
+}
+td {
+  font-size: 12px;
+  border: 1px solid lightgrey;
+}
+</style>
+</head>
+<body>
+<h1><span class="title">%s debbuild report</span></h1>
+<h2>Repository Status</h2>
+"""%(rosdistro, rosdistro)
 
 def render_vertical(packages):
     outstr = ""
@@ -139,65 +168,91 @@ def render_vertical(packages):
 
     return outstr
 
-def render_html(packages, rosdistro):
-   # TODO: use the same template engine that apt_root.py uses
-   outstr = """<html>
-<head>
-<title>%s debbuild report</title>
-<style type="text/css">
-body {
-  font-family: Helvetica, Arial, Verdana, sans-serif;
-  font-size: 12px;
-}
-.title {
-  background-color: lightgrey;
-  padding: 10px;
-}
-table {
-  border: 1px solid lightgrey;
-}
-th {
-  border: 1px solid lightgrey;
-}
-td {
-  font-size: 12px;
-  border: 1px solid lightgrey;
-}
-</style>
-</head>
-<body>
-<h1><span class="title">%s debbuild report</span></h1>
-<h2>Repository Status</h2>
-"""%(rosdistro, rosdistro)
+def render_vertical_repo(repo):
+   outstr = ""
+   packages = sorted(repo.get_packages())
+
+   if len(packages) == 0:
+      print "no packages found matching substring"
+      return ""
+
+   width = max([len(p) for p in packages])
+   pstr = "package"
+   outstr += pstr + " "*(width-len(pstr))+ ": " + repo.get_rosdistro() + "|"
+
+   for d,a in repo.iter_distro_arches():
+      outstr += "%s_%s|"%(d, a)
+   outstr += '\n'
+
+   releases = repo.get_released_versions()
+   rosdistro_len = len(repo.get_rosdistro()) + 1
+
+   for p in packages:
+      l = len(p)
+      outstr += p + " "*(width-l) + ":"
+      release_ver = releases[p]
+      outstr += release_ver[:rosdistro_len]+' '*max(0, rosdistro_len -len(release_ver) )+('|' if len(release_ver) < rosdistro_len else '>')
+      versions = repo.get_package_versions(p)
+      print p, versions
+      for da in sorted(versions.keys()):
+         version = versions[da]
+         outstr += version[:len(da)]+' '*max(0, len(da) -len(version) )+('|' if len(version) < len(da) else '>')
+
+      outstr += '\n'
+
+   return outstr
 
 # represent the status of the repository for this ros distro
 class Repository:
-   def __init__(self, rootdir, distros, arches, url = None, repos = None):
+   def __init__(self, rootdir, rosdistro, distros, arches, url = None, repos = None, update = False):
       if url:
          repos = {'ros': url}
       if not repos:
          raise Exception("No repository arguments")
 
-      self._distros = distros
-      self._arches = arches
+      self._rosdistro = rosdistro
+      self._distros = sorted(distros)
+      self._arches = sorted(arches)
       self._rootdir = rootdir
       self._repos = repos
       self._packages = {}
+
+      # TODO: deal with arch for source debs
+      # TODO: deal with architecture-independent debs?
 
       for distro, arch in self.iter_distro_arches():
          dist_arch = "%s_%s"%(distro, arch)
          da_rootdir = os.path.join(self._rootdir, dist_arch)
          buildfarm.apt_root.setup_apt_rootdir(da_rootdir, distro, arch, additional_repos = repos)
-         self._packages[dist_arch] = list_packages(specific_rootdir, update=args.update, substring=args.substring)
-      # TODO
+         self._packages[dist_arch] = list_packages(da_rootdir, update=update, substring=args.substring)
+
+      # get released version of each stack
+
+      # Wet stack versions from rosdistro
+      rd = buildfarm.rosdistro.Rosdistro(rosdistro)
+      distro_packages = rd.get_package_list()
+      wet_stacks = [Package(buildfarm.rosdistro.debianize_package_name(rosdistro, p), rd.get_version(p)) for p in distro_packages]
+
+      # Dry stack versions from rospkg
+      dry_distro = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))
+      dry_stacks = [Package(buildfarm.rosdistro.debianize_package_name(rosdistro, sn), dry_distro.released_stacks[sn].version) for sn in dry_distro.released_stacks]
+
+      # Build a meta-distro+arch for the released version
+      self._packages[' '+ rosdistro] = wet_stacks + dry_stacks
+
+   def get_rosdistro(self):
+      return self._rosdistro
 
    # Get the names of all packages
    def get_packages(self):
-      return []
+      return [p.name for p in self._packages[' ' + self._rosdistro]]
 
    # Get the names and released versions of all packages
    def get_released_versions(self):
-      return []
+      versions = {}
+      for p in self._packages[' ' + self._rosdistro]:
+         versions[p.name] = p.version
+      return versions
 
    # Get the names of all distros
    def get_distros(self):
@@ -205,9 +260,7 @@ class Repository:
 
    # Get the names of all arches
    def get_arches(self):
-      # TODO: arch for source debs
       return self._arches
-#      return ['i386', 'amd64', 'source']
 
    # iterate over (distro, arch) tuples
    def iter_distro_arches(self):
@@ -221,11 +274,19 @@ class Repository:
 
    # Get the versions of a package in all distros and arches
    def get_package_versions(self, package_name, distro = None, arch = None):
-      return {}
+      versions = {}
+      for d, a in self.iter_distro_arches():
+         da = "%s_%s"%(d, a)
+         versions[da] = ""
+         # TODO: refactor our data structure so that this isn't horribly inefficient
+         for p in self._packages[da]:
+            if p.name == package_name:
+               versions[da] = p.version
+      return versions
 
    # Get the version of a package in a specific distro/arch combination
    def get_package_version(self, package_name, distro, arch):
-      return None
+      return self.get_package_versions(package_name, distro, arch)
 
 
 if __name__ == "__main__":
@@ -245,11 +306,11 @@ if __name__ == "__main__":
 
 
     ros_repos = buildfarm.apt_root.parse_repo_args(args.repo_urls)
-    repository = Repository(rootdir, distros, arches, repos = ros_repos)
 
     packages = {}
 
     try:
+        repository = Repository(rootdir, args.rosdistro, distros, arches, repos = ros_repos, update = args.update)
         for d in distros:
             for a in arches:
                 dist_arch = "%s_%s"%(d, a)
@@ -258,8 +319,6 @@ if __name__ == "__main__":
                 print "setup rootdir %s"%specific_rootdir
                 
                 packages[dist_arch] = list_packages(specific_rootdir, update=args.update, substring=args.substring)
-
-                
     finally:
         if not args.rootdir: # don't delete if it's not a tempdir
             shutil.rmtree(rootdir)
@@ -279,7 +338,8 @@ if __name__ == "__main__":
     packages[' '+ args.rosdistro] = wet_stacks + dry_stacks
 
 
-    outstr = render_vertical(packages)
+#    outstr = render_vertical(packages)
+    outstr = render_vertical_repo(repository)
 #    outstr = render_html(packages, args.rosdistro)
 #    print outstr
 
