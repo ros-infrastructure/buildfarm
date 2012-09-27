@@ -193,7 +193,6 @@ def render_vertical_repo(repo):
       release_ver = releases[p]
       outstr += release_ver[:rosdistro_len]+' '*max(0, rosdistro_len -len(release_ver) )+('|' if len(release_ver) < rosdistro_len else '>')
       versions = repo.get_package_versions(p)
-      print p, versions
       for da in sorted(versions.keys()):
          version = versions[da]
          outstr += version[:len(da)]+' '*max(0, len(da) -len(version) )+('|' if len(version) < len(da) else '>')
@@ -216,6 +215,7 @@ class Repository:
       self._rootdir = rootdir
       self._repos = repos
       self._packages = {}
+      self._package_set = None
 
       # TODO: deal with arch for source debs
       # TODO: deal with architecture-independent debs?
@@ -224,9 +224,8 @@ class Repository:
          dist_arch = "%s_%s"%(distro, arch)
          da_rootdir = os.path.join(self._rootdir, dist_arch)
          buildfarm.apt_root.setup_apt_rootdir(da_rootdir, distro, arch, additional_repos = repos)
+         # TODO: collect packages in a better data structure
          self._packages[dist_arch] = list_packages(da_rootdir, update=update, substring=args.substring)
-
-      # get released version of each stack
 
       # Wet stack versions from rosdistro
       rd = buildfarm.rosdistro.Rosdistro(rosdistro)
@@ -237,6 +236,7 @@ class Repository:
       dry_distro = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))
       dry_stacks = [Package(buildfarm.rosdistro.debianize_package_name(rosdistro, sn), dry_distro.released_stacks[sn].version) for sn in dry_distro.released_stacks]
 
+      # TODO: better data structure
       # Build a meta-distro+arch for the released version
       self._packages[' '+ rosdistro] = wet_stacks + dry_stacks
 
@@ -245,11 +245,20 @@ class Repository:
 
    # Get the names of all packages
    def get_packages(self):
-      return [p.name for p in self._packages[' ' + self._rosdistro]]
+      if not self._package_set:
+         # TODO: refactor our data structure so that this is cleaner
+         package_set = set()
+         for da in self._packages:
+            package_set.update([p.name for p in self._packages[da]])
+         self._package_set = package_set
+      return self._package_set
 
    # Get the names and released versions of all packages
    def get_released_versions(self):
       versions = {}
+      # TODO: refactor our data structure so that we don't have to do this
+      for p in self._package_set:
+         versions[p] = ""
       for p in self._packages[' ' + self._rosdistro]:
          versions[p.name] = p.version
       return versions
