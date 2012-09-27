@@ -67,10 +67,6 @@ def get_dependencies(workspace, repository_dict, rosdistro, skip_update=False):
     for k in package_urls.keys():
         print '\nDependencies for: ', k
         result[packages[k]] = _get_dependencies(build_dependencies, k, packages)
-        print 'Direct build-dependencies:', ', '.join(result[packages[k]])
-        recursive_runtime_dependencies = _get_dependencies(runtime_dependencies, k, packages, True)
-        print 'Recursive runtime-dependencies:', ', '.join(recursive_runtime_dependencies)
-        result[packages[k]].update(recursive_runtime_dependencies)
-        print 'Combined dependencies:', ', '.join(result[packages[k]])
+        print 'Build-dependencies:', ', '.join(result[packages[k]])
         urls[package_urls[k]] = packages[k]
     return result, urls
