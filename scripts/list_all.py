@@ -1,4 +1,26 @@
 #!/usr/bin/env python
+#
+# Repository status script; TODO: better description of exactly what this does 
+#
+# TODO:
+# - Produce unified, human-readable HTML output
+# - Notes from Tully:
+#  - I'd like to converge on an object based repo representation, which will 
+#    have all the packages, and different versions queriable
+#  - There are basic helper functions in src/buildfarm/repo.py
+#  - The goal would be to have a structure like the Rosdistro class 
+#    (src/buildfarm/rosdistro.py), where it loads all the info in the 
+#    constructor from the remote repo; then you can just query it
+#
+# Example invocations:
+#  This is called by the build farm to generate the status pages as (abbreviated)
+#  list_all.py --rootdir repocache --substring ros-fuerte -u -O fuerte_building.txt
+#  list_all.py --rootdir shadow_fixed_repocache --substring ros-fuerte -u --repo shadow@http://packages.ros.org/ros-shadow-fixed/ubuntu/ -O fuerte_testing.txt
+#  list_all.py --rootdir ros_repocache --substring ros-fuerte -u --repo shadow@http://packages.ros.org/ros/ubuntu/ -O fuerte_public.txt
+#  scp -o StrictHostKeyChecking=no fuerte_building.txt fuerte_public.txt fuerte_testing.txt wgs32:/var/www/www.ros.org/html/debbuild/
+#
+# Authors: Tully Foote; Austin Hendrix
+#
 
 import apt
 import os
@@ -45,6 +67,7 @@ def parse_options():
 class Package(object):
     def __init__(self, name, version):
         self.name = name
+        # TODO: update to self.versions (versions per distro/arch)
         self.version = version
 
 
@@ -116,6 +139,95 @@ def render_vertical(packages):
 
     return outstr
 
+def render_html(packages, rosdistro):
+   # TODO: use the same template engine that apt_root.py uses
+   outstr = """<html>
+<head>
+<title>%s debbuild report</title>
+<style type="text/css">
+body {
+  font-family: Helvetica, Arial, Verdana, sans-serif;
+  font-size: 12px;
+}
+.title {
+  background-color: lightgrey;
+  padding: 10px;
+}
+table {
+  border: 1px solid lightgrey;
+}
+th {
+  border: 1px solid lightgrey;
+}
+td {
+  font-size: 12px;
+  border: 1px solid lightgrey;
+}
+</style>
+</head>
+<body>
+<h1><span class="title">%s debbuild report</span></h1>
+<h2>Repository Status</h2>
+"""%(rosdistro, rosdistro)
+
+# represent the status of the repository for this ros distro
+class Repository:
+   def __init__(self, rootdir, distros, arches, url = None, repos = None):
+      if url:
+         repos = {'ros': url}
+      if not repos:
+         raise Exception("No repository arguments")
+
+      self._distros = distros
+      self._arches = arches
+      self._rootdir = rootdir
+      self._repos = repos
+      self._packages = {}
+
+      for distro, arch in self.iter_distro_arches():
+         dist_arch = "%s_%s"%(distro, arch)
+         da_rootdir = os.path.join(self._rootdir, dist_arch)
+         buildfarm.apt_root.setup_apt_rootdir(da_rootdir, distro, arch, additional_repos = repos)
+         self._packages[dist_arch] = list_packages(specific_rootdir, update=args.update, substring=args.substring)
+      # TODO
+
+   # Get the names of all packages
+   def get_packages(self):
+      return []
+
+   # Get the names and released versions of all packages
+   def get_released_versions(self):
+      return []
+
+   # Get the names of all distros
+   def get_distros(self):
+      return self._distros
+
+   # Get the names of all arches
+   def get_arches(self):
+      # TODO: arch for source debs
+      return self._arches
+#      return ['i386', 'amd64', 'source']
+
+   # iterate over (distro, arch) tuples
+   def iter_distro_arches(self):
+      for d in self.get_distros():
+         for a in self.get_arches():
+            yield (d, a)
+
+   # Get the names and versions of all packages in a specific arch/distro combo
+   def get_distro_arch_versions(self, distro, arch):
+      return []
+
+   # Get the versions of a package in all distros and arches
+   def get_package_versions(self, package_name, distro = None, arch = None):
+      return {}
+
+   # Get the version of a package in a specific distro/arch combination
+   def get_package_version(self, package_name, distro, arch):
+      return None
+
+
 if __name__ == "__main__":
     args = parse_options()
 
@@ -128,14 +240,14 @@ if __name__ == "__main__":
         
 
     arches = ['i386', 'amd64']
+    #arches = ['i386', 'amd64', 'source']
     distros = buildfarm.rosdistro.get_target_distros(args.rosdistro)
 
 
     ros_repos = buildfarm.apt_root.parse_repo_args(args.repo_urls)
+    repository = Repository(rootdir, distros, arches, repos = ros_repos)
 
     packages = {}
-
-
 
     try:
         for d in distros:
@@ -152,21 +264,24 @@ if __name__ == "__main__":
         if not args.rootdir: # don't delete if it's not a tempdir
             shutil.rmtree(rootdir)
 
+    # get released version of each stack
+
+    # Wet stack versions from rosdistro
     rd = buildfarm.rosdistro.Rosdistro(args.rosdistro)
     distro_packages = rd.get_package_list()
-
     wet_stacks = [Package(buildfarm.rosdistro.debianize_package_name(args.rosdistro, p), rd.get_version(p)) for p in distro_packages]
 
+    # Dry stack versions from rospkg
     dry_distro = rospkg.distro.load_distro(rospkg.distro.distro_uri(args.rosdistro))
-    
-    
     dry_stacks = [Package(buildfarm.rosdistro.debianize_package_name(args.rosdistro, sn), dry_distro.released_stacks[sn].version) for sn in dry_distro.released_stacks]
 
+    # Build a meta-distro+arch for the released version
     packages[' '+ args.rosdistro] = wet_stacks + dry_stacks
 
 
     outstr = render_vertical(packages)
-    print outstr
+#    outstr = render_html(packages, args.rosdistro)
+#    print outstr
 
 
     if args.outfile:
