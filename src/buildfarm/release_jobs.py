@@ -367,10 +367,16 @@ def dry_doit(package, distros,  rosdistro, jobgraph, commit, jenkins_instance):
     failed_jobs = []
     for job_name, config in jobs:
         if commit:
-            if create_jenkins_job(job_name, config, jenkins_instance):
-                successful_jobs.append(job_name)
-            else:
+            try:
+                ret_val = create_jenkins_job(job_name, config, jenkins_instance)
+                if ret_val:
+                    successful_jobs.append(job_name)
+                else:
+                    failed_jobs.append(job_name)
+            except urllib2.URLError as ex:
+                print ("Job creation failed with URLErro error %s" % ex)
                 failed_jobs.append(job_name)
+
     unattempted_jobs = [job for (job, config) in jobs if job not in successful_jobs and job not in failed_jobs]
 
     return (unattempted_jobs, successful_jobs, failed_jobs)
