@@ -66,8 +66,8 @@ class Rosdistro:
 
     def get_package_list(self):
         packages = set()
-        for repo in self._repoinfo:
-            packages += set(repo.packages.keys())
+        for repo, repo_obj in self._repoinfo.iteritems():
+            packages |= set(repo_obj.packages.keys())
         return packages
 
     def get_package_checkout_info(self):
