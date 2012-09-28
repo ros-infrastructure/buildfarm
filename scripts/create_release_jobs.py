@@ -142,7 +142,7 @@ if __name__ == '__main__':
             
         (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, package_co_info, args.rosdistro, skip_update=args.skip_update)
 
-        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro) 
+        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies) 
         
         combined_jobgraph = {}
         for k, v in dependencies.iteritems():

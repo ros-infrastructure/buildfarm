@@ -173,15 +173,23 @@ def dry_get_versioned_dependency_tree(rosdistro):
             dependency_tree[s] = []
     return dependency_tree, versions
 
-def dry_generate_jobgraph(rosdistro):
+def dry_generate_jobgraph(rosdistro, wet_jobgraph):
     if rosdistro == 'backports':
         return {}
 
     (stack_depends, versions) = dry_get_versioned_dependency_tree(rosdistro)
-    
+
     jobgraph = {}
     for key, val in stack_depends.iteritems():
-        jobgraph[debianize_package_name(rosdistro, key)] = [debianize_package_name(rosdistro, p) for p in val ]
+        dry_depends = [debianize_package_name(rosdistro, p) for p in val ]
+
+        untracked_wet_packages = [ p for p in dry_depends if p in wet_jobgraph] 
+        
+        extra_packages = set()
+        for p in untracked_wet_packages:
+            extra_packages.update(wet_jobgraph[p])
+
+        jobgraph[debianize_package_name(rosdistro, key)] = dry_depends + list(extra_packages)
     return jobgraph
 
 
