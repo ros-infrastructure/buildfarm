@@ -392,7 +392,7 @@ def doit(release_uri, package, distros, fqdn, job_graph, rosdistro, short_packag
     jobs = [source_job] + binary_jobs
     successful_jobs = []
     failed_jobs = []
-    for job_name, config in sorted(jobs):
+    for job_name, config in jobs:
         if commit:
             if create_jenkins_job(job_name, config, jenkins_instance):
                 successful_jobs.append(job_name)

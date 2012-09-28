@@ -68,7 +68,7 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
     # We take the intersection of repo-specific targets with default
     # targets.
     results = {}
-    for short_package_name, r in repo_map['repositories'].items():
+    for short_package_name, r in sorted(repo_map['repositories'].items()):
         if 'url' not in r:
             print('"url" key missing for repository "%s"; skipping' % r)
             continue
