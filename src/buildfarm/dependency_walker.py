@@ -18,7 +18,7 @@ def get_dependencies(workspace, repository_dict, rosdistro):
     package_urls = {}
 
     #print repository_dict
-    for name, r in repository_dict.items():
+    for name, r in sorted(repository_dict.items()):
         if 'url' not in r:
             print "'url' key missing for repository %s; skipping"%(r)
             continue
