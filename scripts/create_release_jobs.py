@@ -61,8 +61,7 @@ def doit(package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit=Fals
     # targets.
     results = {}
 
-
-    for r in rd.get_repos():
+    for r in sorted(rd.get_repos()):
         #todo add support for specific targets, needed in rosdistro.py too
         #if 'target' not in r or r['target'] == 'all':
         target_distros = default_distros
@@ -73,7 +72,7 @@ def doit(package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit=Fals
 
 
 
-        for p in r.packages.iterkeys():
+        for p in sorted(r.packages.iterkeys()):
 
             pkg_name = rd.debianize_package_name(p)
             results[pkg_name] = release_jobs.doit(r.url,

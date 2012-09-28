@@ -18,7 +18,7 @@ def get_dependencies(workspace, repository_dict, rosdistro, skip_update=False):
     package_urls = {}
 
     #print repository_dict
-    for name, r in repository_dict.items():
+    for name, r in sorted(repository_dict.items()):
         if 'url' not in r:
             print "'url' key missing for repository %s; skipping"%(r)
             continue
@@ -65,8 +65,8 @@ def get_dependencies(workspace, repository_dict, rosdistro, skip_update=False):
 
     # combines direct buildtime- and recursive runtime-dependencies
     for k in package_urls.keys():
-        print '\nDependencies for: ', k
+        #print '\nDependencies for: ', k
         result[packages[k]] = _get_dependencies(build_dependencies, k, packages)
-        print 'Build-dependencies:', ', '.join(result[packages[k]])
+        #print 'Build-dependencies:', ', '.join(result[packages[k]])
         urls[package_urls[k]] = packages[k]
     return result, urls
