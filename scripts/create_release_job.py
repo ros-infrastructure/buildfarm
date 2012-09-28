@@ -74,8 +74,10 @@ if __name__ == '__main__':
 
 
     # Create a unified dependency tree in jobgraph
-    jobgraph = buildfarm.release_jobs.dry_generate_jobgraph(args.rosdistro) 
     (dependencies, pkg_by_url) = get_dependencies(args.repos, rd.repo_map['repositories'], args.rosdistro)
+
+    jobgraph = buildfarm.release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies) 
+
     for k, v in dependencies.iteritems():
         jobgraph[k] = v
 
