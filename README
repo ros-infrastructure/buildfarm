@@ -1,1 +1,30 @@
-To use this it will look for server.yaml in $ROS_HOME/catkin-debs for credentials like rosci. 
+To use this it will look for server.yaml in $ROS_HOME/catkin-debs for credentials like rosci.  Put your jenkins login in this file.  
+
+Reconfiguring Jenkins
+=====================
+
+To reconfigure jenkins run the create_release_jobs.py script.  
+
+Use the repo-workspace argument to cache the gbp repos locally, so you only have to update not clone the whole repo every time. .  
+
+fuerte
+------
+
+    scripts/create_release_jobs.py --repo /tmp/fuerterepo fuerte --commit
+
+Groovy
+------
+For groovy use the groovy-devel branch.  And right now we're only 
+
+    scripts/create_release_jobs.py --repo /tmp/groovyrepo groovy --commit --distros precise
+
+
+Triggering new builds
+=====================
+
+Once you have made a new release into a gbp repo, and updated the 
+version number in the rosdistro.yaml file.  Run trigger_missing.py
+
+For groovy use the groovy-devel branch. 
+
+    scripts/trigger_missing.py groovy --commit
