@@ -14,7 +14,7 @@ import datetime
 
 from rospkg.distro import load_distro, distro_uri
 
-from rosdistro import debianize_package_name
+from rosdistro import debianize_package_name, Rosdistro
 
 from . import repo, jenkins_support
 
@@ -39,66 +39,27 @@ def expand(config_template, d):
 def compute_missing(distros, fqdn, rosdistro):
     """ Compute what packages are missing from a repo based on the rosdistro files, both wet and dry. """
 
-    URL_PROTOTYPE = 'https://raw.github.com/ros/rosdistro/master/releases/%s.yaml'
-
 
     repo_url = 'http://%s/repos/building' % fqdn
 
-    print('Fetching "%s"' % (URL_PROTOTYPE % rosdistro))
-    repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE % rosdistro))
-
-
-    # What ROS distro are we configuring?
-    if 'release-name' not in repo_map:
-        print('No "release-name" key in yaml file')
-        sys.exit(1)
-    if repo_map['release-name'] != rosdistro:
-        print('release-name mismatch (%s != %s)' % (repo_map['release-name'], rosdistro))
-        sys.exit(1)    
-    if 'repositories' not in repo_map:
-        print('No "repositories" key in yaml file')
-    if 'type' not in repo_map or repo_map['type'] != 'gbp':
-        print('Wrong type value in yaml file')
-        sys.exit(1)
-
-    # Figure out default distros.  Command-line arg takes precedence; if
-    # it's not specified, then read targets.yaml.
-    if distros:
-        default_distros = distros
-    else:
-        print('Fetching "%s"' % (URL_PROTOTYPE % 'targets'))
-        targets_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE % 'targets'))
-        my_targets = [x for x in targets_map if rosdistro in x]
-        if len(my_targets) != 1:
-            print('Must have exactly one entry for rosdistro "%s" in targets.yaml' % rosdistro)
-            sys.exit(1)
-        default_distros = my_targets[0][rosdistro]
-
     arches = ['amd64', 'i386']
 
+
+    rd = Rosdistro(rosdistro)
     # We take the intersection of repo-specific targets with default
     # targets.
+
+    target_distros = rd.get_target_distros()
+
+
     missing = {}
-    for short_package_name, r in repo_map['repositories'].items():
-        if 'url' not in r:
-            print('"url" key missing for repository "%s"; skipping' % r)
-            continue
-        url = r['url']
-        if 'target' not in r or r['target'] == 'all':
-            target_distros = default_distros
-        else:
-            target_distros = list(set(r['target']) & set(default_distros))
+    for short_package_name in rd.get_package_list():
 
         #print ('Analyzing WET stack "%s" for "%s"' % (r['url'], target_distros))
         
         # todo check if sourcedeb is present with the right version
         deb_name = debianize_package_name(rosdistro, short_package_name)
-        if not 'version' in r:
-            print('"version" key missing for repository %s; skipping' % r)
-            continue
-        expected_version = r['version']
-        if not expected_version:
-            expected_version = ''
+        expected_version = rd.get_version(short_package_name)
         
         missing[short_package_name] = []
         for d in target_distros:
@@ -108,14 +69,6 @@ def compute_missing(distros, fqdn, rosdistro):
                 if not repo.deb_in_repo(repo_url, deb_name, expected_version+".*", d, a):
                     missing[short_package_name].append('%s_%s' % (d, a))
 
-                                               
-        # if not trigger sourcedeb
-
-        # else if binaries don't exist trigger them
-        for d in target_distros:
-            for a in arches:
-                pass#missing[short_package_name] = ['source']
-        
 
 
         
@@ -125,7 +78,7 @@ def compute_missing(distros, fqdn, rosdistro):
     dist = load_distro(distro_uri(rosdistro))
 
     distro_arches = []
-    for d in default_distros:
+    for d in target_distros:
         for a in arches:
             distro_arches.append( (d, a) )
 
