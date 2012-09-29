@@ -187,6 +187,7 @@ def dry_generate_jobgraph(rosdistro, wet_jobgraph):
         
         extra_packages = set()
         for p in untracked_wet_packages:
+            #print("adding packages for %s - [%s] " % (p, ', '.join(wet_jobgraph[p])) )
             extra_packages.update(wet_jobgraph[p])
 
         jobgraph[debianize_package_name(rosdistro, key)] = dry_depends + list(extra_packages)
