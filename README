@@ -1,4 +1,11 @@
+server.yaml
+===========
+
 To use this it will look for server.yaml in $ROS_HOME/catkin-debs for credentials like rosci.  Put your jenkins login in this file.  
+
+url: http://jenkins.willowgarage.com:8080
+username: USERNAME
+password: PASSWORD
 
 Reconfiguring Jenkins
 =====================
