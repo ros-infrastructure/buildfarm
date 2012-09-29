@@ -35,4 +35,4 @@ version number in the rosdistro.yaml file.  Run trigger_missing.py
 
 For groovy use the groovy-devel branch. 
 
-    scripts/trigger_missing.py groovy --commit
+    scripts/trigger_missing.py groovy --commit --distros precise
