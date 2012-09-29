@@ -14,10 +14,11 @@ fuerte
 
 Groovy
 ------
-For groovy use the groovy-devel branch.  And right now we're only 
+For groovy use the groovy-devel branch.  And right now we're only building precise. 
 
     scripts/create_release_jobs.py --repo /tmp/groovyrepo groovy --commit --distros precise
 
+If a package has been renamed or removed use the --delete option to remove jobs other than the ones just configured. 
 
 Triggering new builds
 =====================
