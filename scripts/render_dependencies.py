@@ -36,6 +36,8 @@ def parse_options():
     parser.add_argument('--arch', dest='arch', 
            help='Architecture ',
            default='amd64')
+    parser.add_argument('--no-update', dest='skip_update',
+           help='Assume packages have already been downloaded', action='store_true', default=False)
     parser.add_argument('--commit', dest='commit',
            help='Really?', action='store_true', default=False)
     parser.add_argument('--repo-workspace', dest='repos', action='store',
@@ -104,7 +106,11 @@ class BlockingAnalysis(object):
     def compute_critical_packages(self):
         reverse_deps = {}
         critical_package_list = []
+        
         for m in self.missing_list:
+            if m not in self.jobgraph:
+                print("%s not in jobgraph" % m )
+                continue
             missing_depends = [d for d in self.jobgraph[m] if d in self.missing_list]
             if not missing_depends:
                 critical_package_list.append(m)
@@ -175,8 +181,8 @@ if __name__ == '__main__':
     try:
         if not args.repos:
             workspace = tempfile.mkdtemp()
-        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro)
-        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro) 
+        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro, skip_update=args.skip_update)
+        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies) 
         
         combined_jobgraph = {}
         for k, v in dependencies.iteritems():
