@@ -42,7 +42,7 @@ def parse_options():
     return parser.parse_args()
 
 
-def doit(package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=False):
+def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=False):
     jenkins_instance = None
     if args.commit or delete_extra_jobs:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
@@ -140,7 +140,7 @@ if __name__ == '__main__':
             workspace = tempfile.mkdtemp()
         package_co_info = rd.get_package_checkout_info()
             
-        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, package_co_info, args.rosdistro, skip_update=args.skip_update)
+        dependencies = dependency_walker.get_jenkins_dependencies(workspace, rd, skip_update=args.skip_update)
 
         dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies) 
         
@@ -158,7 +158,6 @@ if __name__ == '__main__':
             shutil.rmtree(workspace)
 
     results_map = doit(
-        package_names_by_url,
         args.distros,
         args.fqdn,
         combined_jobgraph,

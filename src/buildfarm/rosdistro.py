@@ -73,9 +73,11 @@ class Rosdistro:
     def get_package_checkout_info(self):
         packages = {}
         for repo, info  in self._repoinfo.iteritems():
-            for p in info.packages:
+            for p, path in info.packages.iteritems():
                 # todo make this a tagged version in the future
-                packages[p] = {'url': info.url, 'version': 'release/%s' % p}
+                packages[p] = {'url': info.url, 
+                               'version': 'release/%s' % p, 
+                               'relative_path': path}
         return packages
                 
     def get_version(self, package_name):

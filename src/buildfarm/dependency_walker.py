@@ -3,74 +3,106 @@
 from rosdistro import sanitize_package_name, debianize_package_name
 from stack_of_remote_repository import get_packages_of_remote_repository
 
-def _get_dependencies(dependency_dict, package_name, package_list, recursive=False):
-    dependencies = set(package_list[p] for p in dependency_dict[package_name] if p in package_list)
-    if recursive:
-        for p in  [ p for p in dependency_dict[package_name] if p in package_list ]:
-            dependencies.update(_get_dependencies(dependency_dict, p, package_list, recursive))
-    return dependencies
+import os.path
 
-def get_dependencies(workspace, repository_dict, rosdistro, skip_update=False):
-    build_dependencies = {}
-    runtime_dependencies = {}
+from vcstools.vcs_abstraction import VcsClient
+from vcstools.vcs_base import VcsError
+import catkin_pkg.package as catpak
 
-    packages = {}
-    package_urls = {}
+def simplify_repo_name(repo_url):
+    """Return a path valid version of the repo_url"""
+    return os.path.basename(repo_url)
 
-    #print repository_dict
-    for name, r in sorted(repository_dict.items()):
-        if 'url' not in r:
-            print "'url' key missing for repository %s; skipping"%(r)
-            continue
-        url = r['url']
-        if 'version' not in r:
-            print "'version' key missing for repository %s; assuming master"%(r)
-            version = 'master'
-        else:
-            version = r['version']
+class VcsFileCache(object):
+    """A class to support caching gbp repos for querying specific files from a repo"""
 
-        print "downloading from %s version %s into %s to be able to trace dependencies" % (url, version, workspace)
-        try:
-            found_packages = get_packages_of_remote_repository(name, 'git', url, workspace, version = version, skip_update = skip_update)
-        except VcsError, e:
-            print "Failed checking out repo:", str(e)
-            continue
-        if not found_packages:
-            if rosdistro == 'backports':
-                packages[name] = sanitize_package_name(name)
-                build_dependencies[name] = []
-                runtime_dependencies[name] = []
-                package_urls[name] = url
-                print "Processing backport %s, no stack.xml file found in repo %s. Continuing" % (name, url)
+    def __init__(self, cache_location):
+        # make sure the cache dir exists and ifnot create it
+        if not os.path.exists(cache_location):
+            os.path.mkdirs(cache_location)
+        self._cache_location = cache_location
+
+    def _get_file(self, repo_type, repo_url, version, filename):
+        """ Fetch the file specificed by filename relative to the root of the repository"""
+        name = simplify_repo_name(repo_url)
+        repo_path = os.path.join(self._cache_location, name)
+        client = VcsClient(repo_type, repo_path)
+        if client.path_exists():
+            if client.get_url() == repo_url:
+                client.update(version)
             else:
-                print "No Packages found in %s from %s" % (name, url)
-            continue
+                print("WARNING: Repo at %s changed url from %s to %s.  Redownloading!" % (repo_path, client.get_url(), repo_url) )
+                shutil.rmtree(repo_path)
+                client.checkout(repo_url, version, shallow=True)
+        else:
+            client.checkout(repo_url, version, shallow=True)
+
+        full_filename = os.path.join(repo_path, filename)
+        if not os.path.exists(full_filename):
+            raise VcsError("Requested file %s missing from repo %s version %s (viewed at version %s).  It was expected at: %s" % 
+                            ( filename, repo_url, version, client.get_version(), full_filename ) )
 
 
-        for p in found_packages.itervalues():
-            
-            packages[p.name] = debianize_package_name(rosdistro, p.name)
+        return full_filename
 
-            build_dependencies[p.name] = [d.name for d in p.build_depends] + [d.name for d in p.buildtool_depends]
-            runtime_dependencies[p.name] = [d.name for d in p.run_depends]
+    def get_file_contents(self, repo_type, repo_url, version, filename):
+        f = self._get_file(repo_type, repo_url, version, filename)
+        with open(f, 'r') as fh:
+            contents = fh.read()
+            return contents
 
-            package_urls[p.name] = url
+
+def _get_depends(packages, package, recursive=False, buildtime=False):
+    if buildtime:
+        immediate_depends = [packages[d.name] for d in package.build_depends if d.name in packages] + [packages[d.name] for d in package.buildtool_depends if d.name in packages]
+    else:
+        immediate_depends = [packages[d.name] for d in package.run_depends if d.name in packages]
+    result = set(immediate_depends)
+    if recursive:
+        for d in immediate_depends:
+            if d.name in packages:
+                result |= _get_depends(packages, d, recursive, buildtime)
+            else:
+                print("skipping missing dependency %s. not in %s" % (d.name, packages.keys()))
+                
+    return result
+    
+
+def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
+    packages = {}
+
+    vcs_cache = VcsFileCache(workspace)
+
+    print (rd_obj.get_package_checkout_info().keys())
+
+    for pkg_name, pkg_info in rd_obj.get_package_checkout_info().iteritems():
+        try:
+            pkg_string = vcs_cache.get_file_contents('git', 
+                                                     pkg_info['url'],
+                                                     pkg_info['version'],
+                                                     'package.xml')#os.path.join(pkg_info['relative_path'], 'package.xml') )
+            p = catpak.parse_package_string(pkg_string)
+
+            packages[p.name] = p
+        except VcsError as ex:
+            print("Failed to get package.xml for %s.  Error: %s" %
+                  (pkg_name, ex) )
+                  
 
 
-    print "build_dependencies", build_dependencies
-    print "runtime_dependencies", runtime_dependencies
 
     result = {}
-    urls = {}
+    for p in packages.itervalues():
+        deb_name = debianize_package_name(rd_obj._rosdistro, 
+                                          p.name)
+        build_depends = _get_depends(packages, p, recursive=False, buildtime=True)
+        run_depends = _get_depends(packages, p, recursive=False, buildtime=False)
+        
+        runtime_of_build = set()
+        for d in build_depends:
+            runtime_of_build |= _get_depends(packages, p, recursive=True, buildtime = False)
+        #result[deb_name] = build_depends | run_depends | runtime_of_build
+        result[deb_name] = [debianize_package_name(rd_obj._rosdistro, d.name) for d in build_depends | run_depends | runtime_of_build ]
 
-    # combines direct buildtime- and recursive runtime-dependencies
-    for k in package_urls.keys():
-        #print '\nDependencies for: ', k
-        build_deps = _get_dependencies(build_dependencies, k, packages)
-        # recursive runtime depends of build depends
-        recursive_runtime_dependencies = _get_dependencies(runtime_dependencies, k, packages, recursive = True)
-        #print 'Recursive runtime-dependencies:', ', '.join(recursive_runtime_dependencies)
-        result[packages[k]] = recursive_runtime_dependencies | build_deps
-        #print 'Combined dependencies:', ', '.join(result[packages[k]])
-        urls[package_urls[k]] = packages[k]
-    return result, urls
+
+    return result
