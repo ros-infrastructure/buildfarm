@@ -6,6 +6,7 @@ from stack_of_remote_repository import get_packages_of_remote_repository
 import os.path
 
 from vcstools.vcs_abstraction import VcsClient
+from vcstools.git import GitClient
 from vcstools.vcs_base import VcsError
 import catkin_pkg.package as catpak
 
@@ -26,7 +27,8 @@ class VcsFileCache(object):
         """ Fetch the file specificed by filename relative to the root of the repository"""
         name = simplify_repo_name(repo_url)
         repo_path = os.path.join(self._cache_location, name)
-        client = VcsClient(repo_type, repo_path)
+        #client = VcsClient(repo_type, repo_path)
+        client = GitClient(repo_path) # using git only
         if client.path_exists():
             if client.get_url() == repo_url:
                 client.update(version)
@@ -34,6 +36,8 @@ class VcsFileCache(object):
                 print("WARNING: Repo at %s changed url from %s to %s.  Redownloading!" % (repo_path, client.get_url(), repo_url) )
                 shutil.rmtree(repo_path)
                 client.checkout(repo_url, version, shallow=True)
+                # git only
+                client._do_fast_forward()
         else:
             client.checkout(repo_url, version, shallow=True)
 
@@ -72,8 +76,6 @@ def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
     packages = {}
 
     vcs_cache = VcsFileCache(workspace)
-
-    print (rd_obj.get_package_checkout_info().keys())
 
     for pkg_name, pkg_info in rd_obj.get_package_checkout_info().iteritems():
         try:
