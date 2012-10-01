@@ -162,7 +162,7 @@ if __name__ == "__main__":
 
         try:
             upstream_branch = None
-            if args.rosdistro != 'fuerte':
+            if False and args.rosdistro != 'fuerte':
                 package_version_no_debinc = package_version.split('-')[0]
                 upstream_branch = 'release/%s/%s' % (args.short_package_name, package_version_no_debinc)
             build_source_deb(repo_path, tag, args.output, upstream_branch)
