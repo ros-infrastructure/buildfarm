@@ -67,10 +67,13 @@ def verify_debian_tag(repo_path, package_name, package_version, distro):
         print("No matching tag found. Are you sure you pointed to the right repository or the version is right?, expected %s:\n Tags: %s"%(expected_tag, tags))
     return None
 
-def build_source_deb(repo_path, tag, output):
+def build_source_deb(repo_path, tag, output, upstream_branch=None):
     call(repo_path, ('git', 'checkout', tag))
-    call(repo_path, ('git', 'buildpackage', '--git-export-dir=%s' % output,
-        '--git-ignore-new', '-S', '-uc', '-us', '--lintian-opts', '--suppress-tags', 'newer-standards-version'))
+    cmd = ['git', 'buildpackage', '--git-export-dir=%s' % output, '--git-ignore-new', '-S', '-uc', '-us', '--lintian-opts', '--suppress-tags', 'newer-standards-version']
+    if upstream_branch is not None:
+        cmd.append('--git-upstream-tree=branch')
+        cmd.append('--git-upstream-branch=%s' % upstream_branch)
+    call(repo_path, cmd)
     print("Successfully created changes in %s"%output)
     call(repo_path, ['ls', output])
 
@@ -158,7 +161,10 @@ if __name__ == "__main__":
 
 
         try:
-            build_source_deb(repo_path, tag, args.output)
+            upstream_branch = None
+            if args.rosdistro != 'fuerte':
+                upstream_branch = 'release/%s/%s' % (args.short_package_name, package_version)
+            build_source_deb(repo_path, tag, args.output, upstream_branch)
             print("successfully created sourcedeb for tag %s on repo %s."%(tag, repo_path))
         except CalledProcessError, ex:
             print("Failed to build source deb for tag %s on repo %s: %s"%(tag, repo_path, ex))
