@@ -21,7 +21,7 @@ class VcsFileCache(object):
     def __init__(self, cache_location):
         # make sure the cache dir exists and ifnot create it
         if not os.path.exists(cache_location):
-            os.path.mkdirs(cache_location)
+            os.makedirs(cache_location)
         self._cache_location = cache_location
 
     def _get_file(self, repo_type, repo_url, version, filename):
