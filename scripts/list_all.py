@@ -98,7 +98,9 @@ def render_vertical(packages):
             for pkg in packages[k]:
                 pkg_name_lookup[pkg.name] = pkg
             if p in pkg_name_lookup:
-                version_string = pkg_name_lookup[p].version if pkg_name_lookup[p].version else "None"
+                version_string = pkg_name_lookup[p].version 
+                if not version_string:
+                    version_string = "None"
                 outstr += version_string[:len(k)]+' '*max(0, len(k) -len(version_string) )+('|' if len(version_string) < len(k) else '>')
                 #, 'x'*len(k),'|', 
             else:
@@ -162,7 +164,7 @@ if __name__ == "__main__":
     
     dry_stacks = [Package(buildfarm.rosdistro.debianize_package_name(args.rosdistro, sn), dry_distro.released_stacks[sn].version) for sn in dry_distro.released_stacks]
 
-    packages[' '+ args.rosdistro] = wet_stacks + dry_stacks
+    packages['  '+ args.rosdistro + '  '] = wet_stacks + dry_stacks
 
 
     outstr = render_vertical(packages)
