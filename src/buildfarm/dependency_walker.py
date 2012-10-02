@@ -5,6 +5,7 @@ from stack_of_remote_repository import get_packages_of_remote_repository
 
 import os.path
 import copy
+import shutil
 
 from vcstools.vcs_abstraction import VcsClient
 from vcstools.git import GitClient
