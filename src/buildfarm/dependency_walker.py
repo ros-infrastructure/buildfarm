@@ -4,6 +4,7 @@ from rosdistro import sanitize_package_name, debianize_package_name
 from stack_of_remote_repository import get_packages_of_remote_repository
 
 import os.path
+import copy
 
 from vcstools.vcs_abstraction import VcsClient
 from vcstools.git import GitClient
@@ -37,7 +38,7 @@ class VcsFileCache(object):
                 shutil.rmtree(repo_path)
                 client.checkout(repo_url, version, shallow=True)
                 # git only
-                client._do_fast_forward()
+                client._do_fetch()
         else:
             client.checkout(repo_url, version, shallow=True)
 
@@ -55,19 +56,35 @@ class VcsFileCache(object):
             contents = fh.read()
             return contents
 
+def prune_self_depends(packages, package):
+    if package.name in [p.name for p in packages]:
+        print("ERROR: Recursive dependency of %s on itself, pruning this dependency" % (package.name) )
+        for p in packages:
+            if p.name == package.name:
+                packages.remove(p)
+                break
+
+
+def _print_package_set(packages):
+    print (", ".join([p.name for p in packages]) )
 
 def _get_depends(packages, package, recursive=False, buildtime=False):
     if buildtime:
-        immediate_depends = [packages[d.name] for d in package.build_depends if d.name in packages] + [packages[d.name] for d in package.buildtool_depends if d.name in packages]
+        immediate_depends = set([packages[d.name] for d in package.build_depends if d.name in packages] + [packages[d.name] for d in package.buildtool_depends if d.name in packages])
     else:
-        immediate_depends = [packages[d.name] for d in package.run_depends if d.name in packages]
-    result = set(immediate_depends)
+        immediate_depends = set([packages[d.name] for d in package.run_depends if d.name in packages])
+    prune_self_depends(immediate_depends, package)
+
+    result = copy.copy(immediate_depends)
+
     if recursive:
         for d in immediate_depends:
             if d.name in packages:
                 result |= _get_depends(packages, d, recursive, buildtime)
+                prune_self_depends(result, package)
             else:
                 print("skipping missing dependency %s. not in %s" % (d.name, packages.keys()))
+    
                 
     return result
     

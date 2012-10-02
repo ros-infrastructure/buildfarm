@@ -13,7 +13,7 @@ from buildfarm import dependency_walker, release_jobs
 
 import rospkg.distro
 
-from buildfarm.rosdistro import debianize_package_name
+from buildfarm.rosdistro import debianize_package_name, Rosdistro
 
 #import pprint # for debugging only, remove
 
@@ -177,11 +177,13 @@ if __name__ == '__main__':
         print('Wrong type value in yaml file')
         sys.exit(1)
 
+    rd = Rosdistro(args.rosdistro)
+
     workspace = args.repos
     try:
         if not args.repos:
             workspace = tempfile.mkdtemp()
-        (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro, skip_update=args.skip_update)
+        dependencies = dependency_walker.get_jenkins_dependencies(workspace, rd, skip_update=args.skip_update)
         dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies) 
         
         combined_jobgraph = {}
