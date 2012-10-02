@@ -98,7 +98,7 @@ def render_vertical(packages):
             for pkg in packages[k]:
                 pkg_name_lookup[pkg.name] = pkg
             if p in pkg_name_lookup:
-                version_string = pkg_name_lookup[p].version
+                version_string = pkg_name_lookup[p].version if pkg_name_lookup[p].version else "None"
                 outstr += version_string[:len(k)]+' '*max(0, len(k) -len(version_string) )+('|' if len(version_string) < len(k) else '>')
                 #, 'x'*len(k),'|', 
             else:
