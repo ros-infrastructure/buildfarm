@@ -11,6 +11,7 @@ from vcstools.vcs_abstraction import VcsClient
 from vcstools.git import GitClient
 from vcstools.vcs_base import VcsError
 import catkin_pkg.package as catpak
+from catkin_pkg.package import InvalidPackage
 
 def simplify_repo_name(repo_url):
     """Return a path valid version of the repo_url"""
@@ -101,9 +102,11 @@ def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
                                                      pkg_info['url'],
                                                      pkg_info['version'],
                                                      'package.xml')#os.path.join(pkg_info['relative_path'], 'package.xml') )
-            p = catpak.parse_package_string(pkg_string)
-
-            packages[p.name] = p
+            try:
+                p = catpak.parse_package_string(pkg_string)
+                packages[p.name] = p
+            except InvalidPackage as ex:
+                print('package.xml for %s is invalid.  Error: %s' % (pkg_name, ex))
         except VcsError as ex:
             print("Failed to get package.xml for %s.  Error: %s" %
                   (pkg_name, ex) )
