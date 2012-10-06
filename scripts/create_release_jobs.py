@@ -61,7 +61,8 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
     # targets.
     results = {}
 
-    for r in sorted(rd.get_repos()):
+    for repo_name in sorted(rd.get_repo_list()):
+        r = rd.get_repo(repo_name)
         #todo add support for specific targets, needed in rosdistro.py too
         #if 'target' not in r or r['target'] == 'all':
         target_distros = default_distros
@@ -73,7 +74,6 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
 
 
         for p in sorted(r.packages.iterkeys()):
-
             pkg_name = rd.debianize_package_name(p)
             results[pkg_name] = release_jobs.doit(r.url,
                  pkg_name,
@@ -95,7 +95,7 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
     # dry dependencies
     d = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))
 
-    for s in d.stacks:
+    for s in sorted(d.stacks.iterkeys()):
         print ("Configuring DRY job [%s]" % s)
         results[rd.debianize_package_name(s) ] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
 
