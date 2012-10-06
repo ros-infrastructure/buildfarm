@@ -37,12 +37,17 @@ def parse_options():
            help='Assume packages have already been downloaded', action='store_true', default=False)
     parser.add_argument('--wet-only', dest='wet_only',
            help='Only setup wet jobs', action='store_true', default=False)
-    parser.add_argument('--repo-workspace', dest='repos', action='store',
+    parser.add_argument('--repo-workspace', action='store',
            help='A directory into which all the repositories will be checked out into.')
-    return parser.parse_args()
+    parser.add_argument('--repos', nargs='+',
+           help='A list of repository (or stack) names to create. Default: creates all')
+    args = parser.parse_args()
+    if args.repos and args.delete:
+        parser.error('A set of repos to create can not be combined with the --delete option.')
+    return args
 
 
-def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=False):
+def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=False, whitelist_repos=None):
     jenkins_instance = None
     if args.commit or delete_extra_jobs:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
@@ -62,6 +67,9 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
     results = {}
 
     for repo_name in sorted(rd.get_repo_list()):
+        if whitelist_repos and repo_name not in whitelist_repos:
+            continue
+
         r = rd.get_repo(repo_name)
         #todo add support for specific targets, needed in rosdistro.py too
         #if 'target' not in r or r['target'] == 'all':
@@ -96,13 +104,17 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
     d = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))
 
     for s in sorted(d.stacks.iterkeys()):
+        if whitelist_repos and s not in whitelist_repos:
+            continue
         print ("Configuring DRY job [%s]" % s)
         results[rd.debianize_package_name(s) ] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
 
     # special metapackages job
-    results[rd.debianize_package_name('metapackages') ] = release_jobs.dry_doit('metapackages', default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
+    if not whitelist_repos or 'metapackages' in whitelist_repos:
+        results[rd.debianize_package_name('metapackages') ] = release_jobs.dry_doit('metapackages', default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
 
     if delete_extra_jobs:
+        assert(not whitelist_repos)
         # clean up extra jobs
         configured_jobs = set()
 
@@ -128,15 +140,16 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
 
 if __name__ == '__main__':
     args = parse_options()
+
     repo = 'http://%s/repos/building' % args.fqdn
 
     print('Loading rosdistro %s' % args.rosdistro )
 
     rd = Rosdistro(args.rosdistro)    
 
-    workspace = args.repos
+    workspace = args.repo_workspace
     try:
-        if not args.repos:
+        if not args.repo_workspace:
             workspace = tempfile.mkdtemp()
         package_co_info = rd.get_package_checkout_info()
             
@@ -154,7 +167,7 @@ if __name__ == '__main__':
         combined_jobgraph[debianize_package_name(args.rosdistro, 'metapackages')] = combined_jobgraph.keys()
 
     finally:
-        if not args.repos:
+        if not args.repo_workspace:
             shutil.rmtree(workspace)
 
     results_map = doit(
@@ -163,7 +176,8 @@ if __name__ == '__main__':
         combined_jobgraph,
         rosdistro=args.rosdistro,
         commit=args.commit,
-        delete_extra_jobs=args.delete)
+        delete_extra_jobs=args.delete,
+        whitelist_repos=args.repos)
 
 
     if not args.commit:
