@@ -86,8 +86,8 @@ if __name__ == '__main__':
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
 
 
-        for s, dist_archs in missing.iteritems():
-
+        for s in sorted(missing.iterkeys()):
+            dist_archs = missing[s]
             detected_source = False
             for da in dist_archs:
                 if 'source' in da:
