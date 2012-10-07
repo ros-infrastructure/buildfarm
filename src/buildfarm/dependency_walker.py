@@ -121,6 +121,12 @@ def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
         build_depends = _get_depends(packages, p, recursive=False, buildtime=True)
         run_depends = _get_depends(packages, p, recursive=False, buildtime=False)
         
+
+        
+        # switching to only set first level dependencies to clean up clutter in jenkins instead of the recursive ones below
+        result[deb_name] = [debianize_package_name(rd_obj._rosdistro, d.name) for d in build_depends | run_depends ]
+        continue
+
         runtime_of_build = set()
         for d in build_depends:
             runtime_of_build |= _get_depends(packages, p, recursive=True, buildtime = False)
