@@ -97,7 +97,9 @@ def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
 
     vcs_cache = VcsFileCache(workspace)
 
-    for pkg_name, pkg_info in rd_obj.get_package_checkout_info().iteritems():
+    checkout_info = rd_obj.get_package_checkout_info()
+    for pkg_name in sorted(checkout_info.keys()):
+        pkg_info = checkout_info[pkg_name]
         try:
             pkg_string = vcs_cache.get_file_contents('git', 
                                                      pkg_info['url'],
@@ -116,7 +118,8 @@ def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
 
 
     result = {}
-    for p in packages.itervalues():
+    for pkg_name in sorted(packages.keys()):
+        p = packages[pkg_name]
         deb_name = debianize_package_name(rd_obj._rosdistro, 
                                           p.name)
         build_depends = _get_depends(packages, p, recursive=False, buildtime=True)
