@@ -24,9 +24,6 @@ def parse_options():
 if __name__ == "__main__":
     args = parse_options()
 
-    #cmd = 'apt-get update -c %s'%args.aptconffile
-    #subprocess.call(cmd.split())
-
     c = apt.Cache(rootdir=args.rootdir)
     if args.update:
         c.update()
@@ -34,11 +31,10 @@ if __name__ == "__main__":
     c.open() # required to recall open after updating or you will query the old data
 
 
-    missing = []
     for p in args.packages:
         failure = False
         if not c.has_key(p):
-            print "Package Missing: %s"%missing
+            print "Package %s missing in repo." %s
             failure = True
 
     if failure:
