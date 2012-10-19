@@ -61,6 +61,10 @@ sudo PYTHONPATH=$PYTHONPATH $WORKSPACE/catkin-debs/scripts/setup_apt_root.py $di
 #    exit 0
 #fi
 
+
+# update apt update
+sudo apt-get update -c $aptconffile -o Apt::Architecture=$arch
+
 # check precondition that all dependents exist, don't check if no dependencies
 @[if DEPENDENTS]
 sudo $WORKSPACE/catkin-debs/scripts/assert_package_dependencies_present.py $rootdir $aptconffile  $PACKAGE -u
@@ -74,9 +78,7 @@ mkdir -p $work_dir
 cd $work_dir
 
 
-
-
-sudo apt-get update -c $aptconffile -o Apt::Architecture=$arch
+# Pull the sourcedeb
 sudo apt-get source $PACKAGE -c $aptconffile
 
 # extract version number from the dsc file
