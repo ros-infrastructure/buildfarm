@@ -33,9 +33,10 @@ class VcsFileCache(object):
         #client = VcsClient(repo_type, repo_path)
         client = GitClient(repo_path) # using git only
         if client.path_exists():
+            updated = True
             if client.get_url() == repo_url:
-                client.update(version)
-            else:
+                updated = client.update(version)
+            if not updated:
                 print("WARNING: Repo at %s changed url from %s to %s.  Redownloading!" % (repo_path, client.get_url(), repo_url) )
                 shutil.rmtree(repo_path)
                 client.checkout(repo_url, version, shallow=True)
