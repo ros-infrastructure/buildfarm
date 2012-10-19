@@ -162,7 +162,7 @@ dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
 
 
 # update apt again
-#sudo apt-get update -c $aptconffile -o Apt::Architecture=$arch
+sudo apt-get update -c $aptconffile -o Apt::Architecture=$arch
 
 # check that the uploaded successfully
 sudo $WORKSPACE/catkin-debs/scripts/assert_package_present.py $rootdir $aptconffile  $PACKAGE
