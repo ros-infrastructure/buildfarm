@@ -115,7 +115,12 @@ def dry_get_stack_version(stackname, rosdistro_obj):
 
 
 def dry_get_versioned_dependency_tree(rosdistro):
-    d = load_distro(distro_uri(rosdistro))    
+    url = distro_uri(rosdistro)
+    try:
+        d = load_distro(url)
+    except urllib2.URLError as ex:
+        print ("Loading distro from '%s'failed with URLError %s" % (url, ex), file=sys.stderr)
+        raise
     dependency_tree = {}
     versions = {}
     for s in d.stacks:
@@ -214,7 +219,7 @@ def create_jenkins_job(jobname, config, jenkins_instance):
             jenkins_instance.create_job(jobname, config)
         return True
     except jenkins.JenkinsException as ex:
-        print('Failed to configure "%s" with error: %s' % (jobname, ex))
+        print('Failed to configure "%s" with error: %s' % (jobname, ex), file=sys.stderr)
         return False
 
 
@@ -343,7 +348,7 @@ def dry_doit(package, distros,  rosdistro, jobgraph, commit, jenkins_instance):
                 else:
                     failed_jobs.append(job_name)
             except urllib2.URLError as ex:
-                print ("Job creation failed with URLErro error %s" % ex)
+                print ("Job creation failed with URLError %s" % ex, file=sys.stderr)
                 failed_jobs.append(job_name)
 
     unattempted_jobs = [job for (job, config) in jobs if job not in successful_jobs and job not in failed_jobs]
