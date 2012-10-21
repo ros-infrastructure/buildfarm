@@ -38,11 +38,9 @@ def expand(config_template, d):
 def compute_missing(distros, fqdn, rosdistro):
     """ Compute what packages are missing from a repo based on the rosdistro files, both wet and dry. """
 
-
     repo_url = 'http://%s/repos/building' % fqdn
 
     arches = ['amd64', 'i386']
-
 
     rd = Rosdistro(rosdistro)
     # We take the intersection of repo-specific targets with default
@@ -53,27 +51,21 @@ def compute_missing(distros, fqdn, rosdistro):
     else:
         target_distros = rd.get_target_distros()
 
-
     missing = {}
     for short_package_name in rd.get_package_list():
-
         #print ('Analyzing WET stack "%s" for "%s"' % (r['url'], target_distros))
-        
+
         # todo check if sourcedeb is present with the right version
         deb_name = debianize_package_name(rosdistro, short_package_name)
         expected_version = rd.get_version(short_package_name)
-        
+
         missing[short_package_name] = []
         for d in target_distros:
-            if not repo.deb_in_repo(repo_url, deb_name, expected_version+".*", d, arch='na', source=True):
+            if not repo.deb_in_repo(repo_url, deb_name, expected_version + ".*", d, arch='na', source=True):
                 missing[short_package_name].append('%s_source' % d)
             for a in arches:
-                if not repo.deb_in_repo(repo_url, deb_name, expected_version+".*", d, a):
+                if not repo.deb_in_repo(repo_url, deb_name, expected_version + ".*", d, a):
                     missing[short_package_name].append('%s_%s' % (d, a))
-
-
-
-        
 
     #dry stacks
     # dry dependencies
@@ -82,30 +74,29 @@ def compute_missing(distros, fqdn, rosdistro):
     distro_arches = []
     for d in target_distros:
         for a in arches:
-            distro_arches.append( (d, a) )
+            distro_arches.append((d, a))
 
     for s in dist.stacks:
         #print ("Analyzing DRY job [%s]" % s)
         expected_version = dry_get_stack_version(s, dist)
-        
+
         # sanitize undeclared versions for string substitution
         if not expected_version:
             expected_version = ''
         missing[s] = []
-        # for each distro arch check if the deb is present. If not trigger the build. 
+        # for each distro arch check if the deb is present. If not trigger the build.
         for (d, a) in distro_arches:
-            if not repo.deb_in_repo(repo_url, debianize_package_name(rosdistro, s), expected_version+".*", d, a):
-                missing[s].append( '%s_%s' % (d, a) )
-
+            if not repo.deb_in_repo(repo_url, debianize_package_name(rosdistro, s), expected_version + ".*", d, a):
+                missing[s].append('%s_%s' % (d, a))
 
     return missing
 
 
 # dry dependencies
 def dry_get_stack_info(stackname, version):
-    y = urllib.urlopen('https://code.ros.org/svn/release/download/stacks/%(stackname)s/%(stackname)s-%(version)s/%(stackname)s-%(version)s.yaml' % locals() )
+    y = urllib.urlopen('https://code.ros.org/svn/release/download/stacks/%(stackname)s/%(stackname)s-%(version)s/%(stackname)s-%(version)s.yaml' % locals())
     return yaml.load(y.read())
-                 
+
 
 def dry_get_stack_version(stackname, rosdistro_obj):
     if not stackname in rosdistro_obj.stacks:
@@ -133,18 +124,19 @@ def dry_get_versioned_dependency_tree(rosdistro):
             dependency_tree[s] = []
     return dependency_tree, versions
 
+
 def dry_generate_jobgraph(rosdistro, wet_jobgraph):
     if rosdistro == 'backports':
         return {}
 
-    (stack_depends, versions) = dry_get_versioned_dependency_tree(rosdistro)
+    (stack_depends, _) = dry_get_versioned_dependency_tree(rosdistro)
 
     jobgraph = {}
     for key, val in stack_depends.iteritems():
-        dry_depends = [debianize_package_name(rosdistro, p) for p in val ]
+        dry_depends = [debianize_package_name(rosdistro, p) for p in val]
 
-        untracked_wet_packages = [ p for p in dry_depends if p in wet_jobgraph] 
-        
+        untracked_wet_packages = [p for p in dry_depends if p in wet_jobgraph]
+
         extra_packages = set()
         for p in untracked_wet_packages:
             #print("adding packages for %s - [%s] " % (p, ', '.join(wet_jobgraph[p])) )
@@ -154,15 +146,13 @@ def dry_generate_jobgraph(rosdistro, wet_jobgraph):
     return jobgraph
 
 
-    
-
 def compare_configs(a, b):
     """Return True if the configs are the same, except the
     description, else False"""
     aroot = ET.fromstring(a)
     broot = ET.fromstring(b)
-
     return compare_xml_children(aroot, broot)
+
 
 def compare_xml_text_and_attribute(a, b):
     if not a.text == b.text:
@@ -185,7 +175,7 @@ def compare_xml_children(a, b):
             #print("When comparing xml. Failed to find tag %s" % tag)
             return False
 
-        #If multple of the same tags try them all
+        #If multiple of the same tags try them all
         match_found = False
         for b_child in b_found:
             match_found = compare_xml_children(b_child, child) and compare_xml_text_and_attribute(b_child, child)
@@ -195,9 +185,9 @@ def compare_xml_children(a, b):
         if not match_found:
             #print("Found %d tags %s, none matched" % (len(b_found), tag ))
             return False
-        
+
     return True
-    
+
 
 def create_jenkins_job(jobname, config, jenkins_instance):
     try:
@@ -240,6 +230,7 @@ def create_binarydeb_config(d):
     d['COMMAND'] = escape(expand(Templates.command_binarydeb, d))
     return expand(Templates.config_binarydeb, d)
 
+
 def create_dry_binarydeb_config(d):
     d['COMMAND'] = escape(expand(Templates.command_dry_binarydeb, d))
     d['TIMESTAMP'] = datetime.datetime.now()
@@ -259,14 +250,12 @@ def calc_child_jobs(packagename, distro, arch, jobgraph):
     return children
 
 
-
 def add_dependent_to_dict(packagename, jobgraph):
     dependents = {}
     if jobgraph:
         if packagename in jobgraph:
             dependents = jobgraph[packagename]
     return dependents
-
 
 
 def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
@@ -293,6 +282,7 @@ def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
             #print ("config of %s is %s" % (job_name, config))
     return jobs
 
+
 def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
     d = dict(
@@ -300,7 +290,7 @@ def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50
         FQDN=fqdn,
         ROS_PACKAGE_REPO=ros_package_repo,
         PACKAGE=package,
-        USERNAME= jenkins_config.username
+        USERNAME=jenkins_config.username
     )
     jobs = []
     for distro in distros:
@@ -318,22 +308,22 @@ def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50
 
 def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
-    
+
     d = dict(
-    RELEASE_URI=release_uri,
-    RELEASE_BRANCH='master',
-    FQDN=fqdn,
-    DISTROS=distros,
-    CHILD_PROJECTS=child_projects,
-    PACKAGE=package,
-    ROSDISTRO=rosdistro,
-    SHORT_PACKAGE_NAME=short_package_name,
-    USERNAME= jenkins_config.username
+        RELEASE_URI=release_uri,
+        RELEASE_BRANCH='master',
+        FQDN=fqdn,
+        DISTROS=distros,
+        CHILD_PROJECTS=child_projects,
+        PACKAGE=package,
+        ROSDISTRO=rosdistro,
+        SHORT_PACKAGE_NAME=short_package_name,
+        USERNAME=jenkins_config.username
     )
     return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
 
-def dry_doit(package, distros,  rosdistro, jobgraph, commit, jenkins_instance):
+def dry_doit(package, distros, rosdistro, jobgraph, commit, jenkins_instance):
 
     jobs = dry_binarydeb_jobs(package, rosdistro, distros, jobgraph)
 

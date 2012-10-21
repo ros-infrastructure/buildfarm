@@ -52,8 +52,7 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
     if args.commit or delete_extra_jobs:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
 
-    
-    rd = Rosdistro(rosdistro)    
+    rd = Rosdistro(rosdistro)
 
     # Figure out default distros.  Command-line arg takes precedence; if
     # it's not specified, then read targets.yaml.
@@ -79,8 +78,6 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
 
         print ('Configuring WET repo "%s" at "%s" for "%s"' % (r.name, r.url, target_distros))
 
-
-
         for p in sorted(r.packages.iterkeys()):
             pkg_name = rd.debianize_package_name(p)
             results[pkg_name] = release_jobs.doit(r.url,
@@ -94,7 +91,6 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
                  jenkins_instance=jenkins_instance)
             #print ('individual results', results[pkg_name])
 
-
     if args.wet_only:
         print ("wet only selected, skipping dry and delete")
         return results
@@ -107,20 +103,20 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
         if whitelist_repos and s not in whitelist_repos:
             continue
         print ("Configuring DRY job [%s]" % s)
-        results[rd.debianize_package_name(s) ] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
+        results[rd.debianize_package_name(s)] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
 
     # special metapackages job
     if not whitelist_repos or 'metapackages' in whitelist_repos:
-        results[rd.debianize_package_name('metapackages') ] = release_jobs.dry_doit('metapackages', default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
+        results[rd.debianize_package_name('metapackages')] = release_jobs.dry_doit('metapackages', default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
 
     if delete_extra_jobs:
         assert(not whitelist_repos)
         # clean up extra jobs
         configured_jobs = set()
 
-        for _, v in results.iteritems():
-            release_jobs.summarize_results(*v)
-            for e in v:
+        for jobs in results.values():
+            release_jobs.summarize_results(*jobs)
+            for e in jobs:
                 configured_jobs.update(set(e))
 
         existing_jobs = set([j['name'] for j in jenkins_instance.get_jobs()])
@@ -136,34 +132,32 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
     return results
 
 
-
-
 if __name__ == '__main__':
     args = parse_options()
 
     repo = 'http://%s/repos/building' % args.fqdn
 
-    print('Loading rosdistro %s' % args.rosdistro )
+    print('Loading rosdistro %s' % args.rosdistro)
 
-    rd = Rosdistro(args.rosdistro)    
+    rd = Rosdistro(args.rosdistro)
 
     workspace = args.repo_workspace
     try:
         if not args.repo_workspace:
             workspace = tempfile.mkdtemp()
         package_co_info = rd.get_package_checkout_info()
-            
+
         dependencies = dependency_walker.get_jenkins_dependencies(workspace, rd, skip_update=args.skip_update)
 
-        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies) 
-        
+        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies)
+
         combined_jobgraph = {}
         for k, v in dependencies.iteritems():
             combined_jobgraph[k] = v
         for k, v in dry_jobgraph.iteritems():
             combined_jobgraph[k] = v
 
-        # setup a job triggered by all other debjobs 
+        # setup a job triggered by all other debjobs
         combined_jobgraph[debianize_package_name(args.rosdistro, 'metapackages')] = combined_jobgraph.keys()
 
     finally:
@@ -178,7 +172,6 @@ if __name__ == '__main__':
         commit=args.commit,
         delete_extra_jobs=args.delete,
         whitelist_repos=args.repos)
-
 
     if not args.commit:
         print('This was not pushed to the server.  If you want to do so use "--commit" to do it for real.')
