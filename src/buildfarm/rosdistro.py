@@ -11,7 +11,11 @@ class RepoMetadata(object):
     def __init__(self, name, url, version, packages = {}, status = None):
         self.name = name
         self.url = url
-        self.version = version
+        self.full_version = version
+        if version:
+            self.version = version.split('-')[0]
+        else:
+            self.version = None
         self.status = status
         self.packages = packages
 
@@ -77,9 +81,11 @@ class Rosdistro:
         packages = {}
         for repo, info  in self._repoinfo.iteritems():
             for p, path in info.packages.iteritems():
-                # todo make this a tagged version in the future
+                if info.version == None: 
+                    print ("Skipping repo %s due to null version" % p)
+                    continue
                 packages[p] = {'url': info.url, 
-                               'version': 'release/%s' % p, 
+                               'version': 'release/%s/%s' % (p, info.version), 
                                'relative_path': path}
         return packages
                 
