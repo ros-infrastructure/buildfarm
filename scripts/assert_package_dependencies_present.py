@@ -59,7 +59,7 @@ if __name__ == "__main__":
                     dep_name_only = dep.split()[0]
                     if not c.has_key(dep_name_only):
                         print "package %s does not have dependency [%s]"%(p, dep_name_only)
-                        missing.append(p)
+                        missing.append(dep_name_only)
 
         except Exception, ex:
             print "Exception processing package %s: %s"%(p, ex)
