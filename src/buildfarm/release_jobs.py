@@ -61,10 +61,10 @@ def compute_missing(distros, fqdn, rosdistro):
 
         missing[short_package_name] = []
         for d in target_distros:
-            if not repo.deb_in_repo(repo_url, deb_name, expected_version + ".*", d, arch='na', source=True):
+            if not repo.deb_in_repo(repo_url, deb_name, str(expected_version) + ".*", d, arch='na', source=True):
                 missing[short_package_name].append('%s_source' % d)
             for a in arches:
-                if not repo.deb_in_repo(repo_url, deb_name, expected_version + ".*", d, a):
+                if not repo.deb_in_repo(repo_url, deb_name, str(expected_version) + ".*", d, a):
                     missing[short_package_name].append('%s_%s' % (d, a))
 
     #dry stacks
