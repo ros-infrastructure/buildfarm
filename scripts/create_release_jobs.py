@@ -89,6 +89,7 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
                  short_package_name=p,
                  commit=commit,
                  jenkins_instance=jenkins_instance)
+            time.sleep(1)
             #print ('individual results', results[pkg_name])
 
     if args.wet_only:
@@ -104,6 +105,7 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
             continue
         print ("Configuring DRY job [%s]" % s)
         results[rd.debianize_package_name(s)] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
+        time.sleep(1)
 
     # special metapackages job
     if not whitelist_repos or 'metapackages' in whitelist_repos:
