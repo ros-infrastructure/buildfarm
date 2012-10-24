@@ -5,7 +5,7 @@ from setuptools import setup
 setup(name='buildfarm',
       version='0.0.1',
       packages=['buildfarm'],
-      package_dir = {'buildfarm':'src/buildfarm'},
+      package_dir = {'buildfarm':'buildfarm'},
       scripts = ['scripts/setup_apt_root.py',
                  'scripts/list_all.py',
                  'scripts/rosci',
