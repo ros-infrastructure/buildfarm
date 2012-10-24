@@ -39,11 +39,15 @@ class VcsFileCache(object):
             if not updated:
                 print("WARNING: Repo at %s changed url from %s to %s.  Redownloading!" % (repo_path, client.get_url(), repo_url))
                 shutil.rmtree(repo_path)
-                client.checkout(repo_url, version, shallow=True)
+                checkedout = client.checkout(repo_url, version, shallow=True)
+                if not checkedout:
+                    print("ERROR: Repo at %s could not be checked out from %s with version %s!" % (repo_path, repo_url, version))
                 # git only
                 client._do_fetch()
         else:
-            client.checkout(repo_url, version, shallow=True)
+            checkedout = client.checkout(repo_url, version, shallow=True)
+            if not checkedout:
+                print("ERROR: Repo at %s could not be checked out from %s with version %s!" % (repo_path, repo_url, version))
 
         full_filename = os.path.join(repo_path, filename)
         if not os.path.exists(full_filename):
