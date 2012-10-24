@@ -33,7 +33,7 @@ class VcsFileCache(object):
         #client = VcsClient(repo_type, repo_path)
         client = GitClient(repo_path)  # using git only
         if client.path_exists():
-            updated = True
+            updated = False
             if client.get_url() == repo_url:
                 updated = client.update(version)
             if not updated:
