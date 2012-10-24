@@ -27,8 +27,6 @@ import os
 import argparse
 import tempfile
 import shutil
-import yaml
-import urllib2
 
 import buildfarm.apt_root #setup_apt_root
 import buildfarm.rosdistro
