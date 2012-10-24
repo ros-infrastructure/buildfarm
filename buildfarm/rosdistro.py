@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+import sys
 import yaml, urllib2
 
 URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
