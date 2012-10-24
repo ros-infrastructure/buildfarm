@@ -7,6 +7,7 @@ import sys
 import tempfile
 import urllib2
 import yaml
+import time 
 
 from buildfarm import dependency_walker, jenkins_support, release_jobs
 
