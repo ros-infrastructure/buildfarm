@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
-
-#import sys
-#sys.path.insert(0, 'src')
-
-#from buildfarm import __version__
+from setuptools import setup
 
 setup(name='buildfarm',
       version='0.0.1',
