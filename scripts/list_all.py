@@ -283,6 +283,7 @@ class Repository:
 
    # Get the versions of a package in all distros and arches
    def get_package_versions(self, package_name, distro = None, arch = None):
+      # TODO: honor optional arguments
       versions = {}
       for d, a in self.iter_distro_arches():
          da = "%s_%s"%(d, a)
@@ -295,6 +296,7 @@ class Repository:
 
    # Get the version of a package in a specific distro/arch combination
    def get_package_version(self, package_name, distro, arch):
+      # TODO
       return self.get_package_versions(package_name, distro, arch)
 
 
