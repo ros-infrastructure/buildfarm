@@ -7,6 +7,7 @@ import sys
 import tempfile
 import urllib2
 import yaml
+import time
 
 from buildfarm import dependency_walker, jenkins_support, release_jobs
 
@@ -92,6 +93,7 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
              short_package_name=short_package_name,
              commit=commit,
              jenkins_instance=jenkins_instance)
+        time.sleep(1)
         #print ('individual results', results[package_names_by_url[url]])
 
 
@@ -106,6 +108,7 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
     for s in d.stacks:
         print ("Configuring DRY job [%s]" % s)
         results[debianize_package_name(rosdistro, s) ] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
+        time.sleep(1)
 
     # special metapackages job
     results[debianize_package_name(rosdistro, 'metapackages') ] = release_jobs.dry_doit('metapackages', default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
