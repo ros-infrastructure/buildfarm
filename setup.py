@@ -2,6 +2,14 @@
 
 from setuptools import setup
 
+# Prevent "TypeError: 'NoneType' object is not callable" error
+# when running `python setup.py test`
+# (see http://www.eby-sarna.com/pipermail/peak/2010-May/003357.html)
+try:
+    import multiprocessing
+except ImportError:
+    pass
+
 setup(name='buildfarm',
       version='0.0.1',
       packages=['buildfarm'],
@@ -13,6 +21,8 @@ setup(name='buildfarm',
                  'scripts/rosci-clean-junit-xml'],
       package_data = {'buildfarm': ['resources/templates/*.em', 'resources/templates/*/*']},
       install_requires = ['vcstools', 'rospkg'],
+      test_requires = ['nose'],
+      test_suite = 'nose.collector',
       author = "Tully Foote", 
       author_email = "tfoote@willowgarage.com",
       url = "http://www.ros.org/wiki/",
