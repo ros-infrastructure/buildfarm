@@ -18,7 +18,7 @@ def get_dependencies(workspace, repository_dict, rosdistro):
     package_urls = {}
 
     #print repository_dict
-    for name, r in repository_dict.items():
+    for name, r in sorted(repository_dict.items()):
         if 'url' not in r:
             print "'url' key missing for repository %s; skipping"%(r)
             continue
@@ -32,7 +32,7 @@ def get_dependencies(workspace, repository_dict, rosdistro):
                 build_dependencies[name] = []
                 runtime_dependencies[name] = []
                 package_urls[name] = url
-                print "Processing backport %s, no stack.xml file found in repo %s. Continuing"%(name, url)
+                print "Processing backport %s, no package.xml file found in repo %s. Continuing"%(name, url)
             else:
                 print str(e)
             continue
@@ -51,12 +51,12 @@ def get_dependencies(workspace, repository_dict, rosdistro):
 
     # combines direct buildtime- and recursive runtime-dependencies
     for k in package_urls.keys():
-        print '\nDependencies for: ', k
-        result[packages[k]] = _get_dependencies(build_dependencies, k, packages)
-        print 'Direct build-dependencies:', ', '.join(result[packages[k]])
-        recursive_runtime_dependencies = _get_dependencies(runtime_dependencies, k, packages, True)
-        print 'Recursive runtime-dependencies:', ', '.join(recursive_runtime_dependencies)
-        result[packages[k]].update(recursive_runtime_dependencies)
-        print 'Combined dependencies:', ', '.join(result[packages[k]])
+        #print '\nDependencies for: ', k
+        build_deps = _get_dependencies(build_dependencies, k, packages)
+        # recursive runtime depends of build depends
+        recursive_runtime_dependencies = _get_dependencies(runtime_dependencies, k, build_deps, True)
+        #print 'Recursive runtime-dependencies:', ', '.join(recursive_runtime_dependencies)
+        result[packages[k]] = recursive_runtime_dependencies | build_deps
+        #print 'Combined dependencies:', ', '.join(result[packages[k]])
         urls[package_urls[k]] = packages[k]
     return result, urls

@@ -23,6 +23,7 @@ def parse_options():
     parser.add_argument('--output', help='The result of source deb building will go here. Default: %(default)s', default='/tmp/catkin_debs')
     parser.add_argument('--repo-fqdn', dest='repo_fqdn', help='The fully qualified domain name of the repo machine. Default: %(default)s', default='50.28.27.175')
     parser.add_argument('--repo-path', dest='repo_path', help='The path to find the repo on the machine. Default: %(default)s', default='/var/www/repos/building')
+    parser.add_argument('-n', dest='noupload', help='Do not try to upload', action='store_true', default=False)
     
     args = parser.parse_args()
 
@@ -163,10 +164,16 @@ if __name__ == "__main__":
             print("Failed to build source deb for tag %s on repo %s: %s"%(tag, repo_path, ex))
             report_failure = True
             continue
+
             
         try:
             changes_file = find_file(args.output, '.changes', d)
             print("Changes file is %s" % changes_file) 
+
+            if args.noupload:
+                print("Noupload argument passed, skipping upload of %s" % changes_file)
+                continue
+
             print(os.listdir(args.output))
 
             # remove upstream so it doesn't error if we're downgrading
