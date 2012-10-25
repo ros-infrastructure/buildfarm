@@ -63,7 +63,7 @@ sudo PYTHONPATH=$PYTHONPATH $WORKSPACE/catkin-debs/scripts/setup_apt_root.py $di
 
 # check precondition that all dependents exist, don't check if no dependencies
 @[if DEPENDENTS]
-sudo $WORKSPACE/catkin-debs/scripts/assert_package_dependencies_present.py $rootdir $aptconffile  $PACKAGE -u
+sudo $WORKSPACE/catkin-debs/scripts/assert_package_dependencies_present.py $rootdir $aptconffile  $PACKAGE
 @[end if]
 
 sudo rm -rf $output_dir
@@ -157,3 +157,10 @@ post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- '( flock 200; /usr/bin
 """ > $output_dir/dput.cf
 
 dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
+
+
+# update apt again
+sudo apt-get update -c $aptconffile -o Apt::Architecture=$arch
+
+# check that the uploaded successfully
+sudo $WORKSPACE/catkin-debs/scripts/assert_package_present.py $rootdir $aptconffile  $PACKAGE

@@ -50,7 +50,6 @@ class Rosdistro:
                     for p in n['packages']:
                         self._package_in_repo[p] = name
                 else:
-                    print("Missing required 'packages' for %s.  Assuming this is a unary stack" % name)
                     self._repoinfo[name].packages = {name: None}
                     self._package_in_repo[name] = name
             else:

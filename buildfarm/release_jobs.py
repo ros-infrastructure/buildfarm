@@ -10,14 +10,13 @@ import xml.etree.ElementTree as ET
 import urllib
 import urllib2
 import yaml
-import getpass
 import datetime
 
 from rospkg.distro import load_distro, distro_uri
 
 from rosdistro import debianize_package_name
 
-from . import repo
+from . import repo, jenkins_support
 
 import jenkins
 
@@ -257,20 +256,17 @@ def create_sourcedeb_config(d):
     #Create the bash script the runs inside the job
     #need the command to be safe for xml.
     d['COMMAND'] = escape(expand(Templates.command_sourcedeb, d))
-    d['USERNAME'] = getpass.getuser()
     d['TIMESTAMP'] = datetime.datetime.now()
     return expand(Templates.config_sourcedeb, d)
 
 
 def create_binarydeb_config(d):
-    d['USERNAME'] = getpass.getuser()
     d['TIMESTAMP'] = datetime.datetime.now()
     d['COMMAND'] = escape(expand(Templates.command_binarydeb, d))
     return expand(Templates.config_binarydeb, d)
 
 def create_dry_binarydeb_config(d):
     d['COMMAND'] = escape(expand(Templates.command_dry_binarydeb, d))
-    d['USERNAME'] = getpass.getuser()
     d['TIMESTAMP'] = datetime.datetime.now()
     return expand(Templates.config_dry_binarydeb, d)
 
@@ -299,11 +295,13 @@ def add_dependent_to_dict(packagename, jobgraph):
 
 
 def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
+    jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
     package = debianize_package_name(rosdistro, stackname)
     d = dict(
         PACKAGE=package,
         ROSDISTRO=rosdistro,
-        STACK_NAME=stackname
+        STACK_NAME=stackname,
+        USERNAME=jenkins_config.username
     )
     jobs = []
     for distro in distros:
@@ -321,11 +319,13 @@ def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
     return jobs
 
 def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
+    jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
     d = dict(
         DISTROS=distros,
         FQDN=fqdn,
         ROS_PACKAGE_REPO=ros_package_repo,
-        PACKAGE=package
+        PACKAGE=package,
+        USERNAME= jenkins_config.username
     )
     jobs = []
     for distro in distros:
@@ -342,6 +342,8 @@ def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50
 
 
 def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name):
+    jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
+    
     d = dict(
     RELEASE_URI=release_uri,
     RELEASE_BRANCH='master',
@@ -350,7 +352,8 @@ def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro
     CHILD_PROJECTS=child_projects,
     PACKAGE=package,
     ROSDISTRO=rosdistro,
-    SHORT_PACKAGE_NAME=short_package_name
+    SHORT_PACKAGE_NAME=short_package_name,
+    USERNAME= jenkins_config.username
     )
     return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
@@ -363,10 +366,16 @@ def dry_doit(package, distros,  rosdistro, jobgraph, commit, jenkins_instance):
     failed_jobs = []
     for job_name, config in jobs:
         if commit:
-            if create_jenkins_job(job_name, config, jenkins_instance):
-                successful_jobs.append(job_name)
-            else:
+            try:
+                ret_val = create_jenkins_job(job_name, config, jenkins_instance)
+                if ret_val:
+                    successful_jobs.append(job_name)
+                else:
+                    failed_jobs.append(job_name)
+            except urllib2.URLError as ex:
+                print ("Job creation failed with URLErro error %s" % ex)
                 failed_jobs.append(job_name)
+
     unattempted_jobs = [job for (job, config) in jobs if job not in successful_jobs and job not in failed_jobs]
 
     return (unattempted_jobs, successful_jobs, failed_jobs)
