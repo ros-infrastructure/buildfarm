@@ -101,6 +101,10 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
         print ("wet only selected, skipping dry and delete")
         return results
 
+    if rosdistro == 'backports':
+        print ("no dry backports stopping execution")
+        return results
+
     #dry stacks
     # dry dependencies
     d = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))

@@ -32,7 +32,7 @@ def get_dependencies(workspace, repository_dict, rosdistro):
                 build_dependencies[name] = []
                 runtime_dependencies[name] = []
                 package_urls[name] = url
-                print "Processing backport %s, no stack.xml file found in repo %s. Continuing"%(name, url)
+                print "Processing backport %s, no package.xml file found in repo %s. Continuing"%(name, url)
             else:
                 print str(e)
             continue
