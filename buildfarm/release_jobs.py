@@ -84,7 +84,6 @@ def compute_missing(distros, fqdn, rosdistro):
         if 'url' not in r:
             print('"url" key missing for repository "%s"; skipping' % r)
             continue
-        url = r['url']
         if 'target' not in r or r['target'] == 'all':
             target_distros = default_distros
         else:

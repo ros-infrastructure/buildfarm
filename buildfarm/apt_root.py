@@ -5,7 +5,6 @@ from __future__ import print_function
 import pkg_resources
 import em
 import os
-import pprint
 
 
 def expand_template(config_template, d):

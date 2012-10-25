@@ -34,7 +34,6 @@ from __future__ import print_function
 
 import os
 import pkg_resources
-import sys
 import yaml
 
 DISPATH_SH_URI = 'https://raw.github.com/willowgarage/buildfarm/master/dispatch.sh'

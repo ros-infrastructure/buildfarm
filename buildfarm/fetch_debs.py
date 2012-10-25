@@ -50,8 +50,6 @@ def list_packages(rootdir, update, substring):
 
     packages = []
     for p in [k for k in c.keys() if args.substring in k]:
-        v = c[p].versions[0]
-
         packages.append(p)
 
     return packages
@@ -65,7 +63,6 @@ def get_packages(rootdir, update, substring, dest_dir = '.'):
 
     c.open() # required to recall open after updating or you will query the old data
 
-    packages = []
     for p in [k for k in c.keys() if args.substring in k]:
         pack = c[p]
         v = pack.candidate #versions[0]

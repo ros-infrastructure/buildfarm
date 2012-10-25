@@ -32,10 +32,7 @@
 
 import os
 import jenkins
-import pkg_resources
-import sys
 import yaml
-import rospkg
 
 #TODO copied from rosci this should be pushed up to python-jenkins
 

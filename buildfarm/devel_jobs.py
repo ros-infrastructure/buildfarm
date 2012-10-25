@@ -8,8 +8,6 @@ from xml.sax.saxutils import escape
 
 import jenkins
 
-from buildfarm.rosdep_support import resolve_rosdeps
-
 
 class Templates(object):
     template_dir = os.path.dirname(__file__)
