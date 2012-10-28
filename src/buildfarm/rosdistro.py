@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+import sys
 import yaml, urllib2
 
 URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
@@ -34,7 +35,11 @@ class Rosdistro:
         self._rosdistro = rosdistro_name
         self._targets = None
         # avaliable for backwards compatability
-        self.repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%rosdistro_name))
+        try:
+            self.repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE % rosdistro_name))
+        except urllib2.HTTPError as ex:
+            print ("Loading distro from '%s'failed with HTTPError %s" % (URL_PROTOTYPE % rosdistro_name, ex), file=sys.stderr)
+            raise
         if 'release-name' not in self.repo_map:
             print("No 'release-name' key in yaml file")
             sys.exit(1)
