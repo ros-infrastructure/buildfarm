@@ -103,7 +103,6 @@ if __name__ == '__main__':
             for da in dist_archs:
                 job_name = '%s_binarydeb_%s' % (debianize_package_name(args.rosdistro, s), da )
                 trigger_if_not_building(job_name, jenkins_instance)
-            time.sleep(1) # jenkins slowdown loop
 
     else:
         
