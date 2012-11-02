@@ -130,36 +130,12 @@ sudo pbuilder  --build \
 
 
 
-# invalidate all binary packages which will depend on this package
+# Upload invalidate and add to the repo
+UPLOAD_DIR=/tmp/upload/$PACKAGE
 
-cat > invalidate.py << DELIM
-#!/usr/bin/env python
-import paramiko
-cmd = "( flock 200; /usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (% ros-* ), Architecture (== $arch ), ( Depends (% *$PACKAGE[, ]* ) | Depends (% *$PACKAGE ) )\" && /usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (== $PACKAGE ), Architecture (== $arch ) \" ) 200>/var/www/repos/building/lock"
-ssh = paramiko.SSHClient()
-ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-ssh.connect('$ROS_REPO_FQDN', username='rosbuild')
-stdin, stdout, stderr = ssh.exec_command(cmd)
-print "Invalidation results:", stdout.readlines()
-ssh.close()
-DELIM
-
-echo "invalidation script contents for debugging:"
-cat invalidate.py
-python invalidate.py
-
-# push the new deb, config followed by execution
-echo """
-[debtarget]
-method                  = scp
-fqdn                    = $ROS_REPO_FQDN
-incoming                = /var/www/repos/building/queue/$distro
-run_dinstall            = 0
-post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- '( flock 200; /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro ) 200>/var/www/repos/building/lock'
-""" > $output_dir/dput.cf
-
-dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
-
+ssh rosbuild@$ROS_REPO_FQDN -- mkdir -p $UPLOAD_DIR
+scp -r $output_dir/*$distro* rosbuild@$ROS_REPO_FQDN:$UPLOAD_DIR
+ssh rosbuild@$ROS_REPO_FQDN -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -d $distro -a $arch -f $UPLOAD_DIR -p $PACKAGE -c --delete --invalidate
 
 # update apt again
 sudo apt-get update -c $aptconffile -o Apt::Architecture=$arch
