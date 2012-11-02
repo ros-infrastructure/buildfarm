@@ -90,7 +90,7 @@ def upload_source_deb(distro, repo_fqdn, repo_path, changesfile, packagename):
     cmd = ("scp -r %s/ rosbuild@%s:%s"%(upload_source, repo_fqdn, upload_dir)).split()
     call('/tmp/', cmd)
 
-    cmd = ("ssh rosbuild@%(repo_fqdn)s -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -d %(distro)s -a source -f %(upload_dir) -p %(changesfile)s -c --delete --invalidate"%locals()).split()
+    cmd = ("ssh rosbuild@%(repo_fqdn)s -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -d %(distro)s -a source -f %(upload_dir)s -p %(changesfile)s -c --delete --invalidate"%locals()).split()
     call('/tmp/', cmd)
 
 
