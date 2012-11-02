@@ -24,12 +24,122 @@
     </hudson.tasks.Shell>
   </builders>
   <publishers>
+    <org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder plugin="groovy-postbuild@1.8">
+      <groovyScript>
+import java.io.BufferedReader
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+import hudson.model.Result
+
+class Group {
+	String label
+	String badge
+	String summary_icon
+	Boolean mark_unstable = true
+	List match_extractors = []
+	List matched_items = []
+	Group(String label, String badge, String summary_icon) {
+		this.label = label
+		this.badge = badge
+		this.summary_icon = summary_icon
+	}
+}
+
+// define notification groups
+warnings_group = new Group(label=&quot;Warnings&quot;, badge=&quot;warning.gif&quot;, summary_icon=&quot;warning.png&quot;)
+deprecations_group = new Group(label=&quot;Deprecations&quot;, badge=&quot;info.gif&quot;, summary_icon=&quot;star.png&quot;)
+
+class MatchExtractor {
+	Pattern pattern
+	int next_lines
+	Boolean skip_first_line
+	MatchExtractor(Pattern pattern) {
+		this.pattern = pattern
+		this.next_lines = 0
+		this.skip_first_line = false
+	}
+	MatchExtractor(Pattern pattern, int next_lines) {
+		this.pattern = pattern
+		this.next_lines = next_lines
+		this.skip_first_line = false
+	}
+	MatchExtractor(Pattern pattern, int next_lines, Boolean skip_first_line) {
+		this.pattern = pattern
+		this.next_lines = next_lines
+		this.skip_first_line = skip_first_line
+	}
+}
+
+// define patterns and extraction parameters
+// catkin_pkg warnings for invalid package.xml files
+warnings_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile(&quot;WARNING:&quot;), next_lines=1, skip_first_line=true))
+// custom catkin deprecation messages
+deprecations_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile(&quot;.*\\) is deprecated.*&quot;)))
+// c++ compiler warning for usage of a deprecated function
+deprecations_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile(&quot;.* is deprecated \\(declared at .*&quot;)))
+
+
+groups = [warnings_group, deprecations_group]
+
+// search build output and extract found matches
+r = manager.build.getLogReader()
+br = new BufferedReader(r)
+def line
+while ((line = br.readLine()) != null) {
+	for (group in groups) {
+		for (me in group.match_extractors) {
+			if (me.pattern.matcher(line).matches()) {
+				data = []
+				if (!me.skip_first_line) data.add(line)
+				if (me.next_lines) {
+					for (i in 1..me.next_lines) {
+						line = br.readLine()
+						if (line == null) break
+						data.add(line)
+					}
+				}
+				group.matched_items.add(data.join(&quot;&lt;br/&gt;&quot;))
+			}
+		}
+	}
+}
+
+// add badges and summaries for matches
+mark_unstable = false
+for (group in groups) {
+	if (group.matched_items) {
+		manager.addBadge(group.badge, &quot;&quot;)
+		summary_text = &quot;&quot;
+		if (group.label) {
+			summary_text += group.label + &quot;:&quot;
+		}
+		summary_text += &quot;&lt;ul&gt;&quot;
+		for(i in group.matched_items) {
+			summary_text += &quot;&lt;li&gt;&quot; + i + &quot;&lt;/li&gt;&quot;
+		}
+		summary_text += &quot;&lt;/ul&gt;&quot;
+		summary = manager.createSummary(group.summary_icon)
+		summary.appendText(summary_text, false)
+		if (group.mark_unstable) mark_unstable = true
+	}
+}
+
+// mark build as unstable
+if (mark_unstable) {
+	if (manager.build.getResult().isBetterThan(Result.UNSTABLE)) {
+		manager.build.setResult(Result.UNSTABLE)
+	}
+}
+</groovyScript>
+      <behavior>0</behavior>
+    </org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder>
     <hudson.tasks.BuildTrigger>
       <childProjects>@(','.join(CHILD_PROJECTS))</childProjects>
       <threshold>
-        <name>SUCCESS</name>
-        <ordinal>0</ordinal>
-        <color>BLUE</color>
+        <name>UNSTABLE</name>
+        <ordinal>1</ordinal>
+        <color>YELLOW</color>
       </threshold>
     </hudson.tasks.BuildTrigger>
     <hudson.plugins.descriptionsetter.DescriptionSetterPublisher>
