@@ -129,7 +129,7 @@ if __name__ == "__main__":
 
 
         output_dir = os.path.join(args.output, d)
-
+        os.makedirs(output_dir)
         try:
             build_source_deb(repo_path, tag, output_dir)
             print("successfully created sourcedeb for tag %s on repo %s."%(tag, repo_path))
