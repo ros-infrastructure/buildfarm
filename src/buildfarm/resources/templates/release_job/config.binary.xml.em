@@ -24,7 +24,7 @@
     </hudson.tasks.Shell>
   </builders>
   <publishers>
-    <org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder plugin="groovy-postbuild@1.8">
+    <org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder plugin="groovy-postbuild@@1.8">
       <groovyScript>
 import java.io.BufferedReader
 import java.util.regex.Matcher
