@@ -83,7 +83,7 @@ def remove_upstream_source(distro, repo_fqdn, repo_path, package):
 def upload_source_deb(distro, repo_fqdn, repo_path, upload_source, packagename):
 
 
-    upload_dir="/tmp/upload/%s"%(packagename)
+    upload_dir="/tmp/upload/%s_%s" % (packagename, distro)
     cmd = ("ssh rosbuild@%s -- mkdir -p %s"%(repo_fqdn, upload_dir)).split()
     call('/tmp/', cmd)
     cmd = ("scp -r %s rosbuild@%s:%s"%(upload_source, repo_fqdn, upload_dir)).split()
