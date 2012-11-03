@@ -18,14 +18,18 @@ def get_stack_of_remote_repository(name, type, url, workspace=None, version=None
     # fetch repository
     workdir = os.path.join(workspace, name)
     client = vcstools.VcsClient(type, workdir)
+    is_good = False
     if client.path_exists():
         if client.get_url() == url:
-            client.update(version if version is not None else '')
+            is_good = client.update(version if version is not None else '')
         else:
             shutil.rmtree(workdir)
-            client.checkout(url, version=version if version is not None else '', shallow=True)
+            is_good = client.checkout(url, version=version if version is not None else '', shallow=True)
     else:
-        client.checkout(url, version=version if version is not None else '', shallow=True)
+        is_good = client.checkout(url, version=version if version is not None else '', shallow=True)
+
+    if not is_good:
+        raise RuntimeError('Impossible to update/checkout repo')
 
     # parse stack.xml
     stack_xml_path = os.path.join(workdir, 'stack.xml')
