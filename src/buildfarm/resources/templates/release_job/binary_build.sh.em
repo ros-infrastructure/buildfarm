@@ -134,6 +134,7 @@ sudo pbuilder  --build \
 UPLOAD_DIR=/tmp/upload/$PACKAGE
 
 ssh rosbuild@@$ROS_REPO_FQDN -- mkdir -p $UPLOAD_DIR
+ssh rosbuild@@$ROS_REPO_FQDN -- rm -rf $UPLOAD_DIR/*
 scp -r $output_dir/*$distro* rosbuild@@$ROS_REPO_FQDN:$UPLOAD_DIR
 ssh rosbuild@@$ROS_REPO_FQDN -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -d $distro -a $arch -f $UPLOAD_DIR -p $PACKAGE -c --delete --invalidate
 
