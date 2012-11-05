@@ -131,7 +131,7 @@ sudo pbuilder  --build \
 
 
 # Upload invalidate and add to the repo
-UPLOAD_DIR=/tmp/upload/$PACKAGE
+UPLOAD_DIR=/tmp/upload/$PACKAGE_$distro_$arch
 
 ssh rosbuild@@$ROS_REPO_FQDN -- mkdir -p $UPLOAD_DIR
 ssh rosbuild@@$ROS_REPO_FQDN -- rm -rf $UPLOAD_DIR/*
