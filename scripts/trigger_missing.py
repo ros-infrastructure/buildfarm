@@ -12,14 +12,11 @@ import time
 
 import pprint
 
-from buildfarm import dependency_walker, jenkins_support, release_jobs
+from buildfarm import jenkins_support, release_jobs
 
 import rospkg.distro
 
 from buildfarm.rosdistro import debianize_package_name
-
-import buildfarm.repo
-
 
 
 
