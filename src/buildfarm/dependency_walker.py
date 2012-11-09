@@ -5,6 +5,7 @@ from rosdistro import debianize_package_name
 import os.path
 import copy
 import shutil
+import time
 
 from vcstools.git import GitClient
 from vcstools.vcs_base import VcsError
@@ -117,6 +118,8 @@ def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
         except VcsError as ex:
             print("Failed to get package.xml for %s.  Error: %s" %
                   (pkg_name, ex))
+        print("Sleeping for github slowdown") 
+        time.sleep(1)
 
     result = {}
     for pkg_name in sorted(packages.keys()):
