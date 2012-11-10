@@ -38,6 +38,30 @@
   <triggers class="vector"/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@@1.12">
+      <scriptSource class="hudson.plugins.groovy.StringScriptSource">
+        <command>
+import hudson.model.Result
+
+project = Thread.currentThread().executable.project
+
+for (upstream in project.getUpstreamProjects()) {
+	lb = upstream.getLastBuild()
+	if (!lb) continue
+
+	r = lb.getResult()
+	if (!r) continue
+
+	if (r.isWorseOrEqualTo(Result.FAILURE)) {
+		println "Aborting build since upstream project '" + upstream.name + "' is broken"
+		throw new InterruptedException()
+	}
+}
+</command>
+      </scriptSource>
+      <bindings/>
+      <classpath/>
+    </hudson.plugins.groovy.SystemGroovy>
     <hudson.tasks.Shell>
       <command>@(COMMAND)</command>
     </hudson.tasks.Shell>
