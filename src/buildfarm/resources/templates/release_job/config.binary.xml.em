@@ -19,7 +19,7 @@
   <triggers class="vector"/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.12">
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@@1.12">
       <scriptSource class="hudson.plugins.groovy.StringScriptSource">
         <command>
 import hudson.model.Result
