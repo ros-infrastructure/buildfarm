@@ -8,7 +8,6 @@ import tempfile
 import urllib2
 import yaml
 
-
 from buildfarm import dependency_walker, release_jobs
 
 import rospkg.distro

@@ -97,6 +97,10 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
         print ("wet only selected, skipping dry and delete")
         return results
 
+    if rosdistro == 'backports':
+        print ("No dry backports support")
+        return results
+
     #dry stacks
     # dry dependencies
     d = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))
