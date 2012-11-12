@@ -27,13 +27,19 @@ import hudson.model.Result
 project = Thread.currentThread().executable.project
 
 for (upstream in project.getUpstreamProjects()) {
-	lb = upstream.getLastBuild()
-	if (!lb) continue
+	abort = upstream.getNextBuildNumber() == 1
 
-	r = lb.getResult()
-	if (!r) continue
+	if (!abort) {
+		lb = upstream.getLastBuild()
+		if (!lb) continue
 
-	if (r.isWorseOrEqualTo(Result.FAILURE)) {
+		r = lb.getResult()
+		if (!r) continue
+
+		abort = r.isWorseOrEqualTo(Result.FAILURE)
+	}
+
+	if (abort) {
 		println "Aborting build since upstream project '" + upstream.name + "' is broken"
 		throw new InterruptedException()
 	}
