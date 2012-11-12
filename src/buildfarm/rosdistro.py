@@ -26,6 +26,8 @@ def sanitize_package_name(name):
 
 
 def debianize_package_name(rosdistro, name):
+    if rosdistro == 'backports':
+        return sanitize_package_name(name)
     return sanitize_package_name("ros-%s-%s"%(rosdistro, name))
 
 
