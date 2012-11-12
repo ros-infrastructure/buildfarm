@@ -21,11 +21,12 @@ def simplify_repo_name(repo_url):
 class VcsFileCache(object):
     """A class to support caching gbp repos for querying specific files from a repo"""
 
-    def __init__(self, cache_location):
+    def __init__(self, cache_location, skip_update):
         # make sure the cache dir exists and ifnot create it
         if not os.path.exists(cache_location):
             os.makedirs(cache_location)
         self._cache_location = cache_location
+        self._skip_update = skip_update 
 
     def _get_file(self, repo_type, repo_url, version, filename):
         """ Fetch the file specificed by filename relative to the root of the repository"""
@@ -36,15 +37,19 @@ class VcsFileCache(object):
         if client.path_exists():
             updated = False
             if client.get_url() == repo_url:
-                updated = client.update(version, force_fetch=True)
+                if not self._skip_update:
+                    updated = client.update(version, force_fetch=True)
+                else:
+                    updated = True
             if not updated:
-                print("WARNING: Repo at %s changed url from %s to %s.  Redownloading!" % (repo_path, client.get_url(), repo_url))
+                print("WARNING: Repo at %s changed url from %s to %s or update failed. Redownloading!" % (repo_path, client.get_url(), repo_url))
                 shutil.rmtree(repo_path)
                 checkedout = client.checkout(repo_url, version, shallow=True)
                 if not checkedout:
                     print("ERROR: Repo at %s could not be checked out from %s with version %s!" % (repo_path, repo_url, version))
                 # git only
-                client._do_fetch()
+                if not self._skip_update:
+                    client._do_fetch()
         else:
             checkedout = client.checkout(repo_url, version, shallow=True)
             if not checkedout:
@@ -100,7 +105,7 @@ def _get_depends(packages, package, recursive=False, buildtime=False):
 def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
     packages = {}
 
-    vcs_cache = VcsFileCache(workspace)
+    vcs_cache = VcsFileCache(workspace, skip_update=skip_update)
 
     checkout_info = rd_obj.get_package_checkout_info()
     for pkg_name in sorted(checkout_info.keys()):
@@ -118,8 +123,10 @@ def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
         except VcsError as ex:
             print("Failed to get package.xml for %s.  Error: %s" %
                   (pkg_name, ex))
-        print("Sleeping for github slowdown") 
-        time.sleep(1)
+        
+        if not skip_update:
+            print("Sleeping for github slowdown") 
+            time.sleep(1)
 
     result = {}
     for pkg_name in sorted(packages.keys()):
