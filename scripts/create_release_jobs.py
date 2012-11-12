@@ -80,6 +80,9 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
         print ('Configuring WET repo "%s" at "%s" for "%s"' % (r.name, r.url, target_distros))
 
         for p in sorted(r.packages.iterkeys()):
+            if not r.version:
+                print('- skipping "%s" since version is null' % r.name)
+                continue
             pkg_name = rd.debianize_package_name(p)
             results[pkg_name] = release_jobs.doit(r.url,
                  pkg_name,
@@ -109,6 +112,9 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
         if whitelist_repos and s not in whitelist_repos:
             continue
         print ("Configuring DRY job [%s]" % s)
+        if not d.stacks[s].version:
+            print('- skipping "%s" since version is null' % s)
+            continue
         results[rd.debianize_package_name(s)] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
         #time.sleep(1)
 
