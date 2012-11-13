@@ -14,10 +14,10 @@
 #
 # Example invocations:
 #  This is called by the build farm to generate the status pages as (abbreviated)
-#  list_all.py --rosdistro=fuerte --substring ros-fuerte -u --sqlite3_db=fuerte.db --table=building
-#  list_all.py --rosdistro=fuerte --substring ros-fuerte -u --repo shadow@http://packages.ros.org/ros-shadow-fixed/ubuntu/ --sqlite3_db=fuerte.db --table=testing
-#  list_all.py --rosdistro=fuerte --substring ros-fuerte -u --repo shadow@http://packages.ros.org/ros/ubuntu/ --sqlite3_db=fuerte.db --table=public
-#  scp -o StrictHostKeyChecking=no fuerte_building.txt fuerte_public.txt fuerte_testing.txt wgs32:/var/www/www.ros.org/html/debbuild/
+#  list_all.py --rosdistro=groovy --substring ros-groovy -u --sqlite3_db=groovy.db --table=building
+#  list_all.py --rosdistro=groovy --substring ros-groovy -u --repo shadow@http://packages.ros.org/ros-shadow-fixed/ubuntu/ --sqlite3_db=groovy.db --table=testing
+#  list_all.py --rosdistro=groovy --substring ros-groovy -u --repo shadow@http://packages.ros.org/ros/ubuntu/ --sqlite3_db=groovy.db --table=public
+#  scp -o StrictHostKeyChecking=no groovy_building.txt groovy_public.txt groovy_testing.txt wgs32:/var/www/www.ros.org/html/debbuild/
 #
 # Authors: Tully Foote; Austin Hendrix
 #
