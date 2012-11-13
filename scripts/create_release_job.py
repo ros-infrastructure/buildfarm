@@ -30,7 +30,7 @@ def parse_options():
            help='Really?', action='store_true')
     parser.add_argument(dest='package_name',
            help='The name for the package'),
-    parser.add_argument('--dry', dest='dry', help="this is a dry stack", 
+    parser.add_argument('--dry', dest='dry', help="this is a dry stack",
                         action='store_true', default=False)
     parser.add_argument('--repo-workspace', dest='repos', action='store',
            help='A directory into which all the repositories will be checked out into.')
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
 
     # Create a unified dependency tree in jobgraph
-    jobgraph = buildfarm.release_jobs.dry_generate_jobgraph(args.rosdistro) 
+    jobgraph = buildfarm.release_jobs.dry_generate_jobgraph(args.rosdistro)
     (dependencies, pkg_by_url) = get_dependencies(args.repos, rd.repo_map['repositories'], args.rosdistro)
     for k, v in dependencies.iteritems():
         jobgraph[k] = v
@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     else:
 
-        
+
 
 
         # Figure out default distros.  Command-line arg takes precedence; if
@@ -99,7 +99,7 @@ if __name__ == '__main__':
 
 
 
-    
+
         # We take the intersection of repo-specific targets with default
         # targets.
         if args.package_name not in rd.repo_map['repositories']:

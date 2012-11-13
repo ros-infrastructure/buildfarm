@@ -47,7 +47,7 @@ def trigger_if_not_building(jobname, instance):
         #import pprint
         #pp = pprint.PrettyPrinter()
         #pp.pprint(job_info)
-        
+
 
         if 'inQueue' in job_info:
             if job_info['inQueue']:
@@ -99,16 +99,11 @@ if __name__ == '__main__':
                 trigger_if_not_building(job_name, jenkins_instance)
                 print ("Skipping debbuilds for this package [%s] as the sourcedeb will trigger them automatically" % s)
                 continue
-    
+
             for da in dist_archs:
                 job_name = '%s_binarydeb_%s' % (debianize_package_name(args.rosdistro, s), da )
                 trigger_if_not_building(job_name, jenkins_instance)
 
     else:
-        
+
         print('This was not pushed to the server.  If you want to do so use "--commit" to do it for real.')
-
-
-
-    
-

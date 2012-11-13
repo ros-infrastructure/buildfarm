@@ -17,7 +17,7 @@ def parse_options():
                         help='The aptconffile which points to the rootdir')
     parser.add_argument(dest="packages", nargs='+',
                         help="what packages to test for.")
-    parser.add_argument("-u", "--update", dest="update", action='store_true', default=False, 
+    parser.add_argument("-u", "--update", dest="update", action='store_true', default=False,
                         help="update the cache from the server")
     return parser.parse_args()
 

@@ -30,10 +30,10 @@ def parse_options():
            default='50.28.27.175')
     parser.add_argument(dest='rosdistro',
            help='The ros distro. electric, fuerte, groovy')
-    parser.add_argument('--distro', dest='distro', 
+    parser.add_argument('--distro', dest='distro',
            help='Distros',
            default='precise')
-    parser.add_argument('--arch', dest='arch', 
+    parser.add_argument('--arch', dest='arch',
            help='Architecture ',
            default='amd64')
     parser.add_argument('--commit', dest='commit',
@@ -50,7 +50,7 @@ def display_missing_table(missing):
         strout += "package %s missing versions: %s\n" % (s, distarches)
 
     return strout
-               
+
 
 class BlockingAnalysis(object):
     def __init__(self, missing, jobgraph, distro, arch):
@@ -73,7 +73,7 @@ class BlockingAnalysis(object):
     def display_blocking_specific(self, stack):
         if stack in self.__cache:
             return self.__cache[stack]
-        
+
         outstr = ''
         #print("blocking analysis of %s" % stack)
         if stack in self.missing_list:
@@ -113,7 +113,7 @@ class BlockingAnalysis(object):
                     reverse_deps[d].add(m)
                 else:
                     reverse_deps[d] = set([m])
-                
+
 
         critical_packages = {}
         for p in critical_package_list:
@@ -123,12 +123,12 @@ class BlockingAnalysis(object):
                 critical_packages[p] = set()
         return critical_packages
 
-        
+
 
     def display_critical_packages(self):
         outstr = ''
         for p, deps in sorted(self.compute_critical_packages().iteritems()):
-            
+
             outstr += "package %s is blocking: " % p
             if not deps:
                 outstr += "None "
@@ -136,8 +136,8 @@ class BlockingAnalysis(object):
                 outstr += "     "
 
             outstr += BUILD_JOB_LINK_URL % (p, self.distro, self.arch) + "\n"
-                
-            
+
+
             for d in sorted(deps):
                 outstr += "    %s\n" % d
 
@@ -176,15 +176,15 @@ if __name__ == '__main__':
         if not args.repos:
             workspace = tempfile.mkdtemp()
         (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro)
-        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro) 
-        
+        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro)
+
         combined_jobgraph = {}
         for k, v in dependencies.iteritems():
             combined_jobgraph[k] = v
         for k, v in dry_jobgraph.iteritems():
             combined_jobgraph[k] = v
 
-        # setup a job triggered by all other debjobs 
+        # setup a job triggered by all other debjobs
         combined_jobgraph[debianize_package_name(args.rosdistro, 'metapackages')] = combined_jobgraph.keys()
 
     finally:

@@ -38,5 +38,3 @@ if __name__ == "__main__":
     else:
         print "Count not greater than argument, return False"
         sys.exit(1)
-        
-            

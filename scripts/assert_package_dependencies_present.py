@@ -17,7 +17,7 @@ def parse_options():
                         help='The aptconffile which points to the rootdir')
     parser.add_argument(dest="packages", nargs='+',
                         help="what packages to test for.")
-    parser.add_argument("-u", "--update", dest="update", action='store_true', default=False, 
+    parser.add_argument("-u", "--update", dest="update", action='store_true', default=False,
                         help="update the cache from the server")
     return parser.parse_args()
 
@@ -54,7 +54,7 @@ if __name__ == "__main__":
             with open(dsc_file, 'r') as dsc:
                 y = yaml.load(dsc.read())
                 build_depends = y['Build-Depends'].split(',')
-                
+
                 for dep in [dep.strip() for dep in build_depends]:
                     dep_name_only = dep.split()[0]
                     if not c.has_key(dep_name_only):
@@ -67,7 +67,7 @@ if __name__ == "__main__":
         finally:
             shutil.rmtree(tdir)
 
-    
+
     if missing:
         print "Dependencies not satisfied for packages: %s"%missing
         sys.exit(1)

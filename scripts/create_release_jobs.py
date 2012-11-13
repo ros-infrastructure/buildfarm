@@ -50,8 +50,8 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
 
     # What ROS distro are we configuring?
     rosdistro = repo_map['release-name']
-    
-    
+
+
 
     # Figure out default distros.  Command-line arg takes precedence; if
     # it's not specified, then read targets.yaml.
@@ -162,15 +162,15 @@ if __name__ == '__main__':
         if not args.repos:
             workspace = tempfile.mkdtemp()
         (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro)
-        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro) 
-        
+        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro)
+
         combined_jobgraph = {}
         for k, v in dependencies.iteritems():
             combined_jobgraph[k] = v
         for k, v in dry_jobgraph.iteritems():
             combined_jobgraph[k] = v
 
-        # setup a job triggered by all other debjobs 
+        # setup a job triggered by all other debjobs
         combined_jobgraph[debianize_package_name(args.rosdistro, 'metapackages')] = combined_jobgraph.keys()
 
     finally:

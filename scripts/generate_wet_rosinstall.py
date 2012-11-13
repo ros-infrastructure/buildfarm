@@ -38,7 +38,7 @@ if __name__ == "__main__":
     args = parse_options()
 
     rd = buildfarm.rosdistro.Rosdistro(args.rosdistro)
-    
+
     rosinstall_data = rd.compute_rosinstall_distro(args.rosdistro, args.distro)
 
     print(yaml.safe_dump(rosinstall_data, default_flow_style=False))
