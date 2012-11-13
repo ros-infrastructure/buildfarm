@@ -14,9 +14,9 @@
 #
 # Example invocations:
 #  This is called by the build farm to generate the status pages as (abbreviated)
-#  list_all.py --rootdir repocache --substring ros-fuerte -u -O fuerte_building.txt
-#  list_all.py --rootdir shadow_fixed_repocache --substring ros-fuerte -u --repo shadow@http://packages.ros.org/ros-shadow-fixed/ubuntu/ -O fuerte_testing.txt
-#  list_all.py --rootdir ros_repocache --substring ros-fuerte -u --repo shadow@http://packages.ros.org/ros/ubuntu/ -O fuerte_public.txt
+#  list_all.py --rosdistro=feurte --rootdir repocache --substring ros-fuerte -u --sqlite3_db=fuerte.db --table=building
+#  list_all.py --rosdistro=feurte --rootdir shadow_fixed_repocache --substring ros-fuerte -u --repo shadow@http://packages.ros.org/ros-shadow-fixed/ubuntu/ --sqlite3_db=fuerte.db --table=testing
+#  list_all.py --rosdistro=feurte --rootdir ros_repocache --substring ros-fuerte -u --repo shadow@http://packages.ros.org/ros/ubuntu/ --sqlite3_db=fuerte.db --table=public
 #  scp -o StrictHostKeyChecking=no fuerte_building.txt fuerte_public.txt fuerte_testing.txt wgs32:/var/www/www.ros.org/html/debbuild/
 #
 # Authors: Tully Foote; Austin Hendrix
@@ -26,6 +26,7 @@ import argparse
 import logging
 import os
 import shutil
+import sqlite3
 import tempfile
 
 import apt
@@ -40,20 +41,28 @@ def parse_options():
     parser.add_argument("--rootdir", dest="rootdir", default = None,
                         help='The directory for apt to use as a rootdir')
     parser.add_argument("--rosdistro", dest='rosdistro', default = None,
-           help='The ros distro. electric, fuerte, groovy')
+                        help='The ros distro. electric, fuerte, groovy')
     parser.add_argument("--substring", dest="substring", default="", 
                         help="substring to filter packages displayed default = 'ros-ROSDISTRO'")
-    parser.add_argument("-O", "--outfile", dest="outfile", default=None, 
-                        help="File to write out to.")
     parser.add_argument("-u", "--update", dest="update", action='store_true', default=False, 
-                        help="update the cache from the server")
+                        help="Update the cache from the server")
     parser.add_argument('--repo', dest='repo_urls', action='append',metavar=['REPO_NAME@REPO_URL'],
-           help='The name for the source and the url such as ros@http://50.28.27.175/repos/building')
+                        help='The name for the source and the url such as ros@http://50.28.27.175/repos/building')
+    parser.add_argument('--sqlite3_db', dest='sqlite3_db', default=None,
+                        help='Path to SQLite3 db where results will be stored.') 
+    parser.add_argument('--table', dest='table', default=None,
+                        help='Name of table to (re-)create in the SQLite3 db.')
 
     args = parser.parse_args()
 
     if not args.rosdistro:
        parser.error('Please specify a distro with --rosdistro=groovy etc.')
+
+    if not args.sqlite3_db:
+       parser.error('Please specify --sqlite3_db.')
+
+    if not args.table:
+       parser.error('Please specify --table.')
 
     # default for now to use our devel server
     if not args.repo_urls:
@@ -92,12 +101,24 @@ def list_packages(rootdir, update, substring):
 
 def render_vertical_repo(repo):
    from prettytable import PrettyTable
-   iter = yield_rows_of_packages_table(repo)
-   header = iter.next()
+   header = get_table_header(repo)
    t = PrettyTable(header)
-   for row in iter:
+   for row in yield_rows_of_packages_table(repo):
       t.add_row(row)
    return str(t)
+
+def create_table_with_rows(db, table_name, header, rows):
+   """
+   Creates a table in an SQLite db with the given name, header and rows.
+   """
+   columns_str = ', '.join(header)
+   db.execute('create table %s(%s)' % (table_name, columns_str))
+   sql = 'insert into %s(%s) values (?)' % (table_name, columns_str)
+   db.executemany(sql, rows)
+
+def get_table_header(repo):
+   distro_arch_strs = ['%s_%s' % (d, a) for d, a in repo.iter_distro_arches()]
+   return ["package", repo.get_rosdistro()] + distro_arch_strs
 
 def yield_rows_of_packages_table(repo):
    packages = sorted(repo.get_packages())
@@ -105,9 +126,6 @@ def yield_rows_of_packages_table(repo):
    if len(packages) == 0:
       print "no packages found matching substring"
       return
-
-   distro_arch_strs = ['%s_%s' % (d, a) for d, a in repo.iter_distro_arches()]
-   yield ["package", repo.get_rosdistro()] + distro_arch_strs
 
    releases = repo.get_released_versions()
 
@@ -231,6 +249,7 @@ if __name__ == "__main__":
 
     args = parse_options()
 
+    db = sqlite3.connect(args.sqlite3_db)
 
     if args.rootdir:
         # TODO: resolve rootdir to an absolute path
@@ -276,9 +295,9 @@ if __name__ == "__main__":
     # Build a meta-distro+arch for the released version
     packages[' '+ args.rosdistro] = wet_stacks + dry_stacks
 
-    outstr = render_vertical_repo(repository)
+    header = get_table_header(repository)
+    rows = yield_rows_of_packages_table(repository)
+    create_table_with_rows(db, args.table, header, rows)
 
-    if args.outfile:
-        with open(args.outfile, 'w') as of:
-            of.write(outstr + '\n')
-            print "Wrote output to file %s" % args.outfile
+    logging.info("Wrote output to %s", args.sqlite3_db)
+
