@@ -53,6 +53,9 @@ def parse_options():
                         help='Path to SQLite3 db where results will be stored.')
     parser.add_argument('--table', dest='table', default=None,
                         help='Name of table to (re-)create in the SQLite3 db.')
+    parser.add_argument('--max-distro-arches', dest='max_distro_arches', type=int,
+                        default=0,
+                        help='Maximum number of (distro, arch) pairs to process. 0 for unlimited.')
 
     args = parser.parse_args()
 
@@ -74,6 +77,9 @@ def parse_options():
 
     if not args.substring:
         args.substring = 'ros-%s'%args.rosdistro
+
+    infinity = int(1e9)  # close enough
+    args.max_distro_arches = args.max_distro_arches or infinity
 
     return args
 
@@ -111,14 +117,24 @@ def render_vertical_repo(repo):
 def create_table_with_rows(db, table_name, header, rows):
     """
     Creates a table in an SQLite db with the given name, header and rows.
+    If the table already exists, it will be overwritten.
+
+    >>> db = sqlite3.connect(':memory:')
+    >>> create_table_with_rows(db, 'tbl', header=['a', 'b'], rows=[(1, 2), (2, 3)])
+    >>> db.commit()
+    >>> c = db.cursor()
+    >>> c.execute('select * from tbl').fetchall()
+    [(1, 2), (2, 3)]
     """
     columns_str = ', '.join(header)
+    db.execute('drop table if exists %s' % table_name)
     db.execute('create table %s(%s)' % (table_name, columns_str))
-    sql = 'insert into %s(%s) values (?)' % (table_name, columns_str)
+    slots_str = ', '.join(len(header)*['?'])
+    sql = 'insert into %s(%s) values (%s)' % (table_name, columns_str, slots_str)
     db.executemany(sql, rows)
 
 def get_table_header(repo):
-    distro_arch_strs = ['%s_%s' % (d, a) for d, a in repo.iter_distro_arches()]
+    distro_arch_strs = ['%s_%s' % (d, a) for d, a in repo.distro_arches]
     return ["package", repo.get_rosdistro()] + distro_arch_strs
 
 def yield_rows_of_packages_table(repo):
@@ -130,22 +146,21 @@ def yield_rows_of_packages_table(repo):
     releases = repo.get_released_versions()
     for p in packages:
         versions = repo.get_package_versions(p)
-        yield [p, releases[p]] + [versions[da] for da in sorted(versions.keys())]
+        yield tuple([p, releases[p]] + [versions[da] for da in sorted(versions.keys())])
 
 def debname(rosdistro, name):
     return buildfarm.rosdistro.debianize_package_name(rosdistro, name)
 
 # represent the status of the repository for this ros distro
 class Repository:
-    def __init__(self, rootdir, rosdistro, distros, arches, url = None, repos = None, update = False):
+    def __init__(self, rootdir, rosdistro, distro_arches, url = None, repos = None, update = False):
         if url:
             repos = {'ros': url}
         if not repos:
             raise Exception("No repository arguments")
 
+        self.distro_arches = distro_arches
         self._rosdistro = rosdistro
-        self._distros = sorted(distros)
-        self._arches = sorted(arches)
         self._rootdir = rootdir
         self._repos = repos
         self._packages = {}
@@ -154,7 +169,7 @@ class Repository:
         # TODO: deal with arch for source debs
         # TODO: deal with architecture-independent debs?
 
-        for distro, arch in self.iter_distro_arches():
+        for distro, arch in distro_arches:
             dist_arch = "%s_%s"%(distro, arch)
             da_rootdir = os.path.join(self._rootdir, dist_arch)
             logging.info('Setting up an apt root directory at %s', da_rootdir)
@@ -203,19 +218,9 @@ class Repository:
             versions[p.name] = p.version
         return versions
 
-    # Get the names of all distros
-    def get_distros(self):
-        return self._distros
-
-    # Get the names of all arches
-    def get_arches(self):
-        return self._arches
-
     # iterate over (distro, arch) tuples
     def iter_distro_arches(self):
-        for d in self.get_distros():
-            for a in self.get_arches():
-                yield (d, a)
+        return self._distro_arches
 
     # Get the names and versions of all packages in a specific arch/distro combo
     def get_distro_arch_versions(self, distro, arch):
@@ -225,7 +230,7 @@ class Repository:
     def get_package_versions(self, package_name, distro = None, arch = None):
         # TODO: honor optional arguments
         versions = {}
-        for d, a in self.iter_distro_arches():
+        for d, a in self.distro_arches:
             da = "%s_%s"%(d, a)
             versions[da] = ""
             # TODO: refactor our data structure so that this isn't horribly inefficient
@@ -262,15 +267,16 @@ if __name__ == "__main__":
     packages = {}
 
     try:
-        repository = Repository(rootdir, args.rosdistro, distros, arches, repos = ros_repos, update = args.update)
-        for d in distros:
-            for a in arches:
-                dist_arch = "%s_%s"%(d, a)
-                specific_rootdir = os.path.join(rootdir, dist_arch)
-                buildfarm.apt_root.setup_apt_rootdir(specific_rootdir, d, a, additional_repos = ros_repos)
-                print "setup rootdir %s"%specific_rootdir
+        distro_arches = [(d, a) for d in sorted(distros) for a in sorted(arches)]
+        distro_arches = distro_arches[:args.max_distro_arches]
+        repository = Repository(rootdir, args.rosdistro, distro_arches, repos = ros_repos, update = args.update)
+        for d, a in distro_arches:
+            dist_arch = "%s_%s"%(d, a)
+            specific_rootdir = os.path.join(rootdir, dist_arch)
+            buildfarm.apt_root.setup_apt_rootdir(specific_rootdir, d, a, additional_repos = ros_repos)
+            print "setup rootdir %s"%specific_rootdir
 
-                packages[dist_arch] = list_packages(specific_rootdir, update=args.update, substring=args.substring)
+            packages[dist_arch] = list_packages(specific_rootdir, update=args.update, substring=args.substring)
     finally:
         if not args.rootdir: # don't delete if it's not a tempdir
             shutil.rmtree(rootdir)
@@ -292,6 +298,6 @@ if __name__ == "__main__":
 
     header = get_table_header(repository)
     rows = yield_rows_of_packages_table(repository)
-    create_table_with_rows(db, args.table, header, rows)
+    create_table_with_rows(db, args.table, header, list(rows))
 
     logging.info("Wrote output to %s", args.sqlite3_db)
