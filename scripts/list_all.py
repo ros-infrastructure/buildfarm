@@ -22,11 +22,13 @@
 # Authors: Tully Foote; Austin Hendrix
 #
 
-import apt
-import os
 import argparse
-import tempfile
+import logging
+import os
 import shutil
+import tempfile
+
+import apt
 
 import buildfarm.apt_root #setup_apt_root
 import buildfarm.rosdistro
@@ -224,8 +226,10 @@ class Repository:
       for distro, arch in self.iter_distro_arches():
          dist_arch = "%s_%s"%(distro, arch)
          da_rootdir = os.path.join(self._rootdir, dist_arch)
+         logging.info('Setting up an apt root directory at %s', da_rootdir)
          buildfarm.apt_root.setup_apt_rootdir(da_rootdir, distro, arch, additional_repos = repos)
          # TODO: collect packages in a better data structure
+         logging.info('Getting a list of packages for %s-%s', distro, arch)
          self._packages[dist_arch] = list_packages(da_rootdir, update=update, substring=args.substring)
 
       # Wet stack versions from rosdistro
@@ -234,8 +238,12 @@ class Repository:
       wet_stacks = [Package(buildfarm.rosdistro.debianize_package_name(rosdistro, p), rd.get_version(p)) for p in distro_packages]
 
       # Dry stack versions from rospkg
-      dry_distro = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))
-      dry_stacks = [Package(buildfarm.rosdistro.debianize_package_name(rosdistro, sn), dry_distro.released_stacks[sn].version) for sn in dry_distro.released_stacks]
+      uri = rospkg.distro.distro_uri(rosdistro)
+      dry_distro = rospkg.distro.load_distro(uri)
+      stack_names = dry_distro.released_stacks
+      dry_stacks = [Package(buildfarm.rosdistro.debianize_package_name(rosdistro, name),
+                            dry_distro.released_stacks[name].version)
+                    for name in stack_names]
 
       # TODO: better data structure
       # Build a meta-distro+arch for the released version
@@ -302,6 +310,8 @@ class Repository:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+
     args = parse_options()
 
 
