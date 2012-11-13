@@ -85,44 +85,41 @@ def list_packages(rootdir, update, substring):
 
     packages = []
     for p in [k for k in c.keys() if args.substring in k]:
-#        v = c[p].versions[0]
         packages.append(Package(p, c[p].candidate.version))
 
     return packages
 
 
 def render_vertical_repo(repo):
-   outstr = ""
+   from prettytable import PrettyTable
+   iter = yield_rows_of_packages_table(repo)
+   header = iter.next()
+   t = PrettyTable(header)
+   for row in iter:
+      t.add_row(row)
+   return str(t)
+
+def yield_rows_of_packages_table(repo):
    packages = sorted(repo.get_packages())
 
    if len(packages) == 0:
       print "no packages found matching substring"
-      return ""
+      return
 
-   width = max([len(p) for p in packages])
-   pstr = "package"
-   outstr += pstr + " "*(width-len(pstr))+ ": " + repo.get_rosdistro() + "|"
-
-   for d,a in repo.iter_distro_arches():
-      outstr += "%s_%s|"%(d, a)
-   outstr += '\n'
+   distro_arch_strs = ['%s_%s' % (d, a) for d, a in repo.iter_distro_arches()]
+   yield ["package", repo.get_rosdistro()] + distro_arch_strs
 
    releases = repo.get_released_versions()
-   rosdistro_len = len(repo.get_rosdistro()) + 1
 
    for p in packages:
-      l = len(p)
-      outstr += p + " "*(width-l) + ":"
+      row = [p]
       release_ver = releases[p]
-      outstr += release_ver[:rosdistro_len]+' '*max(0, rosdistro_len -len(release_ver) )+('|' if len(release_ver) < rosdistro_len else '>')
+      row.append(release_ver)
       versions = repo.get_package_versions(p)
       for da in sorted(versions.keys()):
-         version = versions[da]
-         outstr += version[:len(da)]+' '*max(0, len(da) -len(version) )+('|' if len(version) < len(da) else '>')
+         row.append(versions[da])
 
-      outstr += '\n'
-
-   return outstr
+      yield row
 
 # represent the status of the repository for this ros distro
 class Repository:
