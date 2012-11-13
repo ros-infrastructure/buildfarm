@@ -90,86 +90,6 @@ def list_packages(rootdir, update, substring):
 
     return packages
 
-def render_html(packages, rosdistro):
-   # TODO: use the same template engine that apt_root.py uses
-   outstr = """<html>
-<head>
-<title>%s debbuild report</title>
-<style type="text/css">
-body {
-  font-family: Helvetica, Arial, Verdana, sans-serif;
-  font-size: 12px;
-}
-.title {
-  background-color: lightgrey;
-  padding: 10px;
-}
-table {
-  border: 1px solid lightgrey;
-}
-th {
-  border: 1px solid lightgrey;
-}
-td {
-  font-size: 12px;
-  border: 1px solid lightgrey;
-}
-</style>
-</head>
-<body>
-<h1><span class="title">%s debbuild report</span></h1>
-<h2>Repository Status</h2>
-"""%(rosdistro, rosdistro)
-
-def render_vertical(packages):
-    outstr = ""
-    all_package_names_set = set()
-    package_map = {}
-    for v in packages.itervalues():
-        all_package_names_set.update([p.name for p in v])
-
-    all_package_names = list(all_package_names_set)
-    all_package_names.sort()
-    
-    if len(all_package_names) == 0:
-        print "no packages found matching substring" 
-        return
-
-    width = max([len(p) for p in all_package_names])
-    pstr = "package"
-    outstr += pstr + " "*(width-len(pstr))+ ":"
-    arch_distro_list = sorted(packages.iterkeys())
-    for k in arch_distro_list:
-        outstr += k+"|"
-    outstr += '\n' 
-
-    
-
-    for p in all_package_names:
-        l = len(p)
-        outstr += p + " "*(width-l) + ":"
-        for k  in arch_distro_list:
-            pkg_name_lookup = {}
-            for pkg in packages[k]:
-                pkg_name_lookup[pkg.name] = pkg
-            if p in pkg_name_lookup:
-                version_string = pkg_name_lookup[p].version
-                outstr += version_string[:len(k)]+' '*max(0, len(k) -len(version_string) )+('|' if len(version_string) < len(k) else '>')
-                #, 'x'*len(k),'|', 
-            else:
-                outstr+= ' '*len(k)+'|'
-        outstr += '\n'
-            
-
-    outstr += "Totals" + " "*(width - len("Totals")) + ":"
-    for k in arch_distro_list:
-        pkg_name_lookup = {}
-        for pkg in packages[k]:
-            pkg_name_lookup[pkg.name] = pkg
-        count_string = str(len(pkg_name_lookup.keys()))
-        outstr += count_string[:len(k)]+' '*max(0, len(k) -len(count_string) )+('|' if len(count_string) < len(k) else '>')
-
-    return outstr
 
 def render_vertical_repo(repo):
    outstr = ""
@@ -359,12 +279,7 @@ if __name__ == "__main__":
     # Build a meta-distro+arch for the released version
     packages[' '+ args.rosdistro] = wet_stacks + dry_stacks
 
-
-#    outstr = render_vertical(packages)
     outstr = render_vertical_repo(repository)
-#    outstr = render_html(packages, args.rosdistro)
-#    print outstr
-
 
     if args.outfile:
         with open(args.outfile, 'w') as of:
