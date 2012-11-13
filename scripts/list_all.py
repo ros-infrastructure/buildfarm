@@ -123,22 +123,14 @@ def get_table_header(repo):
 
 def yield_rows_of_packages_table(repo):
     packages = sorted(repo.get_packages())
-
-    if len(packages) == 0:
+    if not packages:
         print "no packages found matching substring"
         return
 
     releases = repo.get_released_versions()
-
     for p in packages:
-        row = [p]
-        release_ver = releases[p]
-        row.append(release_ver)
         versions = repo.get_package_versions(p)
-        for da in sorted(versions.keys()):
-            row.append(versions[da])
-
-        yield row
+        yield [p, releases[p]] + [versions[da] for da in sorted(versions.keys())]
 
 def debname(rosdistro, name):
     return buildfarm.rosdistro.debianize_package_name(rosdistro, name)
@@ -261,11 +253,9 @@ if __name__ == "__main__":
     else:
         rootdir = tempfile.mkdtemp()
 
-
     arches = ['i386', 'amd64']
     #arches = ['i386', 'amd64', 'source']
     distros = buildfarm.rosdistro.get_target_distros(args.rosdistro)
-
 
     ros_repos = buildfarm.apt_root.parse_repo_args(args.repo_urls)
 
