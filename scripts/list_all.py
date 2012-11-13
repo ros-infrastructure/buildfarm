@@ -37,7 +37,8 @@ import buildfarm.rosdistro
 import rospkg.distro
 
 def parse_options():
-    parser = argparse.ArgumentParser(description="List all packages available in the repos for each arch.  Filter on substring if provided")
+    desc = "List all packages available in the repos for each arch.  Filter on substring if provided"
+    parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("--rootdir", dest="rootdir", default = None,
                         help='The directory for apt to use as a rootdir')
     parser.add_argument("--rosdistro", dest='rosdistro', default = None,
@@ -139,6 +140,9 @@ def yield_rows_of_packages_table(repo):
 
         yield row
 
+def debname(rosdistro, name):
+    return buildfarm.rosdistro.debianize_package_name(rosdistro, name)
+
 # represent the status of the repository for this ros distro
 class Repository:
     def __init__(self, rootdir, rosdistro, distros, arches, url = None, repos = None, update = False):
@@ -158,7 +162,6 @@ class Repository:
         # TODO: deal with arch for source debs
         # TODO: deal with architecture-independent debs?
 
-        import pdb; pdb.set_trace()
         for distro, arch in self.iter_distro_arches():
             dist_arch = "%s_%s"%(distro, arch)
             da_rootdir = os.path.join(self._rootdir, dist_arch)
@@ -171,15 +174,14 @@ class Repository:
         # Wet stack versions from rosdistro
         rd = buildfarm.rosdistro.Rosdistro(rosdistro)
         distro_packages = rd.get_package_list()
-        wet_stacks = [Package(buildfarm.rosdistro.debianize_package_name(rosdistro, p), rd.get_version(p)) for p in distro_packages]
+        wet_stacks = [Package(debname(rosdistro, p), rd.get_version(p)) for p in distro_packages]
 
         # Dry stack versions from rospkg
         uri = rospkg.distro.distro_uri(rosdistro)
         logging.info('Loading distro at %s', uri)
         dry_distro = rospkg.distro.load_distro(uri)
         stack_names = dry_distro.released_stacks
-        dry_stacks = [Package(buildfarm.rosdistro.debianize_package_name(rosdistro, name),
-                              dry_distro.released_stacks[name].version)
+        dry_stacks = [Package(debname(rosdistro, name), dry_distro.released_stacks[name].version)
                       for name in stack_names]
 
         # TODO: better data structure
@@ -288,11 +290,12 @@ if __name__ == "__main__":
     # Wet stack versions from rosdistro
     rd = buildfarm.rosdistro.Rosdistro(args.rosdistro)
     distro_packages = rd.get_package_list()
-    wet_stacks = [Package(buildfarm.rosdistro.debianize_package_name(args.rosdistro, p), rd.get_version(p)) for p in distro_packages]
+    wet_stacks = [Package(debname(args.rosdistro, p), rd.get_version(p)) for p in distro_packages]
 
     # Dry stack versions from rospkg
     dry_distro = rospkg.distro.load_distro(rospkg.distro.distro_uri(args.rosdistro))
-    dry_stacks = [Package(buildfarm.rosdistro.debianize_package_name(args.rosdistro, sn), dry_distro.released_stacks[sn].version) for sn in dry_distro.released_stacks]
+    dry_stacks = [Package(debname(args.rosdistro, sn), dry_distro.released_stacks[sn].version)
+                  for sn in dry_distro.released_stacks]
 
     # Build a meta-distro+arch for the released version
     packages[' '+ args.rosdistro] = wet_stacks + dry_stacks
