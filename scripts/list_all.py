@@ -37,7 +37,7 @@ def parse_options():
     parser = argparse.ArgumentParser(description="List all packages available in the repos for each arch.  Filter on substring if provided")
     parser.add_argument("--rootdir", dest="rootdir", default = None,
                         help='The directory for apt to use as a rootdir')
-    parser.add_argument("--rosdistro", dest='rosdistro', default = 'fuerte',
+    parser.add_argument("--rosdistro", dest='rosdistro', default = None,
            help='The ros distro. electric, fuerte, groovy')
     parser.add_argument("--substring", dest="substring", default="", 
                         help="substring to filter packages displayed default = 'ros-ROSDISTRO'")
@@ -49,6 +49,9 @@ def parse_options():
            help='The name for the source and the url such as ros@http://50.28.27.175/repos/building')
 
     args = parser.parse_args()
+
+    if not args.rosdistro:
+       parser.error('Please specify a distro with --rosdistro=groovy etc.')
 
     # default for now to use our devel server
     if not args.repo_urls:
