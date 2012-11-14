@@ -19,7 +19,7 @@
 #  list_all.py --rosdistro=groovy --substring ros-groovy -u --repo shadow@http://packages.ros.org/ros/ubuntu/ --sqlite3_db=groovy.db --table=public
 #  scp -o StrictHostKeyChecking=no groovy_building.txt groovy_public.txt groovy_testing.txt wgs32:/var/www/www.ros.org/html/debbuild/
 #
-# Authors: Tully Foote; Austin Hendrix
+# Authors: Tully Foote; Austin Hendrix; Issac Trotts
 #
 
 import argparse
