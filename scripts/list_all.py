@@ -299,5 +299,6 @@ if __name__ == "__main__":
     header = get_table_header(repository)
     rows = yield_rows_of_packages_table(repository)
     create_table_with_rows(db, args.table, header, list(rows))
+    db.commit()
 
     logging.info("Wrote output to %s", args.sqlite3_db)

@@ -1,0 +1,2 @@
+scp -o StrictHostKeyChecking=no groovy_status.db wgs32:/var/www/www.ros.org/html/debbuild/
+
