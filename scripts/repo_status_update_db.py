@@ -185,7 +185,7 @@ class Repository:
 
         # TODO: better data structure
         # Build a meta-distro+arch for the released version
-        self._packages[' '+ rosdistro] = wet_stacks + dry_stacks
+        self._packages[rosdistro] = wet_stacks + dry_stacks
 
     def get_rosdistro(self):
         return self._rosdistro
