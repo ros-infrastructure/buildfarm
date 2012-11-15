@@ -105,15 +105,6 @@ def list_packages(rootdir, update, substring):
 
     return packages
 
-
-def render_vertical_repo(repo):
-    from prettytable import PrettyTable
-    header = get_table_header(repo)
-    t = PrettyTable(header)
-    for row in yield_rows_of_packages_table(repo):
-        t.add_row(row)
-    return str(t)
-
 def create_table_with_rows(db, table_name, header, rows):
     """
     Creates a table in an SQLite db with the given name, header and rows.
