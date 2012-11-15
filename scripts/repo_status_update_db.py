@@ -258,8 +258,7 @@ if __name__ == "__main__":
     else:
         rootdir = tempfile.mkdtemp()
 
-    arches = ['i386', 'amd64']
-    #arches = ['i386', 'amd64', 'source']
+    arches = ['i386', 'amd64', 'source']
     distros = buildfarm.rosdistro.get_target_distros(args.rosdistro)
 
     ros_repos = buildfarm.apt_root.parse_repo_args(args.repo_urls)
