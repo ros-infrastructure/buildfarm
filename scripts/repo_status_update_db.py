@@ -100,7 +100,7 @@ def list_packages(rootdir, update, substring):
     c.open() # required to recall open after updating or you will query the old data
 
     packages = []
-    for p in [k for k in c.keys() if args.substring in k]:
+    for p in [k for k in c.keys() if substring in k]:
         packages.append(Package(p, c[p].candidate.version))
 
     return packages
@@ -144,7 +144,8 @@ def debname(rosdistro, name):
 
 # represent the status of the repository for this ros distro
 class Repository:
-    def __init__(self, rootdir, rosdistro, distro_arches, url = None, repos = None, update = False):
+    def __init__(self, rootdir, rosdistro, distro_arches, substring, url = None,
+                 repos = None, update = False):
         if url:
             repos = {'ros': url}
         if not repos:
@@ -167,7 +168,7 @@ class Repository:
             buildfarm.apt_root.setup_apt_rootdir(da_rootdir, distro, arch, additional_repos = repos)
             # TODO: collect packages in a better data structure
             logging.info('Getting a list of packages for %s-%s', distro, arch)
-            self._packages[dist_arch] = list_packages(da_rootdir, update=update, substring=args.substring)
+            self._packages[dist_arch] = list_packages(da_rootdir, update=update, substring=substring)
 
         # Wet stack versions from rosdistro
         rd = buildfarm.rosdistro.Rosdistro(rosdistro)
@@ -258,7 +259,9 @@ def main():
     try:
         distro_arches = [(d, a) for d in sorted(distros) for a in sorted(arches)]
         distro_arches = distro_arches[:args.max_distro_arches]
-        repository = Repository(rootdir, args.rosdistro, distro_arches, repos = ros_repos, update = args.update)
+        repository = Repository(rootdir, args.rosdistro, distro_arches,
+                                substring = args.substring,
+                                repos = ros_repos, update = args.update)
         for d, a in distro_arches:
             dist_arch = "%s_%s"%(d, a)
             specific_rootdir = os.path.join(rootdir, dist_arch)
