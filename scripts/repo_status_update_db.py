@@ -293,7 +293,7 @@ if __name__ == "__main__":
                   for sn in dry_distro.released_stacks]
 
     # Build a meta-distro+arch for the released version
-    packages[' '+ args.rosdistro] = wet_stacks + dry_stacks
+    packages[args.rosdistro] = wet_stacks + dry_stacks
 
     header = get_table_header(repository)
     rows = yield_rows_of_packages_table(repository)
