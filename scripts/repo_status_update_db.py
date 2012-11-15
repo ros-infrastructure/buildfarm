@@ -254,39 +254,15 @@ def main():
 
     ros_repos = buildfarm.apt_root.parse_repo_args(args.repo_urls)
 
-    packages = {}
-
     try:
         distro_arches = [(d, a) for d in sorted(distros) for a in sorted(arches)]
         distro_arches = distro_arches[:args.max_distro_arches]
         repository = Repository(rootdir, args.rosdistro, distro_arches,
                                 substring = args.substring,
                                 repos = ros_repos, update = args.update)
-        for d, a in distro_arches:
-            dist_arch = "%s_%s"%(d, a)
-            specific_rootdir = os.path.join(rootdir, dist_arch)
-            buildfarm.apt_root.setup_apt_rootdir(specific_rootdir, d, a, additional_repos = ros_repos)
-            print "setup rootdir %s"%specific_rootdir
-
-            packages[dist_arch] = list_packages(specific_rootdir, update=args.update, substring=args.substring)
     finally:
         if not args.rootdir: # don't delete if it's not a tempdir
             shutil.rmtree(rootdir)
-
-    # get released version of each stack
-
-    # Wet stack versions from rosdistro
-    rd = buildfarm.rosdistro.Rosdistro(args.rosdistro)
-    distro_packages = rd.get_package_list()
-    wet_stacks = [Package(debname(args.rosdistro, p), rd.get_version(p)) for p in distro_packages]
-
-    # Dry stack versions from rospkg
-    dry_distro = rospkg.distro.load_distro(rospkg.distro.distro_uri(args.rosdistro))
-    dry_stacks = [Package(debname(args.rosdistro, sn), dry_distro.released_stacks[sn].version)
-                  for sn in dry_distro.released_stacks]
-
-    # Build a meta-distro+arch for the released version
-    packages[args.rosdistro] = wet_stacks + dry_stacks
 
     header = get_table_header(repository)
     rows = yield_rows_of_packages_table(repository)
