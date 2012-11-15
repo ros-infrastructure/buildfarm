@@ -1,7 +1,7 @@
 #!/bin/bash
 
 db=groovy_status.db
-list_all.py --rosdistro=groovy --substring=ros-groovy -u --repo=ros@http://50.28.27.175/repos/building --sqlite3_db=$db --table=building
-list_all.py --rosdistro=groovy --substring=ros-groovy -u --repo=shadow@http://packages.ros.org/ros-shadow-fixed/ubuntu/ --sqlite3_db=$db --table=testing
-list_all.py --rosdistro=groovy --substring=ros-groovy -u --repo=shadow@http://packages.ros.org/ros/ubuntu/ --sqlite3_db=$db --table=public
+repo_status_update_db.py --rosdistro=groovy --substring=ros-groovy -u --repo=ros@http://50.28.27.175/repos/building --sqlite3_db=$db --table=building
+repo_status_update_db.py --rosdistro=groovy --substring=ros-groovy -u --repo=shadow@http://packages.ros.org/ros-shadow-fixed/ubuntu/ --sqlite3_db=$db --table=testing
+repo_status_update_db.py --rosdistro=groovy --substring=ros-groovy -u --repo=shadow@http://packages.ros.org/ros/ubuntu/ --sqlite3_db=$db --table=public
 
