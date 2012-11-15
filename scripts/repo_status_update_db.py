@@ -206,7 +206,7 @@ class Repository:
         # TODO: refactor our data structure so that we don't have to do this
         for p in self._package_set:
             versions[p] = ""
-        for p in self._packages[' ' + self._rosdistro]:
+        for p in self._packages[self._rosdistro]:
             versions[p.name] = p.version
         return versions
 
