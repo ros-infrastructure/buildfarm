@@ -14,9 +14,9 @@
 #
 # Example invocations:
 #  This is called by the build farm to generate the status pages as (abbreviated)
-#  list_all.py --rosdistro=groovy --substring ros-groovy -u --sqlite3_db=groovy.db --table=building
-#  list_all.py --rosdistro=groovy --substring ros-groovy -u --repo shadow@http://packages.ros.org/ros-shadow-fixed/ubuntu/ --sqlite3_db=groovy.db --table=testing
-#  list_all.py --rosdistro=groovy --substring ros-groovy -u --repo shadow@http://packages.ros.org/ros/ubuntu/ --sqlite3_db=groovy.db --table=public
+#  repo_status_update_db.py --rosdistro=groovy --substring ros-groovy -u --sqlite3_db=groovy.db --table=building
+#  repo_status_update_db.py --rosdistro=groovy --substring ros-groovy -u --repo shadow@http://packages.ros.org/ros-shadow-fixed/ubuntu/ --sqlite3_db=groovy.db --table=testing
+#  repo_status_update_db.py --rosdistro=groovy --substring ros-groovy -u --repo shadow@http://packages.ros.org/ros/ubuntu/ --sqlite3_db=groovy.db --table=public
 #  scp -o StrictHostKeyChecking=no groovy_building.txt groovy_public.txt groovy_testing.txt wgs32:/var/www/www.ros.org/html/debbuild/
 #
 # Authors: Tully Foote; Austin Hendrix; Issac Trotts
@@ -235,8 +235,7 @@ class Repository:
         # TODO
         return self.get_package_versions(package_name, distro, arch)
 
-
-if __name__ == "__main__":
+def main():
     logging.basicConfig(level=logging.INFO)
 
     args = parse_options()
@@ -292,3 +291,7 @@ if __name__ == "__main__":
     db.commit()
 
     logging.info("Wrote output to %s", args.sqlite3_db)
+
+if __name__ == "__main__":
+    main()
+
