@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-import em
-import os
 import argparse
-import pprint
 
 import buildfarm.apt_root
 
