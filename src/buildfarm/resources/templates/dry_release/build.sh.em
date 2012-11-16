@@ -10,6 +10,7 @@ echo $STACK_NAME
 echo $OS_PLATFORM
 echo $ARCH
 
+sudo apt-get update
 sudo apt-get install pbuilder git-core python-rospkg python-vcstools -y
 
 cat > $WORKSPACE/build.bash << DELIM
