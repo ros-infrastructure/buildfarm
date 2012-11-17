@@ -34,7 +34,7 @@ import os
 import jenkins
 import yaml
 
-#TODO copied from rosci this should be pushed up to python-jenkins
+# TODO Push this up to python-jenkins
 
 class InvalidJenkinsConfig(Exception): pass
 
