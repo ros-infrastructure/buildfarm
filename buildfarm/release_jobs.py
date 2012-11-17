@@ -20,6 +20,7 @@ from . import repo, jenkins_support
 
 import jenkins
 
+URL_PROTOTYPE = 'https://raw.github.com/ros/rosdistro/master/releases/%s.yaml'
 
 class Templates(object):
     template_dir = os.path.dirname(__file__)
@@ -57,8 +58,6 @@ def compute_missing(distros, fqdn, rosdistro):
     :param rosdistro: 'fuerte' or 'groovy' etc.
     """
 
-    URL_PROTOTYPE = 'https://raw.github.com/ros/rosdistro/master/releases/%s.yaml'
-
     repo_url = 'http://%s/repos/building' % fqdn
 
     print('Fetching "%s"' % (URL_PROTOTYPE % rosdistro))
@@ -69,23 +68,27 @@ def compute_missing(distros, fqdn, rosdistro):
 
     # Figure out default distros.  Command-line arg takes precedence; if
     # it's not specified, then read targets.yaml.
-    if distros:
-        default_distros = distros
-    else:
-        print('Fetching "%s"' % (URL_PROTOTYPE % 'targets'))
-        targets_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE % 'targets'))
-        my_targets = [x for x in targets_map if rosdistro in x]
-        if len(my_targets) != 1:
-            print('Must have exactly one entry for rosdistro "%s" in targets.yaml' % rosdistro)
-            sys.exit(1)
-        default_distros = my_targets[0][rosdistro]
+    default_distros = distros or fetch_distros_from_yaml(rosdistro)
 
     arches = ['amd64', 'i386']
 
-    missing = get_missing_wet_packages(repo_map, default_distros, rosdistro, repo_url, arches)
+    missing_wet = get_missing_wet_packages(repo_map, default_distros, rosdistro, repo_url, arches)
+    missing_dry = get_missing_dry_packages(rosdistro, default_distros, arches, repo_url)
+    return dict(missing_wet.items() + missing_dry.items())
 
-    #dry stacks
-    # dry dependencies
+
+def fetch_distros_from_yaml(rosdistro):
+    print('Fetching "%s"' % (URL_PROTOTYPE % 'targets'))
+    targets_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE % 'targets'))
+    my_targets = [x for x in targets_map if rosdistro in x]
+    if len(my_targets) != 1:
+        print('Must have exactly one entry for rosdistro "%s" in targets.yaml' % rosdistro)
+        sys.exit(1)
+    return my_targets[0][rosdistro]
+
+
+def get_missing_dry_packages(rosdistro, default_distros, arches, repo_url):
+    missing = {}
     dist = load_distro(distro_uri(rosdistro))
 
     distro_arches = [(d, a) for d in default_distros for a in arches]
@@ -102,9 +105,8 @@ def compute_missing(distros, fqdn, rosdistro):
         for (d, a) in distro_arches:
             if not repo.deb_in_repo(repo_url, debianize_package_name(rosdistro, s), expected_version+".*", d, a):
                 missing[s].append( '%s_%s' % (d, a) )
-
-
     return missing
+
 
 def get_missing_wet_packages(repo_map, default_distros, rosdistro, repo_url,
                              arches):
