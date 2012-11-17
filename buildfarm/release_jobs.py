@@ -82,6 +82,32 @@ def compute_missing(distros, fqdn, rosdistro):
 
     arches = ['amd64', 'i386']
 
+    missing = get_missing_wet_packages()
+        
+    #dry stacks
+    # dry dependencies
+    dist = load_distro(distro_uri(rosdistro))
+
+    distro_arches = [(d, a) for d in default_distros for a in arches]
+
+    for s in dist.stacks:
+        #print ("Analyzing DRY job [%s]" % s)
+        expected_version = dry_get_stack_version(s, dist)
+        
+        # sanitize undeclared versions for string substitution
+        if not expected_version:
+            expected_version = ''
+        missing[s] = []
+        # for each distro arch check if the deb is present. If not trigger the build. 
+        for (d, a) in distro_arches:
+            if not repo.deb_in_repo(repo_url, debianize_package_name(rosdistro, s), expected_version+".*", d, a):
+                missing[s].append( '%s_%s' % (d, a) )
+
+
+    return missing
+
+def get_missing_wet_packages(repo_map, default_distros, rosdistro, repo_url,
+                             arches):
     # We take the intersection of repo-specific targets with default
     # targets.
     missing = {}
@@ -105,53 +131,28 @@ def compute_missing(distros, fqdn, rosdistro):
         if not expected_version:
             expected_version = ''
 
-        missing_source = [
+        missing_source_pkg_names = [
             '%s_source' % d
             for d in target_distros
             if not repo.deb_in_repo(repo_url, deb_name, expected_version+".*", d, arch='na', source=True)
         ]
-        missing_binary = [
+        missing_binary_pkg_names = [
             '%s_%s' % (d, a)
             for d in target_distros
             for a in arches
             if not repo.deb_in_repo(repo_url, deb_name, expected_version+".*", d, a)
         ]
         
-        missing[short_package_name] = missing_source + missing_binary
+        missing[short_package_name] = missing_source_pkg_names + missing_binary_pkg_names
 
-                                               
         # if not trigger sourcedeb
 
         # else if binaries don't exist trigger them
         for d in target_distros:
             for a in arches:
                 pass#missing[short_package_name] = ['source']
-        
-    #dry stacks
-    # dry dependencies
-    dist = load_distro(distro_uri(rosdistro))
-
-    distro_arches = []
-    for d in default_distros:
-        for a in arches:
-            distro_arches.append( (d, a) )
-
-    for s in dist.stacks:
-        #print ("Analyzing DRY job [%s]" % s)
-        expected_version = dry_get_stack_version(s, dist)
-        
-        # sanitize undeclared versions for string substitution
-        if not expected_version:
-            expected_version = ''
-        missing[s] = []
-        # for each distro arch check if the deb is present. If not trigger the build. 
-        for (d, a) in distro_arches:
-            if not repo.deb_in_repo(repo_url, debianize_package_name(rosdistro, s), expected_version+".*", d, a):
-                missing[s].append( '%s_%s' % (d, a) )
-
 
     return missing
-
 
 # dry dependencies
 def dry_get_stack_info(stackname, version):
