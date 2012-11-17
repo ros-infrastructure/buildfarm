@@ -150,7 +150,7 @@ def get_missing_wet_packages(repo_map, default_distros, rosdistro, repo_url,
         # else if binaries don't exist trigger them
         for d in target_distros:
             for a in arches:
-                pass#missing[short_package_name] = ['source']
+                pass #missing[short_package_name] = ['source']
 
     return missing
 
