@@ -35,31 +35,37 @@ def expand(config_template, d):
     s = em.expand(config_template, **d)
     return s
 
+def _check_repo_map(rosdistro, repo_map):
+    if 'release-name' not in repo_map:
+        print('No "release-name" key in yaml file')
+        sys.exit(1)
+    if repo_map['release-name'] != rosdistro:
+        print('release-name mismatch (%s != %s)' % (repo_map['release-name'], rosdistro))
+        sys.exit(1)
+    if 'repositories' not in repo_map:
+        print('No "repositories" key in yaml file')
+    if 'type' not in repo_map or repo_map['type'] != 'gbp':
+        print('Wrong type value in yaml file')
+        sys.exit(1)
 
 def compute_missing(distros, fqdn, rosdistro):
-    """ Compute what packages are missing from a repo based on the rosdistro files, both wet and dry. """
+    """
+    Compute what packages are missing from a repo based on the rosdistro files, both wet and dry.
+
+    :param distros: list of distribution names, such as 'oneiric' or 'precise'
+    :param fqdn: fully qualified domain name
+    :param rosdistro: 'fuerte' or 'groovy' etc.
+    """
 
     URL_PROTOTYPE = 'https://raw.github.com/ros/rosdistro/master/releases/%s.yaml'
-
 
     repo_url = 'http://%s/repos/building' % fqdn
 
     print('Fetching "%s"' % (URL_PROTOTYPE % rosdistro))
     repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE % rosdistro))
 
-
     # What ROS distro are we configuring?
-    if 'release-name' not in repo_map:
-        print('No "release-name" key in yaml file')
-        sys.exit(1)
-    if repo_map['release-name'] != rosdistro:
-        print('release-name mismatch (%s != %s)' % (repo_map['release-name'], rosdistro))
-        sys.exit(1)    
-    if 'repositories' not in repo_map:
-        print('No "repositories" key in yaml file')
-    if 'type' not in repo_map or repo_map['type'] != 'gbp':
-        print('Wrong type value in yaml file')
-        sys.exit(1)
+    _check_repo_map(rosdistro, repo_map)
 
     # Figure out default distros.  Command-line arg takes precedence; if
     # it's not specified, then read targets.yaml.
@@ -98,14 +104,20 @@ def compute_missing(distros, fqdn, rosdistro):
         expected_version = r['version']
         if not expected_version:
             expected_version = ''
+
+        missing_source = [
+            '%s_source' % d
+            for d in target_distros
+            if not repo.deb_in_repo(repo_url, deb_name, expected_version+".*", d, arch='na', source=True)
+        ]
+        missing_binary = [
+            '%s_%s' % (d, a)
+            for d in target_distros
+            for a in arches
+            if not repo.deb_in_repo(repo_url, deb_name, expected_version+".*", d, a)
+        ]
         
-        missing[short_package_name] = []
-        for d in target_distros:
-            if not repo.deb_in_repo(repo_url, deb_name, expected_version+".*", d, arch='na', source=True):
-                missing[short_package_name].append('%s_source' % d)
-            for a in arches:
-                if not repo.deb_in_repo(repo_url, deb_name, expected_version+".*", d, a):
-                    missing[short_package_name].append('%s_%s' % (d, a))
+        missing[short_package_name] = missing_source + missing_binary
 
                                                
         # if not trigger sourcedeb
@@ -115,10 +127,6 @@ def compute_missing(distros, fqdn, rosdistro):
             for a in arches:
                 pass#missing[short_package_name] = ['source']
         
-
-
-        
-
     #dry stacks
     # dry dependencies
     dist = load_distro(distro_uri(rosdistro))
@@ -382,9 +390,6 @@ def dry_doit(package, distros,  rosdistro, jobgraph, commit, jenkins_instance):
 
 
 def doit(release_uri, package, distros, fqdn, job_graph, rosdistro, short_package_name, commit, jenkins_instance):
-
-    #package = os.path.splitext(os.path.basename(release_uri))[0]
-
     binary_jobs = binarydeb_jobs(package, distros, fqdn, job_graph)
     child_projects = zip(*binary_jobs)[0]  # unzip the binary_jobs tuple
     source_job = sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name)
