@@ -82,8 +82,8 @@ def compute_missing(distros, fqdn, rosdistro):
 
     arches = ['amd64', 'i386']
 
-    missing = get_missing_wet_packages()
-        
+    missing = get_missing_wet_packages(repo_map, default_distros, rosdistro, repo_url, arches)
+
     #dry stacks
     # dry dependencies
     dist = load_distro(distro_uri(rosdistro))

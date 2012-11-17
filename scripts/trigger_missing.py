@@ -2,25 +2,10 @@
 
 from __future__ import print_function
 import argparse
-import shutil
-import sys
-import tempfile
-import urllib2
-import yaml
-
-
-
 import pprint
 
-from buildfarm import dependency_walker, jenkins_support, release_jobs
-
-import rospkg.distro
-
+from buildfarm import jenkins_support, release_jobs
 from buildfarm.rosdistro import debianize_package_name
-
-import buildfarm.repo
-
-
 
 
 def parse_options():
@@ -40,14 +25,9 @@ def parse_options():
     return parser.parse_args()
 
 
-
 def trigger_if_not_building(jobname, instance):
     try:
         job_info = instance.get_job_info(jobname)
-        #import pprint
-        #pp = pprint.PrettyPrinter()
-        #pp.pprint(job_info)
-
 
         if 'inQueue' in job_info:
             if job_info['inQueue']:
@@ -70,8 +50,6 @@ def trigger_if_not_building(jobname, instance):
 if __name__ == '__main__':
     args = parse_options()
 
-
-
     missing = release_jobs.compute_missing(
         args.distros,
         args.fqdn,
@@ -80,7 +58,6 @@ if __name__ == '__main__':
     pp = pprint.PrettyPrinter()
     print ("net Missing")
     pp.pprint (missing)
-
 
     if args.commit:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
