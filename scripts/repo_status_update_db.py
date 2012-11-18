@@ -126,7 +126,7 @@ def create_table_with_rows(db, table_name, header, rows):
 
 def get_table_header(repo):
     distro_arch_strs = ['%s_%s' % (d, a) for d, a in repo.distro_arches]
-    return ["package", repo.get_rosdistro()] + distro_arch_strs
+    return ["package", 'version'] + distro_arch_strs
 
 def yield_rows_of_packages_table(repo):
     packages = sorted(repo.get_packages())
