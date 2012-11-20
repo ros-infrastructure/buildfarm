@@ -2,7 +2,11 @@ import textwrap
 import urllib2
 import yaml
 
+from rospkg.distro import load_distro, distro_uri
+
 __all__ = ['make_status_page']
+
+arches = ['amd64', 'i386']
 
 def make_status_page():
     '''
@@ -11,8 +15,8 @@ def make_status_page():
     supported distributions and architectures.
     '''
     # Load lists of wet and dry ROS package names
-    wet_pkgs = get_wet_packages()
-    #dry_pkgs = get_dry_packages()
+    wet_names_pkgs = get_wet_packages()
+    dry_names_pkgs = get_dry_packages()
 
     # Load build statuses of packages on each distro/arch
 
@@ -20,12 +24,20 @@ def make_status_page():
 
     # Generate HTML from the in-memory table
     header = ['package', 'version']
-    wet_rows = [(name, d['version']) for name, d in wet_pkgs]
-    dry_rows = []
-    rows = wet_rows + dry_rows
+    wet_html = make_html_table_from_names_pkgs(header, wet_names_pkgs)
+    dry_html = make_html_table_from_names_pkgs(header, dry_names_pkgs)
+    body = '''
+        <h2>Wet Packages</h2>
+        %s
+        <h2>Dry Packages</h2>
+        %s
+    ''' % (wet_html, dry_html)
+    return make_html_doc(title='Build status page', body=body)
+
+def make_html_table_from_names_pkgs(header, names_pkgs):
+    rows = [(name, d.get('version')) for name, d in names_pkgs]
     rows.sort(key=lambda (pkg, version): pkg)
-    return make_html_doc(title='Build status page',
-                         body=make_html_table(header, rows))
+    return make_html_table(header, rows)
 
 def get_wet_packages():
     '''
@@ -33,16 +45,29 @@ def get_wet_packages():
 
     [(short_pkg_name, pkg_dict), ...]
 
+    for the wet (catkinized) packages.
     '''
-    # Packages are in the "repositories" section.
+    wet_yaml = get_wet_yaml()
+    return wet_yaml['repositories'].items()
+
+def get_wet_yaml():
     url = 'https://raw.github.com/ros/rosdistro/master/releases/groovy.yaml'
-    repo_map = yaml.load(urllib2.urlopen(url))
-    return repo_map['repositories'].items()
+    return yaml.load(urllib2.urlopen(url))
 
 def get_dry_packages():
     '''
+    Fetches a yaml file from the web and returns a list of pairs of the form
 
+    [(short_pkg_name, pkg_dict), ...]
+
+    for the dry (rosbuild) packages.
     '''
+    dry_yaml = get_dry_yaml()
+    return [(name, d) for name, d in dry_yaml['stacks'].items() if name != '_rules']
+
+def get_dry_yaml():
+    rosdistro = 'groovy'
+    return yaml.load(urllib2.urlopen(distro_uri(rosdistro)))
 
 def make_html_doc(title, body):
     '''
