@@ -1,21 +1,48 @@
 import textwrap
+import urllib2
+import yaml
 
 __all__ = ['make_status_page']
 
 def make_status_page():
+    '''
+    Returns the contents of an HTML page showing the current
+    build status for all wet and dry packages on all
+    supported distributions and architectures.
+    '''
     # Load lists of wet and dry ROS package names
-    #wet_pkgs = get_wet_packages()
+    wet_pkgs = get_wet_packages()
     #dry_pkgs = get_dry_packages()
 
-    # Load lists of packages on each distro/arch
+    # Load build statuses of packages on each distro/arch
 
     # Generate an in-memory table with the info to display
 
     # Generate HTML from the in-memory table
     header = ['package', 'version']
-    rows = []
+    wet_rows = [(name, d['version']) for name, d in wet_pkgs]
+    dry_rows = []
+    rows = wet_rows + dry_rows
+    rows.sort(key=lambda (pkg, version): pkg)
     return make_html_doc(title='Build status page',
                          body=make_html_table(header, rows))
+
+def get_wet_packages():
+    '''
+    Fetches a yaml file from the web and returns a list of pairs of the form
+
+    [(short_pkg_name, pkg_dict), ...]
+
+    '''
+    # Packages are in the "repositories" section.
+    url = 'https://raw.github.com/ros/rosdistro/master/releases/groovy.yaml'
+    repo_map = yaml.load(urllib2.urlopen(url))
+    return repo_map['repositories'].items()
+
+def get_dry_packages():
+    '''
+
+    '''
 
 def make_html_doc(title, body):
     '''
@@ -58,4 +85,22 @@ def reindent(s, tab):
 def write(filename, contents):
     with open(filename, 'w') as f:
         f.write(contents)
+
+def main():
+    import BaseHTTPServer
+
+    class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            page = make_status_page()
+            self.wfile.write(page)
+
+    daemon = BaseHTTPServer.HTTPServer(('', 8080), Handler)
+    while True:
+        daemon.handle_request()
+
+if __name__ == '__main__':
+    main()
 
