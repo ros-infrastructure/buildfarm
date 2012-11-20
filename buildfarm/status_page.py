@@ -29,7 +29,6 @@ def make_status_page(distro_arches):
     # Make in-memory table showing the latest deb version for each package.
     t = make_versions_table(wet_names_versions, dry_names_versions, da_to_pkgs,
                             distro_arches)
-    logging.info('Table:\n%s', t)
 
     # Generate HTML from the in-memory table
     table_html = make_html_from_table(t)
@@ -96,10 +95,13 @@ def load_deb_info(distro_arches):
         buildfarm.apt_root.setup_apt_rootdir(da_rootdir, distro, arch,
                                              additional_repos=ros_repos)
         logging.info('Getting a list of packages for %s-%s', distro, arch)
-        cache = apt.Cache(rootdir=rootdir)
+        cache = apt.Cache(rootdir=da_rootdir)
         cache.open()
-        pkgs = [nv for nv in get_names_versions_from_apt_cache(cache)
-                if 'ros-groovy' in nv['name']]
+        cache.update()
+        # Have to open the cache again after updating.
+        cache.open()
+        pkgs = get_names_versions_from_apt_cache(cache)
+        pkgs = [p for p in pkgs if 'ros-groovy' in p['name']]
         packages[dist_arch] = pkgs
     return packages
 
@@ -186,17 +188,19 @@ def get_names_versions_from_apt_cache(cache):
     return [{'name': k, 'version': cache[k].candidate.version} for k in cache.keys()]
 
 def main():
+    from urlparse import urlparse, parse_qs
     import BaseHTTPServer
 
     logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
     class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         def do_GET(self):
+            maxda = int(parse_qs(urlparse(self.path).query).get('maxda', [100])[0])
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             distro_arches = get_distro_arches()
-            page = make_status_page(distro_arches)
+            page = make_status_page(distro_arches[:maxda])
             self.wfile.write(page)
 
     daemon = BaseHTTPServer.HTTPServer(('', 8080), Handler)
