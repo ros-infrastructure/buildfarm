@@ -2,7 +2,8 @@ import textwrap
 import urllib2
 import yaml
 
-from rospkg.distro import load_distro, distro_uri
+import rosdistro
+from rospkg.distro import distro_uri
 
 __all__ = ['make_status_page']
 
@@ -35,7 +36,8 @@ def make_status_page():
     return make_html_doc(title='Build status page', body=body)
 
 def make_html_table_from_names_pkgs(header, names_pkgs):
-    rows = [(name, d.get('version')) for name, d in names_pkgs]
+    debify = lambda name: rosdistro.debianize_package_name('groovy', name)
+    rows = [(debify(name), d.get('version')) for name, d in names_pkgs]
     rows.sort(key=lambda (pkg, version): pkg)
     return make_html_table(header, rows)
 
