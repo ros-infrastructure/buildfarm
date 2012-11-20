@@ -68,8 +68,7 @@ def get_dry_packages():
     return [(name, d) for name, d in dry_yaml['stacks'].items() if name != '_rules']
 
 def get_dry_yaml():
-    rosdistro = 'groovy'
-    return yaml.load(urllib2.urlopen(distro_uri(rosdistro)))
+    return yaml.load(urllib2.urlopen(distro_uri('groovy')))
 
 def make_html_doc(title, body):
     '''
@@ -104,14 +103,6 @@ def make_html_table(header, rows):
 %s
 </table>
 ''' % (header_str, rows_str)
-
-def reindent(s, tab):
-    lines = textwrap.dedent(s).splitlines()
-    return '\n'.join(tab + l for l in lines)
-
-def write(filename, contents):
-    with open(filename, 'w') as f:
-        f.write(contents)
 
 def main():
     import BaseHTTPServer
