@@ -80,46 +80,17 @@ def remove_upstream_source(distro, repo_fqdn, repo_path, package):
     call('/tmp/', cmd)
     
 
-def upload_source_deb(distro, repo_fqdn, repo_path, changes_arg, working_dir):
-    
-    config_string = """
-[uploadhost]
-method                  = scp
-fqdn                    = %(repo_fqdn)s
-incoming                = %(repo_path)s/queue/%(distro)s
-run_dinstall            = 0"""%locals()
-
-#post_upload_command     = ssh rosbuild@%(repo_fqdn)s -- /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s"""%locals()
+def upload_source_deb(distro, repo_fqdn, repo_path, upload_source, packagename):
 
 
-    d = tempfile.mkdtemp(dir=working_dir)
-    filename = os.path.join(d, "dput.conf")
-    with open(filename, 'w+b') as fh:
-        print("Writing config string:[%s]"%config_string)
-        fh.write(config_string)
-        fh.flush()
-        fh.close()
-    time.sleep(0.1)
-    try:
-        sout = call('/tmp/', ['cat', filename], pipe=subprocess.PIPE)
-        print ("Cat output = %s"%sout)
-        call('/tmp/', ['dput', '-u', '-c', filename, 'uploadhost', changes_arg])
+    upload_dir="/tmp/upload/%s_%s" % (packagename, distro)
+    cmd = ("ssh rosbuild@%s -- mkdir -p %s"%(repo_fqdn, upload_dir)).split()
+    call('/tmp/', cmd)
+    cmd = ("scp -r %s rosbuild@%s:%s"%(upload_source, repo_fqdn, upload_dir)).split()
+    call('/tmp/', cmd)
 
-        
-        cmd = ['ssh', 'rosbuild@%(repo_fqdn)s' %locals(), '--',"( flock 200; /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V processincoming %(distro)s ) 200>%(repo_path)s/lock" %locals()]
-        try:
-            call('/tmp/', cmd)
-        except CalledProcessError, ex:
-            if ex.returncode == 254:
-                print("Detected return code 254, assuming duplicate upload elements. %s"%ex)
-            else:
-                if ex.returncode == 239:
-                    print("Detected return code 239 this seems to indicate that the repo "
-                          "was locked for another process.  This shouldn't happen unless "
-                          "someone is not using the flock correctly.")
-                raise ex
-    finally:
-        shutil.rmtree(d)
+    cmd = ("ssh rosbuild@%(repo_fqdn)s -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -d %(distro)s -a source -f %(upload_dir)s/%(distro)s -p %(packagename)s -c --delete --invalidate"%locals()).split()
+    call('/tmp/', cmd)
 
 
 def find_file(directory, extension, substring=''):
@@ -157,8 +128,10 @@ if __name__ == "__main__":
             continue
 
 
+        output_dir = os.path.join(args.output, d)
+        os.makedirs(output_dir)
         try:
-            build_source_deb(repo_path, tag, args.output)
+            build_source_deb(repo_path, tag, output_dir)
             print("successfully created sourcedeb for tag %s on repo %s."%(tag, repo_path))
         except CalledProcessError, ex:
             print("Failed to build source deb for tag %s on repo %s: %s"%(tag, repo_path, ex))
@@ -167,22 +140,19 @@ if __name__ == "__main__":
 
             
         try:
-            changes_file = find_file(args.output, '.changes', d)
-            print("Changes file is %s" % changes_file) 
 
             if args.noupload:
-                print("Noupload argument passed, skipping upload of %s" % changes_file)
+                print("Noupload argument passed, skipping upload of %s" % output_dir)
                 continue
 
-            print(os.listdir(args.output))
+            print(os.listdir(output_dir))
 
             # remove upstream so it doesn't error if we're downgrading
-            remove_upstream_source(d, args.repo_fqdn, args.repo_path, args.package_name)
+            #remove_upstream_source(d, args.repo_fqdn, args.repo_path, args.package_name)
 
             upload_source_deb(d, args.repo_fqdn, args.repo_path, 
-                              os.path.join(args.output, 
-                                           changes_file),
-                              args.working
+                              output_dir,
+                              args.package_name
                               )
             print("Succeeded uploading for distro %s."%(d))
         except CalledProcessError, ex:

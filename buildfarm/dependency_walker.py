@@ -24,18 +24,34 @@ def get_dependencies(workspace, repository_dict, rosdistro):
             continue
         url = r['url']
         print "downloading from %s into %s to be able to trace dependencies" % (url, workspace)
+        version_number = 'release/%s/%s' % (name, r['version'])
+        # try getting the release branch
+        print '+++ Trying version %s' % version_number
         try:
-            stack = get_stack_of_remote_repository(name, 'git', url, workspace)
-        except IOError, e:
-            if rosdistro == 'backports':
-                packages[name] = sanitize_package_name(name)
-                build_dependencies[name] = []
-                runtime_dependencies[name] = []
-                package_urls[name] = url
-                print "Processing backport %s, no package.xml file found in repo %s. Continuing"%(name, url)
-            else:
-                print str(e)
-            continue
+            stack = get_stack_of_remote_repository(name, 'git', url, workspace, version_number)
+        except Exception as e:
+            # try getting the release branch without the debian number
+            index = version_number.find('-')
+            if index:
+                version_number = version_number[:index]
+            print '+++ Trying version %s' % version_number
+            try:
+                stack = get_stack_of_remote_repository(name, 'git', url, workspace, version_number)
+            except Exception as e:
+                # try master
+                print '+++ Trying master'
+                try:
+                    stack = get_stack_of_remote_repository(name, 'git', url, workspace)
+                except Exception as e:
+                    if rosdistro == 'backports':
+                        packages[name] = sanitize_package_name(name)
+                        build_dependencies[name] = []
+                        runtime_dependencies[name] = []
+                        package_urls[name] = url
+                        print "Processing backport %s, no package.xml file found in repo %s. Continuing"%(name, url)
+                    else:
+                        print str(e)
+                    continue
 
         catkin_project_name = stack.name
 
