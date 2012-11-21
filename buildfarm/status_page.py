@@ -34,7 +34,21 @@ def make_status_page(repo_da_caches, da_strs, ros_pkgs_table):
 
     # Generate HTML from the in-memory table
     table_html = make_html_from_table(t)
-    return make_html_doc(title='Build status page', body=table_html)
+    return make_html_doc(make_html_head(), body=table_html)
+
+def make_html_head():
+    return '''
+<title>Build status page</title>
+<script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.8.0.js" type="text/javascript"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.18/jquery-ui.min.js" type="text/javascript"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js" type="text/javascript"></script>
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+        // FIXME: Uncomment this once we have good styling.
+        // $('#build_status').dataTable();
+    } );
+</script>
+'''
 
 def get_repo_da_caches(rootdir, ros_repo_names, da_strs):
     '''
@@ -141,7 +155,7 @@ def make_html_table_from_names_versions(names_pkgs):
     debify = lambda name: buildfarm.rosdistro.debianize_package_name('groovy', name)
     rows = [(debify(name), d.get('version')) for name, d in names_pkgs]
     rows.sort(key=lambda (pkg, version): pkg)
-    return make_html_table(header, rows)
+    return make_html_table(header, rows, id="build_status")
 
 def get_wet_names_versions():
     return get_names_versions(get_wet_names_packages())
@@ -182,39 +196,43 @@ def get_dry_names_packages():
 def get_dry_yaml():
     return yaml.load(urllib2.urlopen(distro_uri('groovy')))
 
-def make_html_doc(title, body):
+def make_html_doc(head, body):
     '''
     Returns the contents of an HTML page, given a title and body.
     '''
     return '''\
 <html>
-\t<head>
-\t\t<title>%(title)s</title>
-\t</head>
-\t<body>
-%(body)s
-\t</body>
+    <head>
+        %(head)s
+    </head>
+    <body>
+        %(body)s
+    </body>
 </html>
 ''' % locals()
 
-def make_html_table(header, rows):
+def make_html_table(header, rows, id):
     '''
     Returns a string containing an HTML-formatted table, given a header and some
     rows.
 
     >>> make_html_table(header=['a'], rows=[[1], [2]])
-    '<table>\\n\\t<tr><th>a</th></tr>\\n\\t<tr><td>1</td></tr>\\n\\t<tr><td>2</td></tr>\\n</table>\\n'
+    '<table>\\n<tr><th>a</th></tr>\\n<tr><td>1</td></tr>\\n<tr><td>2</td></tr>\\n</table>\\n'
 
     '''
-    header_str = '\t<tr>' + ''.join('<th>%s</th>' % c for c in header) + '</tr>'
-    rows_str = '\n'.join('\t<tr>' + ''.join('<td>%s</td>' % c for c in r) + '</tr>' 
+    header_str = '<tr>' + ''.join('<th>%s</th>' % c for c in header) + '</tr>'
+    rows_str = '\n'.join('<tr>' + ''.join('<td>%s</td>' % c for c in r) + '</tr>' 
                          for r in rows)
     return '''\
-<table>
-%s
-%s
+<table class="display" id="%s">
+    <thead>
+        %s
+    </thead>
+    <tbody>
+        %s
+    </tbody>
 </table>
-''' % (header_str, rows_str)
+''' % (id, header_str, rows_str)
 
 def get_names_versions_from_apt_cache(cache_dir):
     cache = apt.Cache(rootdir=cache_dir)
