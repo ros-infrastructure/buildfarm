@@ -119,7 +119,7 @@ def make_html_from_table(table):
     '''
     header = table.dtype.names
     rows = [row for row in table]
-    return make_html_table(header, rows)
+    return make_html_table(header, rows, id='build_status')
 
 def get_dist_arch_str(d, a):
     return "%s_%s" % (d, a)
@@ -151,13 +151,6 @@ def build_repo_cache(dir, ros_repo_name, ros_repo_url, distro, arch):
     cache.update()
     # Have to open the cache again after updating.
     cache.open()
-
-def make_html_table_from_names_versions(names_pkgs):
-    header = ['package', 'version']
-    debify = lambda name: buildfarm.rosdistro.debianize_package_name('groovy', name)
-    rows = [(debify(name), d.get('version')) for name, d in names_pkgs]
-    rows.sort(key=lambda (pkg, version): pkg)
-    return make_html_table(header, rows, id="build_status")
 
 def get_wet_names_versions():
     return get_names_versions(get_wet_names_packages())
