@@ -24,9 +24,9 @@ def make_status_page(distro_arches):
     dry_names_versions = get_dry_names_versions()
 
     # Get the version of each Debian package in each ROS apt repository.
-    ros_repos = {'shadow': 'http://packages.ros.org/ros/ubuntu/',
+    ros_repos = {'ros': 'http://packages.ros.org/ros/ubuntu/',
                  'shadow-fixed': 'http://packages.ros.org/ros-shadow-fixed/ubuntu/',
-                 'ros': 'http://50.28.27.175/repos/building'}
+                 'building': 'http://50.28.27.175/repos/building'}
     repo_name_da_to_pkgs = dict(((repo_name, da_str), pkgs)
                                 for repo_name, repo_url in ros_repos.items()
                                 for da_str, pkgs in load_deb_info(distro_arches, repo_name, repo_url).items())
