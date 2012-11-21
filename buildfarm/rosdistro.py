@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+import logging
 import sys
 import yaml, urllib2
 
@@ -119,10 +120,10 @@ class Rosdistro:
 
 
 def get_target_distros(rosdistro):
-    print("Fetching " + URL_PROTOTYPE%'targets')
+    logging.info("Fetching " + URL_PROTOTYPE%'targets')
     targets_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%'targets'))
     my_targets = [x for x in targets_map if rosdistro in x]
     if len(my_targets) != 1:
-        print("Must have exactly one entry for rosdistro %s in targets.yaml"%(rosdistro))
+        logging.fatal("Must have exactly one entry for rosdistro %s in targets.yaml"%(rosdistro))
         sys.exit(1)
     return my_targets[0][rosdistro]
