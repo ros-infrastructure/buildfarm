@@ -23,12 +23,18 @@ def make_status_page(distro_arches):
     wet_names_versions = get_wet_names_versions()
     dry_names_versions = get_dry_names_versions()
 
-    # Get the lastest deb version for each package.
-    da_to_pkgs = load_deb_info(distro_arches)
+    # Get the version of each Debian package in each ROS apt repository.
+    ros_repos = {'shadow': 'http://packages.ros.org/ros/ubuntu/',
+                 'shadow-fixed': 'http://packages.ros.org/ros-shadow-fixed/ubuntu/',
+                 'ros': 'http://50.28.27.175/repos/building'}
+    repo_name_da_to_pkgs = dict(((repo_name, da_str), pkgs)
+                                for repo_name, repo_url in ros_repos.items()
+                                for da_str, pkgs in load_deb_info(distro_arches, repo_name, repo_url).items())
 
     # Make in-memory table showing the latest deb version for each package.
-    t = make_versions_table(wet_names_versions, dry_names_versions, da_to_pkgs,
-                            distro_arches)
+    t = make_versions_table(wet_names_versions, dry_names_versions,
+                            repo_name_da_to_pkgs, distro_arches,
+                            ros_repos.keys())
 
     # Generate HTML from the in-memory table
     table_html = make_html_from_table(t)
@@ -39,31 +45,35 @@ def get_distro_arches():
     arches = ['amd64', 'i386', 'source']
     return [(d, a) for d in distros for a in arches]
 
-def make_versions_table(wet_names_versions, dry_names_versions, da_to_pkgs,
-                        distro_arches):
+def make_versions_table(wet_names_versions, dry_names_versions,
+                        repo_name_da_to_pkgs, distro_arches, repo_names):
     '''
     Returns an in-memory table with all the information that will be displayed:
     ros package names and versions followed by debian versions for each
     distro/arch.
     '''
     ros_pkgs = get_ros_pkgs_table(wet_names_versions, dry_names_versions)
-    left_columns = [('name', object), ('version', object), ('wet', bool)]
+    left_columns = [('name', object), ('version', object), ('wet', bool),
+                    ('ros_repo', object)]
     da_strs = ['%s_%s' % (d, a) for d, a in distro_arches]
     right_columns = [(da_str, object) for da_str in da_strs]
     columns = left_columns + right_columns
-    table = np.empty(len(ros_pkgs), dtype=columns)
-    da_name_to_deb_version = dict(((da_str, p['name']), p['version'])
-                                  for da_str, pkgs in da_to_pkgs.items()
-                                  for p in pkgs)
+    table = np.empty(len(ros_pkgs)*len(repo_names), dtype=columns)
+    repo_da_name_to_deb_version = dict(((repo_name, da_str, p['name']), p['version'])
+                                       for (repo_name, da_str), pkgs in repo_name_da_to_pkgs.items()
+                                       for p in pkgs)
 
     for i, (name, version, wet) in enumerate(ros_pkgs):
-        table['name'][i] = name
-        table['version'][i] = version
-        table['wet'][i] = wet
         for da_str in da_strs:
-            debname = buildfarm.rosdistro.debianize_package_name('groovy', name)
-            version = da_name_to_deb_version.get((da_str, debname))
-            table[da_str][i] = version
+            for j, repo_name in enumerate(repo_names):
+                index = i * len(repo_names) + j
+                table['name'][index] = name
+                table['version'][index] = version
+                table['wet'][index] = wet
+                table['ros_repo'][index] = repo_name
+                debname = buildfarm.rosdistro.debianize_package_name('groovy', name)
+                version = repo_da_name_to_deb_version.get((repo_name, da_str, debname))
+                table[da_str][index] = version
 
     return table
 
@@ -81,19 +91,16 @@ def make_html_from_table(table):
     rows = [row for row in table]
     return make_html_table(header, rows)
 
-def load_deb_info(distro_arches):
-    # FIXME: Process each repo separately
-    ros_repos = {'shadow': 'http://packages.ros.org/ros/ubuntu/',
-                 'shadow-fixed': 'http://packages.ros.org/ros-shadow-fixed/ubuntu/',
-                 'ros': 'http://50.28.27.175/repos/building'}
+def load_deb_info(distro_arches, ros_repo_name, ros_repo_url):
     rootdir = tempfile.mkdtemp()
     packages = {}
     for distro, arch in distro_arches:
         dist_arch = "%s_%s" % (distro, arch)
         da_rootdir = os.path.join(rootdir, dist_arch)
         logging.info('Setting up an apt root directory at %s', da_rootdir)
+        repo_dict = {ros_repo_name: ros_repo_url}
         buildfarm.apt_root.setup_apt_rootdir(da_rootdir, distro, arch,
-                                             additional_repos=ros_repos)
+                                             additional_repos=repo_dict)
         logging.info('Getting a list of packages for %s-%s', distro, arch)
         cache = apt.Cache(rootdir=da_rootdir)
         cache.open()
