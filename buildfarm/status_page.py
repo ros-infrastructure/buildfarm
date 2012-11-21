@@ -14,7 +14,7 @@ ros_repos = {'ros': 'http://packages.ros.org/ros/ubuntu/',
              'shadow-fixed': 'http://packages.ros.org/ros-shadow-fixed/ubuntu/',
              'building': 'http://50.28.27.175/repos/building'}
 
-def make_status_page(repo_da_caches, da_strs):
+def make_status_page(repo_da_caches, da_strs, ros_pkgs_table):
     '''
     Returns the contents of an HTML page showing the current
     build status for all wet and dry packages on all
@@ -22,18 +22,14 @@ def make_status_page(repo_da_caches, da_strs):
 
     :param repo_da_caches: from get_repo_da_caches()
     :param da_strs: list of str from get_da_strs()
+    :param ros_pkgs_table: numpy array from get_ros_pkgs_table()
     '''
-    # Load lists of wet and dry ROS package names
-    wet_names_versions = get_wet_names_versions()
-    dry_names_versions = get_dry_names_versions()
-
     # Get the version of each Debian package in each ROS apt repository.
     repo_name_da_to_pkgs = dict(((repo_name, da_str), get_names_versions_from_apt_cache(cache))
                                 for repo_name, da_str, cache in repo_da_caches)
 
     # Make in-memory table showing the latest deb version for each package.
-    t = make_versions_table(wet_names_versions, dry_names_versions,
-                            repo_name_da_to_pkgs, da_strs,
+    t = make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs,
                             ros_repos.keys())
 
     # Generate HTML from the in-memory table
@@ -46,9 +42,14 @@ def get_repo_da_caches(rootdir, ros_repo_names, da_strs):
 
     For example, get_repo_da_caches('/tmp/ros_apt_caches', ['ros', 'shadow-fixed'], ['quantal_i386'])
     '''
-    return [(ros_repo_name, da_str, apt.Cache(rootdir=get_repo_cache_dir_name(rootdir, ros_repo_name, da_str)))
+    return [(ros_repo_name, da_str, get_apt_cache(get_repo_cache_dir_name(rootdir, ros_repo_name, da_str)))
             for ros_repo_name in ros_repo_names
             for da_str in da_strs]
+
+def get_apt_cache(dirname):
+    c = apt.Cache(rootdir=dirname)
+    c.open()
+    return c
 
 def get_ros_repo_names(ros_repos):
     return ros_repos.keys()
@@ -61,31 +62,29 @@ def get_distro_arches():
     arches = ['amd64', 'i386', 'source']
     return [(d, a) for d in distros for a in arches]
 
-def make_versions_table(wet_names_versions, dry_names_versions,
-                        repo_name_da_to_pkgs, da_strs, repo_names):
+def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_names):
     '''
     Returns an in-memory table with all the information that will be displayed:
     ros package names and versions followed by debian versions for each
     distro/arch.
     '''
-    ros_pkgs = get_ros_pkgs_table(wet_names_versions, dry_names_versions)
     left_columns = [('name', object), ('version', object), ('wet', bool),
-                    ('ros_repo', object)]
+                    ('ros_apt_repo', object)]
     right_columns = [(da_str, object) for da_str in da_strs]
     columns = left_columns + right_columns
-    table = np.empty(len(ros_pkgs)*len(repo_names), dtype=columns)
+    table = np.empty(len(ros_pkgs_table)*len(repo_names), dtype=columns)
     repo_da_name_to_deb_version = dict(((repo_name, da_str, p['name']), p['version'])
                                        for (repo_name, da_str), pkgs in repo_name_da_to_pkgs.items()
-                                   for p in pkgs)
+                                       for p in pkgs)
 
-    for i, (name, version, wet) in enumerate(ros_pkgs):
+    for i, (name, version, wet) in enumerate(ros_pkgs_table):
         for da_str in da_strs:
             for j, repo_name in enumerate(repo_names):
                 index = i * len(repo_names) + j
                 table['name'][index] = name
                 table['version'][index] = version
                 table['wet'][index] = wet
-                table['ros_repo'][index] = repo_name
+                table['ros_apt_repo'][index] = repo_name
                 deb_name = buildfarm.rosdistro.debianize_package_name('groovy', name)
                 deb_version = repo_da_name_to_deb_version.get((repo_name, da_str, deb_name))
                 table[da_str][index] = deb_version
@@ -218,8 +217,9 @@ def make_html_table(header, rows):
 ''' % (header_str, rows_str)
 
 def get_names_versions_from_apt_cache(cache):
-    return [{'name': k, 'version': cache[k].candidate.version} for k in cache.keys()
-            if 'ros-groovy' in k]
+    names_versions = [{'name': k, 'version': cache[k].candidate.version} for k in cache.keys()]
+    names_versions = [nv for nv in names_versions if 'ros-groovy' in nv['name']]
+    return names_versions
 
 def main():
     import argparse
@@ -241,10 +241,13 @@ This should be created using status_page.build_repo_caches().
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            da_strs = get_da_strs(get_distro_arches())
+            da_strs = list(reversed(get_da_strs(get_distro_arches())))
             ros_repo_names = get_ros_repo_names(ros_repos)
             repo_da_caches = get_repo_da_caches(args.rootdir, ros_repo_names, da_strs)
-            page = make_status_page(repo_da_caches, da_strs)
+            wet_names_versions = get_wet_names_versions()
+            dry_names_versions = get_dry_names_versions()
+            ros_pkgs_table = get_ros_pkgs_table(wet_names_versions, dry_names_versions)
+            page = make_status_page(repo_da_caches, da_strs, ros_pkgs_table)
             self.wfile.write(page)
 
     daemon = BaseHTTPServer.HTTPServer(('', 8080), Handler)
