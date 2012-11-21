@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 import logging
 import urllib2
@@ -250,19 +252,27 @@ def main():
     p = argparse.ArgumentParser(description='Output deb build status HTML page on stdout')
     rd_help = '''\
 Root directory containing ROS apt caches.
-This should be created using status_page.build_repo_caches().
+This should be created using the buildcaches command.
 '''
+    p.add_argument('command', help='Command: either buildcaches or render')
     p.add_argument('rootdir', help=rd_help)
     args = p.parse_args()
 
-    da_strs = get_da_strs(get_distro_arches())
-    ros_repo_names = get_ros_repo_names(ros_repos)
-    repo_da_caches = get_repo_da_caches(args.rootdir, ros_repo_names, da_strs)
-    wet_names_versions = get_wet_names_versions()
-    dry_names_versions = get_dry_names_versions()
-    ros_pkgs_table = get_ros_pkgs_table(wet_names_versions, dry_names_versions)
-    page = make_status_page(repo_da_caches, da_strs, ros_pkgs_table)
-    print page
+    if args.command == 'buildcaches':
+        build_repo_caches(args.rootdir, ros_repos, get_distro_arches())
+
+    elif args.command == 'render':
+        da_strs = get_da_strs(get_distro_arches())
+        ros_repo_names = get_ros_repo_names(ros_repos)
+        repo_da_caches = get_repo_da_caches(args.rootdir, ros_repo_names, da_strs)
+        wet_names_versions = get_wet_names_versions()
+        dry_names_versions = get_dry_names_versions()
+        ros_pkgs_table = get_ros_pkgs_table(wet_names_versions, dry_names_versions)
+        page = make_status_page(repo_da_caches, da_strs, ros_pkgs_table)
+        print page
+
+    else:
+        print ('Command %s not recognized. Please specify buildcaches or render.' % args.command)
 
 if __name__ == '__main__':
     main()
