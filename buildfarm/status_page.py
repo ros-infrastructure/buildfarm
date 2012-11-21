@@ -71,9 +71,9 @@ def make_versions_table(wet_names_versions, dry_names_versions,
                 table['version'][index] = version
                 table['wet'][index] = wet
                 table['ros_repo'][index] = repo_name
-                debname = buildfarm.rosdistro.debianize_package_name('groovy', name)
-                version = repo_da_name_to_deb_version.get((repo_name, da_str, debname))
-                table[da_str][index] = version
+                deb_name = buildfarm.rosdistro.debianize_package_name('groovy', name)
+                deb_version = repo_da_name_to_deb_version.get((repo_name, da_str, deb_name))
+                table[da_str][index] = deb_version
 
     return table
 
@@ -126,7 +126,8 @@ def get_dry_names_versions():
     return get_names_versions(get_dry_names_packages())
 
 def get_names_versions(names_pkgs):
-    return [(name, d.get('version')) for name, d in names_pkgs]
+    return sorted([(name, d.get('version')) for name, d in names_pkgs],
+                  key=lambda (name, version): name)
 
 def get_wet_names_packages():
     '''
