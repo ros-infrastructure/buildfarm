@@ -38,11 +38,11 @@ def make_status_page(repo_da_caches, da_strs, ros_pkgs_table):
 
 def get_repo_da_caches(rootdir, ros_repo_names, da_strs):
     '''
-    Returns [(repo_name, da_str, cache), ...]
+    Returns [(repo_name, da_str, cache_dir), ...]
 
     For example, get_repo_da_caches('/tmp/ros_apt_caches', ['ros', 'shadow-fixed'], ['quantal_i386'])
     '''
-    return [(ros_repo_name, da_str, get_apt_cache(get_repo_cache_dir_name(rootdir, ros_repo_name, da_str)))
+    return [(ros_repo_name, da_str, get_repo_cache_dir_name(rootdir, ros_repo_name, da_str))
             for ros_repo_name in ros_repo_names
             for da_str in da_strs]
 
@@ -78,8 +78,8 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_name
                                        for p in pkgs)
 
     for i, (name, version, wet) in enumerate(ros_pkgs_table):
-        for da_str in da_strs:
-            for j, repo_name in enumerate(repo_names):
+        for j, repo_name in enumerate(repo_names):
+            for da_str in da_strs:
                 index = i * len(repo_names) + j
                 table['name'][index] = name
                 table['version'][index] = version
@@ -216,7 +216,9 @@ def make_html_table(header, rows):
 </table>
 ''' % (header_str, rows_str)
 
-def get_names_versions_from_apt_cache(cache):
+def get_names_versions_from_apt_cache(cache_dir):
+    cache = apt.Cache(rootdir=cache_dir)
+    cache.open()
     names_versions = [{'name': k, 'version': cache[k].candidate.version} for k in cache.keys()]
     names_versions = [nv for nv in names_versions if 'ros-groovy' in nv['name']]
     return names_versions
