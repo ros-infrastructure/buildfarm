@@ -243,12 +243,11 @@ def get_names_versions_from_apt_cache(cache_dir):
 
 def main():
     import argparse
-    import BaseHTTPServer
 
     logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
     # Parse command line args
-    p = argparse.ArgumentParser(description='Start web server for deb build status')
+    p = argparse.ArgumentParser(description='Output deb build status HTML page on stdout')
     rd_help = '''\
 Root directory containing ROS apt caches.
 This should be created using status_page.build_repo_caches().
@@ -256,23 +255,14 @@ This should be created using status_page.build_repo_caches().
     p.add_argument('rootdir', help=rd_help)
     args = p.parse_args()
 
-    class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
-        def do_GET(self):
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            da_strs = list(reversed(get_da_strs(get_distro_arches())))
-            ros_repo_names = get_ros_repo_names(ros_repos)
-            repo_da_caches = get_repo_da_caches(args.rootdir, ros_repo_names, da_strs)
-            wet_names_versions = get_wet_names_versions()
-            dry_names_versions = get_dry_names_versions()
-            ros_pkgs_table = get_ros_pkgs_table(wet_names_versions, dry_names_versions)
-            page = make_status_page(repo_da_caches, da_strs, ros_pkgs_table)
-            self.wfile.write(page)
-
-    daemon = BaseHTTPServer.HTTPServer(('', 8080), Handler)
-    while True:
-        daemon.handle_request()
+    da_strs = get_da_strs(get_distro_arches())
+    ros_repo_names = get_ros_repo_names(ros_repos)
+    repo_da_caches = get_repo_da_caches(args.rootdir, ros_repo_names, da_strs)
+    wet_names_versions = get_wet_names_versions()
+    dry_names_versions = get_dry_names_versions()
+    ros_pkgs_table = get_ros_pkgs_table(wet_names_versions, dry_names_versions)
+    page = make_status_page(repo_da_caches, da_strs, ros_pkgs_table)
+    print page
 
 if __name__ == '__main__':
     main()
