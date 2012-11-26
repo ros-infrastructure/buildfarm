@@ -5,6 +5,9 @@ STACK_NAME=@(STACK_NAME)
 PACKAGE_NAME=@(PACKAGE)
 DISTRO_NAME=@(ROSDISTRO)
 
+# exit if anything fails
+set -o errexit
+
 echo $DISTRO_NAME
 echo $STACK_NAME
 echo $OS_PLATFORM
