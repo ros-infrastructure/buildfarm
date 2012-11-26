@@ -148,7 +148,10 @@ def build_repo_cache(dir, ros_repo_name, ros_repo_url, distro, arch):
     logging.info('Getting a list of packages for %s-%s', distro, arch)
     cache = apt.Cache(rootdir=dir)
     cache.open()
-    cache.update()
+    try:
+        cache.update()
+    except apt.cache.FetchFailedException as e:
+        logging.exception('Fetch failed while updating.')
     # Have to open the cache again after updating.
     cache.open()
 
