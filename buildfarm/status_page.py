@@ -71,7 +71,7 @@ def get_ros_repo_names(ros_repos):
     return ros_repos.keys()
 
 def get_da_strs(distro_arches):
-    return [get_dist_arch_str(d, a) for d, a in get_distro_arches()]
+    return [get_dist_arch_str(d, a) for d, a in distro_arches]
 
 def get_distro_arches():
     distros = buildfarm.rosdistro.get_target_distros('groovy')
