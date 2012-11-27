@@ -35,22 +35,20 @@ def make_status_page(repo_da_caches, da_strs, ros_pkgs_table):
                             ros_repos.keys())
 
     # Generate HTML from the in-memory table
-    table_html = make_html_from_table(t)
-    return make_html_doc(make_html_head(), body=table_html)
+    return make_csv_from_table(t)
 
-def make_html_head():
-    return '''
-<title>Build status page</title>
-<script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.8.0.js" type="text/javascript"></script>
-<script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.18/jquery-ui.min.js" type="text/javascript"></script>
-<script src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js" type="text/javascript"></script>
-<script type="text/javascript" charset="utf-8">
-    $(document).ready(function() {
-        // FIXME: Uncomment this once we have good styling.
-        // $('#build_status').dataTable();
-    } );
-</script>
-'''
+def make_csv_from_table(t):
+    '''
+    Makes a CSV-formatted string from the contents of numpy table t,
+    assumed to have named columns.
+    
+    >>> t = np.array([(1,2), (3,4)], dtype=[('c1', 'int32'), ('c2', 'int32')])
+    >>> make_csv_from_table(t)
+    'c1,c2\\n1,2\\n3,4'
+    '''
+    header = ','.join(t.dtype.names) 
+    lines = [','.join(map(str, row)) for row in t]
+    return '\n'.join([header] + lines)
 
 def get_repo_da_caches(rootdir, ros_repo_names, da_strs):
     '''
@@ -134,14 +132,6 @@ def get_ros_pkgs_table(wet_names_versions, dry_names_versions):
         [(name, version, False) for name, version in dry_names_versions],
         dtype=[('name', object), ('version', object), ('wet', bool)])
 
-def make_html_from_table(table):
-    '''
-    Makes an HTML table from a numpy array with named columns
-    '''
-    header = table.dtype.names
-    rows = [row for row in table]
-    return make_html_table(header, rows, id='build_status')
-
 def get_dist_arch_str(d, a):
     return "%s_%s" % (d, a)
 
@@ -212,50 +202,12 @@ def get_dry_names_packages():
 def get_dry_yaml():
     return yaml.load(urllib2.urlopen(distro_uri('groovy')))
 
-def make_html_doc(head, body):
-    '''
-    Returns the contents of an HTML page, given a title and body.
-    '''
-    return '''\
-<html>
-    <head>
-        %(head)s
-    </head>
-    <body>
-        %(body)s
-    </body>
-</html>
-''' % locals()
-
-def make_html_table(header, rows, id):
-    '''
-    Returns a string containing an HTML-formatted table, given a header and some
-    rows.
-
-    >>> make_html_table(header=['a'], rows=[[1], [2]])
-    '<table>\\n<tr><th>a</th></tr>\\n<tr><td>1</td></tr>\\n<tr><td>2</td></tr>\\n</table>\\n'
-
-    '''
-    header_str = '<tr>' + ''.join('<th>%s</th>' % c for c in header) + '</tr>'
-    rows_str = '\n'.join('<tr>' + ''.join('<td>%s</td>' % c for c in r) + '</tr>' 
-                         for r in rows)
-    return '''\
-<table class="display" id="%s">
-    <thead>
-        %s
-    </thead>
-    <tbody>
-        %s
-    </tbody>
-</table>
-''' % (id, header_str, rows_str)
-
 def get_pkgs_from_apt_cache(cache_dir):
     cache = apt.Cache(rootdir=cache_dir)
     cache.open()
     return [cache[name] for name in cache.keys() if 'ros-groovy' in name]
 
-def render(rootdir):
+def render_csv(rootdir):
     arches = bin_arches + ['source']
     da_strs = get_da_strs(get_distro_arches(arches))
     ros_repo_names = get_ros_repo_names(ros_repos)
@@ -275,20 +227,20 @@ def main():
     p = argparse.ArgumentParser(description='Output deb build status HTML page on stdout')
     rd_help = '''\
 Root directory containing ROS apt caches.
-This should be created using the buildcaches command.
+This should be created using the build_caches command.
 '''
-    p.add_argument('command', help='Command: either buildcaches or render')
+    p.add_argument('command', help='Command: either build_caches or render_csv')
     p.add_argument('rootdir', help=rd_help)
     args = p.parse_args()
 
-    if args.command == 'buildcaches':
+    if args.command == 'build_caches':
         build_repo_caches(args.rootdir, ros_repos, get_distro_arches(bin_arches))
 
-    elif args.command == 'render':
-        render(args.rootdir)
+    elif args.command == 'render_csv':
+        render_csv(args.rootdir)
 
     else:
-        print ('Command %s not recognized. Please specify buildcaches or render.' % args.command)
+        print ('Command %s not recognized. Please specify build_caches or render_csv.' % args.command)
 
 if __name__ == '__main__':
     main()
