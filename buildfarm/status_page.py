@@ -239,6 +239,16 @@ def get_names_versions_from_apt_cache(cache_dir):
     names_versions = [nv for nv in names_versions if 'ros-groovy' in nv['name']]
     return names_versions
 
+def render(rootdir):
+    da_strs = get_da_strs(get_distro_arches())
+    ros_repo_names = get_ros_repo_names(ros_repos)
+    repo_da_caches = get_repo_da_caches(rootdir, ros_repo_names, da_strs)
+    wet_names_versions = get_wet_names_versions()
+    dry_names_versions = get_dry_names_versions()
+    ros_pkgs_table = get_ros_pkgs_table(wet_names_versions, dry_names_versions)
+    page = make_status_page(repo_da_caches, da_strs, ros_pkgs_table)
+    print page
+
 def main():
     import argparse
 
@@ -258,14 +268,7 @@ This should be created using the buildcaches command.
         build_repo_caches(args.rootdir, ros_repos, get_distro_arches())
 
     elif args.command == 'render':
-        da_strs = get_da_strs(get_distro_arches())
-        ros_repo_names = get_ros_repo_names(ros_repos)
-        repo_da_caches = get_repo_da_caches(args.rootdir, ros_repo_names, da_strs)
-        wet_names_versions = get_wet_names_versions()
-        dry_names_versions = get_dry_names_versions()
-        ros_pkgs_table = get_ros_pkgs_table(wet_names_versions, dry_names_versions)
-        page = make_status_page(repo_da_caches, da_strs, ros_pkgs_table)
-        print page
+        render(args.rootdir)
 
     else:
         print ('Command %s not recognized. Please specify buildcaches or render.' % args.command)
