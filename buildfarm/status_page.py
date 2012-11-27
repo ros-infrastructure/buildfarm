@@ -106,31 +106,27 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_name
 def get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name):
     deb_name = buildfarm.rosdistro.debianize_package_name('groovy', name)
     if da_str.endswith('source'):
-        # Get the version from the amd64 package.
+        # Get the source version from the corresponding amd64 package.
         amd64_da_str = da_str.replace('source', 'amd64')
-        pkgs = repo_name_da_to_pkgs.get((repo_name, amd64_da_str), [])
-        matching_amd64_pkgs = [p for p in pkgs if p.name == deb_name]
-        if not matching_amd64_pkgs:
-            logging.debug('No amd64 package found for %s', deb_name)
-            return None
-        elif len(matching_amd64_pkgs) > 1:
-            logging.warn('More than one amd64 package found for %s: %s', deb_name,
-                         matching_amd64_pkgs)
-        else:
-            return matching_amd64_pkgs[0].candidate.source_version
+        p = get_matching_pkg(repo_name_da_to_pkgs, deb_name, repo_name, amd64_da_str)
+        return getattr(getattr(p, 'candidate', None), 'source_version', None)
     else:
-        pkgs = repo_name_da_to_pkgs.get((repo_name, da_str), [])
-        matching_pkgs = [p for p in pkgs if p.name == deb_name]
-        if not matching_pkgs:
-            logging.debug('No package found with name %s on %s repo, %s',
-                          deb_name, repo_name, da_str)
-            return None
-        elif len(matching_pkgs) > 1:
-            logging.warn('More than one package found with name %s on %s repo, %s',
-                         deb_name, repo_name, da_str)
-            return None
-        else:
-            return matching_pkgs[0].candidate.version
+        p = get_matching_pkg(repo_name_da_to_pkgs, deb_name, repo_name, da_str)
+        return getattr(getattr(p, 'candidate', None), 'version', None)
+
+def get_matching_pkg(repo_name_da_to_pkgs, deb_name, repo_name, da_str):
+    pkgs = repo_name_da_to_pkgs.get((repo_name, da_str), [])
+    matching_pkgs = [p for p in pkgs if p.name == deb_name]
+    if not matching_pkgs:
+        logging.debug('No package found with name %s on %s repo, %s',
+                      deb_name, repo_name, da_str)
+        return None
+    elif len(matching_pkgs) > 1:
+        logging.warn('More than one package found with name %s on %s repo, %s',
+                     deb_name, repo_name, da_str)
+        return None
+    else:
+        return matching_pkgs[0]
 
 def get_ros_pkgs_table(wet_names_versions, dry_names_versions):
     return np.array(
