@@ -27,7 +27,7 @@ def make_status_page(repo_da_caches, da_strs, ros_pkgs_table):
     :param ros_pkgs_table: numpy array from get_ros_pkgs_table()
     '''
     # Get the version of each Debian package in each ROS apt repository.
-    repo_name_da_to_pkgs = dict(((repo_name, da_str), get_names_versions_from_apt_cache(cache))
+    repo_name_da_to_pkgs = dict(((repo_name, da_str), get_pkgs_from_apt_cache(cache))
                                 for repo_name, da_str, cache in repo_da_caches)
 
     # Make in-memory table showing the latest deb version for each package.
@@ -73,9 +73,10 @@ def get_ros_repo_names(ros_repos):
 def get_da_strs(distro_arches):
     return [get_dist_arch_str(d, a) for d, a in distro_arches]
 
-def get_distro_arches():
+bin_arches = ['amd64', 'i386']
+
+def get_distro_arches(arches):
     distros = buildfarm.rosdistro.get_target_distros('groovy')
-    arches = ['amd64', 'i386', 'source']
     return [(d, a) for d in distros for a in arches]
 
 def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_names):
@@ -89,9 +90,6 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_name
     right_columns = [(da_str, object) for da_str in da_strs]
     columns = left_columns + right_columns
     table = np.empty(len(ros_pkgs_table)*len(repo_names), dtype=columns)
-    repo_da_name_to_deb_version = dict(((repo_name, da_str, p['name']), p['version'])
-                                       for (repo_name, da_str), pkgs in repo_name_da_to_pkgs.items()
-                                       for p in pkgs)
 
     for i, (name, version, wet) in enumerate(ros_pkgs_table):
         for j, repo_name in enumerate(repo_names):
@@ -101,11 +99,38 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_name
                 table['version'][index] = version
                 table['wet'][index] = wet
                 table['ros_apt_repo'][index] = repo_name
-                deb_name = buildfarm.rosdistro.debianize_package_name('groovy', name)
-                deb_version = repo_da_name_to_deb_version.get((repo_name, da_str, deb_name))
-                table[da_str][index] = deb_version
+                table[da_str][index] = get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name)
 
     return table
+
+def get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name):
+    deb_name = buildfarm.rosdistro.debianize_package_name('groovy', name)
+    if da_str.endswith('source'):
+        # Get the version from the amd64 package.
+        amd64_da_str = da_str.replace('source', 'amd64')
+        pkgs = repo_name_da_to_pkgs.get((repo_name, amd64_da_str), [])
+        matching_amd64_pkgs = [p for p in pkgs if p.name == deb_name]
+        if not matching_amd64_pkgs:
+            logging.debug('No amd64 package found for %s', deb_name)
+            return None
+        elif len(matching_amd64_pkgs) > 1:
+            logging.warn('More than one amd64 package found for %s: %s', deb_name,
+                         matching_amd64_pkgs)
+        else:
+            return matching_amd64_pkgs[0].candidate.source_version
+    else:
+        pkgs = repo_name_da_to_pkgs.get((repo_name, da_str), [])
+        matching_pkgs = [p for p in pkgs if p.name == deb_name]
+        if not matching_pkgs:
+            logging.debug('No package found with name %s on %s repo, %s',
+                          deb_name, repo_name, da_str)
+            return None
+        elif len(matching_pkgs) > 1:
+            logging.warn('More than one package found with name %s on %s repo, %s',
+                         deb_name, repo_name, da_str)
+            return None
+        else:
+            return matching_pkgs[0].candidate.version
 
 def get_ros_pkgs_table(wet_names_versions, dry_names_versions):
     return np.array(
@@ -148,10 +173,7 @@ def build_repo_cache(dir, ros_repo_name, ros_repo_url, distro, arch):
     logging.info('Getting a list of packages for %s-%s', distro, arch)
     cache = apt.Cache(rootdir=dir)
     cache.open()
-    try:
-        cache.update()
-    except apt.cache.FetchFailedException as e:
-        logging.exception('Fetch failed while updating.')
+    cache.update()
     # Have to open the cache again after updating.
     cache.open()
 
@@ -232,15 +254,14 @@ def make_html_table(header, rows, id):
 </table>
 ''' % (id, header_str, rows_str)
 
-def get_names_versions_from_apt_cache(cache_dir):
+def get_pkgs_from_apt_cache(cache_dir):
     cache = apt.Cache(rootdir=cache_dir)
     cache.open()
-    names_versions = [{'name': k, 'version': cache[k].candidate.version} for k in cache.keys()]
-    names_versions = [nv for nv in names_versions if 'ros-groovy' in nv['name']]
-    return names_versions
+    return [cache[name] for name in cache.keys() if 'ros-groovy' in name]
 
 def render(rootdir):
-    da_strs = get_da_strs(get_distro_arches())
+    arches = bin_arches + ['source']
+    da_strs = get_da_strs(get_distro_arches(arches))
     ros_repo_names = get_ros_repo_names(ros_repos)
     repo_da_caches = get_repo_da_caches(rootdir, ros_repo_names, da_strs)
     wet_names_versions = get_wet_names_versions()
@@ -265,7 +286,7 @@ This should be created using the buildcaches command.
     args = p.parse_args()
 
     if args.command == 'buildcaches':
-        build_repo_caches(args.rootdir, ros_repos, get_distro_arches())
+        build_repo_caches(args.rootdir, ros_repos, get_distro_arches(bin_arches))
 
     elif args.command == 'render':
         render(args.rootdir)
