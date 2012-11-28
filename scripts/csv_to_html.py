@@ -2,7 +2,7 @@
 
 import csv
 import sys
-from xml.dom import minidom
+import BeautifulSoup as bs
 
 def main():
     r = csv.reader(sys.stdin, delimiter=',', quotechar='"')
@@ -15,18 +15,39 @@ def main():
     sys.stdout.write(html)
 
 def prettify_html(html):
-    dom = minidom.parseString(html)
-    return dom.toprettyxml()
+    dom = bs.BeautifulSoup(html)
+    return dom.prettify()
 
 def make_html_head(table_name):
     return '''
 <title>Build status page</title>
-<script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.8.0.js" type="text/javascript"></script>
-<script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.18/jquery-ui.min.js" type="text/javascript"></script>
-<script src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js" type="text/javascript"></script>
+
+<style type="text/css" media="screen">
+    @import "http://datatables.net/media/css/site_jui.ccss";
+    @import "http://datatables.net/release-datatables/media/css/demo_table_jui.css";
+    @import "http://datatables.net/media/css/jui_themes/smoothness/jquery-ui-1.7.2.custom.css";
+    
+    /*
+     * Override styles needed due to the mix of three different CSS sources! For proper examples
+     * please see the themes example in the 'Examples' section of this site
+     */
+    .dataTables_info { padding-top: 0; }
+    .dataTables_paginate { padding-top: 0; }
+    .css_right { float: right; }
+    #example_wrapper .fg-toolbar { font-size: 0.8em }
+    #theme_links span { float: left; padding: 2px 10px; }
+    
+</style>
+
+<script type="text/javascript" src="http://datatables.net/media/javascript/complete.min.js"></script>
+<script type="text/javascript" src="http://datatables.net/release-datatables/media/js/jquery.dataTables.min.js"></script>
+
 <script type="text/javascript" charset="utf-8">
     $(document).ready(function() {
-        $('#%s').dataTable();
+        $('#%s').dataTable( {
+            "bJQueryUI": true,
+            "sPaginationType": "full_numbers"
+        } );
     } );
 </script>
 ''' % table_name
