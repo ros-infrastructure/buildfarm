@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+import csv
 import os
 import logging
 import re
+import sys
 import urllib2
 import yaml
 
@@ -18,40 +20,6 @@ ros_repos = {'ros': 'http://packages.ros.org/ros/ubuntu/',
              'building': 'http://50.28.27.175/repos/building'}
 
 version_rx = re.compile(r'[0-9.-]+[0-9]')
-
-def make_status_page(repo_da_caches, da_strs, ros_pkgs_table):
-    '''
-    Returns the contents of a CSV file showing the current
-    build status for all wet and dry packages on all
-    supported distributions and architectures.
-
-    :param repo_da_caches: from get_repo_da_caches()
-    :param da_strs: list of str from get_da_strs()
-    :param ros_pkgs_table: numpy array from get_ros_pkgs_table()
-    '''
-    # Get the version of each Debian package in each ROS apt repository.
-    repo_name_da_to_pkgs = dict(((repo_name, da_str), get_pkgs_from_apt_cache(cache))
-                                for repo_name, da_str, cache in repo_da_caches)
-
-    # Make in-memory table showing the latest deb version for each package.
-    t = make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs,
-                            ros_repos.keys())
-
-    # Generate HTML from the in-memory table
-    return make_csv_from_table(t)
-
-def make_csv_from_table(t):
-    '''
-    Makes a CSV-formatted string from the contents of numpy table t,
-    assumed to have named columns.
-    
-    >>> t = np.array([(1,2), (3,4)], dtype=[('c1', 'int32'), ('c2', 'int32')])
-    >>> make_csv_from_table(t)
-    'c1,c2\\n1,2\\n3,4'
-    '''
-    header = ','.join(t.dtype.names) 
-    lines = [','.join(map(str, row)) for row in t]
-    return '\n'.join([header] + lines)
 
 def get_repo_da_caches(rootdir, ros_repo_names, da_strs):
     '''
@@ -86,22 +54,24 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_name
     ros package names and versions followed by debian versions for each
     distro/arch.
     '''
-    left_columns = [('name', object), ('version', object), ('wet', bool),
-                    ('ros_apt_repo', object)]
+    left_columns = [('name', object), ('version', object), ('wet', bool)]
     right_columns = [(da_str, object) for da_str in da_strs]
     columns = left_columns + right_columns
-    table = np.empty(len(ros_pkgs_table)*len(repo_names), dtype=columns)
+    table = np.empty(len(ros_pkgs_table), dtype=columns)
 
     for i, (name, version, wet) in enumerate(ros_pkgs_table):
-        for j, repo_name in enumerate(repo_names):
-            for da_str in da_strs:
-                index = i * len(repo_names) + j
-                table['name'][index] = name
-                table['version'][index] = version
-                table['wet'][index] = wet
-                table['ros_apt_repo'][index] = repo_name
-                v = str(get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name))
-                table[da_str][index] = strip_version_suffix(v)
+        table['name'][i] = name
+        table['version'][i] = version
+        table['wet'][i] = wet
+        for da_str in da_strs:
+            versions = []
+            for j, repo_name in enumerate(repo_names):
+                v = get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name)
+                v = str(v)
+                v = strip_version_suffix(v)
+                versions.append(v)
+
+            table[da_str][i] = '|'.join(versions)
 
     return table
 
@@ -235,8 +205,20 @@ def render_csv(rootdir):
     wet_names_versions = get_wet_names_versions()
     dry_names_versions = get_dry_names_versions()
     ros_pkgs_table = get_ros_pkgs_table(wet_names_versions, dry_names_versions)
-    page = make_status_page(repo_da_caches, da_strs, ros_pkgs_table)
-    print page
+
+    # Get the version of each Debian package in each ROS apt repository.
+    repo_name_da_to_pkgs = dict(((repo_name, da_str), get_pkgs_from_apt_cache(cache))
+                                for repo_name, da_str, cache in repo_da_caches)
+
+    # Make an in-memory table showing the latest deb version for each package.
+    t = make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs,
+                            ros_repos.keys())
+
+    # Output CSV from the in-memory table
+    w = csv.writer(sys.stdout)
+    w.writerow(t.dtype.names) 
+    for row in t:
+        w.writerow(row)
 
 def main():
     import argparse
