@@ -2,6 +2,7 @@
 
 import os
 import logging
+import re
 import urllib2
 import yaml
 
@@ -15,6 +16,8 @@ from rospkg.distro import distro_uri
 ros_repos = {'ros': 'http://packages.ros.org/ros/ubuntu/',
              'shadow-fixed': 'http://packages.ros.org/ros-shadow-fixed/ubuntu/',
              'building': 'http://50.28.27.175/repos/building'}
+
+version_rx = re.compile(r'[0-9.-]+[0-9]')
 
 def make_status_page(repo_da_caches, da_strs, ros_pkgs_table):
     '''
@@ -97,13 +100,11 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_name
                 table['version'][index] = version
                 table['wet'][index] = wet
                 table['ros_apt_repo'][index] = repo_name
-                v = get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name)
+                v = str(get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name))
                 table[da_str][index] = strip_version_suffix(v)
 
     return table
 
-import re
-version_rx = re.compile(r'[0-9.-]+')
 def strip_version_suffix(version):
     """
     Removes trailing junk from the version number.
@@ -114,6 +115,8 @@ def strip_version_suffix(version):
     'None'
     >>> strip_version_suffix('1.9.9-0quantal-20121115-0529-+0000')
     '1.9.9-0'
+    >>> strip_version_suffix('1.9.9-foo')
+    '1.9.9'
     """
     match = version_rx.search(version)
     return match.group(0) if match else version
