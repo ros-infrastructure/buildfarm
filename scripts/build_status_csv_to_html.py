@@ -27,8 +27,7 @@ def format_version(version, latest):
     return tooltip_square(version, color)
 
 def tooltip_square(label, color):
-    # fixme: use label
-    return '<div class="%s square">&nbsp;</div>' % color
+    return '<div class="%s square" title="%s" /> </div>' % (color, label)
 
 def make_html_head(table_name):
     # Some of the code here is taken from a datatables example.
