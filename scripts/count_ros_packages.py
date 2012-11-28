@@ -32,7 +32,8 @@ if __name__ == "__main__":
     count = buildfarm.repo.count_packages(args.repo_url, args.rosdistro, args.distro, args.arch)
     print "Found %d packages matching: %s" % (count, args)
 
-    if count > args.count:
+    min_num = int(args.count)
+    if count > min_num:
         print "Count greater than argument, return True"
         sys.exit(0)
     else:
