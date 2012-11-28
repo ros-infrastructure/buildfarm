@@ -18,7 +18,7 @@ ros_repos = {'ros': 'http://packages.ros.org/ros/ubuntu/',
 
 def make_status_page(repo_da_caches, da_strs, ros_pkgs_table):
     '''
-    Returns the contents of an HTML page showing the current
+    Returns the contents of a CSV file showing the current
     build status for all wet and dry packages on all
     supported distributions and architectures.
 
@@ -97,9 +97,26 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_name
                 table['version'][index] = version
                 table['wet'][index] = wet
                 table['ros_apt_repo'][index] = repo_name
-                table[da_str][index] = get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name)
+                v = get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name)
+                table[da_str][index] = strip_version_suffix(v)
 
     return table
+
+import re
+version_rx = re.compile(r'[0-9.-]+')
+def strip_version_suffix(version):
+    """
+    Removes trailing junk from the version number.
+
+    >>> strip_version_suffix('')
+    ''
+    >>> strip_version_suffix('None')
+    'None'
+    >>> strip_version_suffix('1.9.9-0quantal-20121115-0529-+0000')
+    '1.9.9-0'
+    """
+    match = version_rx.search(version)
+    return match.group(0) if match else version
 
 def get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name):
     deb_name = buildfarm.rosdistro.debianize_package_name('groovy', name)
