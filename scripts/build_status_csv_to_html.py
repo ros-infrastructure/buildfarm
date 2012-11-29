@@ -19,12 +19,14 @@ def format_row(row):
     return row[:3] + [format_versions_cell(c, latest_version) for c in row[3:]]
 
 def format_versions_cell(cell, latest_version):
+    repos = ['building', 'shadow-fixed', 'ros/public']
     versions = cell.split('|')
-    return ' '.join([format_version(v, latest_version) for v in versions])
+    return ' '.join([format_version(v, latest_version, r) for v, r in zip(versions, repos)])
 
-def format_version(version, latest):
+def format_version(version, latest, repo):
     color = {'None': 'red', latest: 'green'}.get(version, 'blue')
-    return tooltip_square(version, color)
+    label = '%s: %s' % (repo, version)
+    return tooltip_square(label, color)
 
 def tooltip_square(label, color):
     return '<div class="%s square" title="%s" /> </div>' % (color, label)
