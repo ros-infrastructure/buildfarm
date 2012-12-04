@@ -103,7 +103,7 @@ class MatchExtractor {
 
 // define patterns and extraction parameters
 // catkin_pkg warnings for invalid package.xml files
-warnings_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile(&quot;WARNING:&quot;), next_lines=1, skip_first_line=true))
+warnings_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile(&quot;WARNING\\(s\\) in .*:&quot;), next_lines=1, skip_first_line=true))
 // custom catkin deprecation messages
 deprecations_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile(&quot;.*\\) is deprecated.*&quot;)))
 // c++ compiler warning for usage of a deprecated function
