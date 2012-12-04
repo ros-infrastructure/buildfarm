@@ -44,11 +44,11 @@ def get_da_strs(distro_arches):
 
 bin_arches = ['amd64', 'i386']
 
-def get_distro_arches(arches):
-    distros = buildfarm.rosdistro.get_target_distros('groovy')
+def get_distro_arches(arches, rosdistro):
+    distros = buildfarm.rosdistro.get_target_distros(rosdistro)
     return [(d, a) for d in distros for a in arches]
 
-def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_names):
+def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_names, rosdistro):
     '''
     Returns an in-memory table with all the information that will be displayed:
     ros package names and versions followed by debian versions for each
@@ -66,7 +66,7 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_name
         for da_str in da_strs:
             versions = []
             for j, repo_name in enumerate(repo_names):
-                v = get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name)
+                v = get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name, rosdistro)
                 v = str(v)
                 v = strip_version_suffix(v)
                 versions.append(v)
@@ -91,8 +91,8 @@ def strip_version_suffix(version):
     match = version_rx.search(version)
     return match.group(0) if match else version
 
-def get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name):
-    deb_name = buildfarm.rosdistro.debianize_package_name('groovy', name)
+def get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name, rosdistro):
+    deb_name = buildfarm.rosdistro.debianize_package_name(rosdistro, name)
     if da_str.endswith('source'):
         # Get the source version from the corresponding amd64 package.
         amd64_da_str = da_str.replace('source', 'amd64')
@@ -153,20 +153,20 @@ def build_repo_cache(dir, ros_repo_name, ros_repo_url, distro, arch):
     # Have to open the cache again after updating.
     cache.open()
 
-def get_wet_names_versions(rosdistro='groovy'):
+def get_wet_names_versions(rosdistro):
     rd = buildfarm.rosdistro.Rosdistro(rosdistro)
     return sorted([(name, rd.get_version(name)) for name in rd.get_package_list()],
                   key=lambda (name, version): name)
 
-def get_dry_names_versions():
-    return get_names_versions(get_dry_names_packages())
+def get_dry_names_versions(rosdistro):
+    return get_names_versions(get_dry_names_packages(rosdistro))
 
 def get_names_versions(names_pkgs):
     return sorted([(name, d.get('version')) for name, d in names_pkgs],
                   key=lambda (name, version): name)
 
 
-def get_dry_names_packages():
+def get_dry_names_packages(rosdistro):
     '''
     Fetches a yaml file from the web and returns a list of pairs of the form
 
@@ -174,33 +174,31 @@ def get_dry_names_packages():
 
     for the dry (rosbuild) packages.
     '''
-    dry_yaml = get_dry_yaml()
+    
+    dry_yaml = yaml.load(urllib2.urlopen(distro_uri(rosdistro)))
     return [(name, d) for name, d in dry_yaml['stacks'].items() if name != '_rules']
 
-def get_dry_yaml():
-    return yaml.load(urllib2.urlopen(distro_uri('groovy')))
-
-def get_pkgs_from_apt_cache(cache_dir):
+def get_pkgs_from_apt_cache(cache_dir, substring):
     cache = apt.Cache(rootdir=cache_dir)
     cache.open()
-    return [cache[name] for name in cache.keys() if 'ros-groovy' in name]
+    return [cache[name] for name in cache.keys() if substring in name]
 
-def render_csv(rootdir, outfile):
+def render_csv(rootdir, outfile, rosdistro):
     arches = bin_arches + ['source']
-    da_strs = get_da_strs(get_distro_arches(arches))
+    da_strs = get_da_strs(get_distro_arches(arches, rosdistro))
     ros_repo_names = get_ros_repo_names(ros_repos)
     repo_da_caches = get_repo_da_caches(rootdir, ros_repo_names, da_strs)
-    wet_names_versions = get_wet_names_versions()
-    dry_names_versions = get_dry_names_versions()
+    wet_names_versions = get_wet_names_versions(rosdistro)
+    dry_names_versions = get_dry_names_versions(rosdistro)
     ros_pkgs_table = get_ros_pkgs_table(wet_names_versions, dry_names_versions)
 
     # Get the version of each Debian package in each ROS apt repository.
-    repo_name_da_to_pkgs = dict(((repo_name, da_str), get_pkgs_from_apt_cache(cache))
+    repo_name_da_to_pkgs = dict(((repo_name, da_str), get_pkgs_from_apt_cache(cache, 'ros-%s'%rosdistro))
                                 for repo_name, da_str, cache in repo_da_caches)
 
     # Make an in-memory table showing the latest deb version for each package.
     t = make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs,
-                            ros_repos.keys())
+                            ros_repos.keys(), rosdistro)
 
     with open(outfile , 'w') as fh:
 
@@ -224,13 +222,14 @@ This should be created using the build_caches command.
     p.add_argument('command', help='Command: either build_caches or render_csv')
     p.add_argument('rootdir', help=rd_help)
     p.add_argument('-O', '--output-file', dest='output_file', action='store', default='groovy.csv')
+    p.add_argument('--rosdistro', dest='rosdistro', default='groovy')
     args = p.parse_args()
 
     if args.command == 'build_caches':
-        build_repo_caches(args.rootdir, ros_repos, get_distro_arches(bin_arches))
+        build_repo_caches(args.rootdir, ros_repos, get_distro_arches(bin_arches, args.rosdistro))
 
     elif args.command == 'render_csv':
-        render_csv(args.rootdir, args.output_file)
+        render_csv(args.rootdir, args.output_file, args.rosdistro)
 
     else:
         print ('Command %s not recognized. Please specify build_caches or render_csv.' % args.command)
