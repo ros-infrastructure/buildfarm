@@ -185,7 +185,7 @@ def get_pkgs_from_apt_cache(cache_dir):
     cache.open()
     return [cache[name] for name in cache.keys() if 'ros-groovy' in name]
 
-def render_csv(rootdir):
+def render_csv(rootdir, outfile):
     arches = bin_arches + ['source']
     da_strs = get_da_strs(get_distro_arches(arches))
     ros_repo_names = get_ros_repo_names(ros_repos)
@@ -202,11 +202,13 @@ def render_csv(rootdir):
     t = make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs,
                             ros_repos.keys())
 
-    # Output CSV from the in-memory table
-    w = csv.writer(sys.stdout)
-    w.writerow(t.dtype.names) 
-    for row in t:
-        w.writerow(row)
+    with open(outfile , 'w') as fh:
+
+        # Output CSV from the in-memory table
+        w = csv.writer(fh)
+        w.writerow(t.dtype.names) 
+        for row in t:
+            w.writerow(row)
 
 def main():
     import argparse
@@ -221,13 +223,14 @@ This should be created using the build_caches command.
 '''
     p.add_argument('command', help='Command: either build_caches or render_csv')
     p.add_argument('rootdir', help=rd_help)
+    p.add_argument('-O', '--output-file', dest='output_file', action='store', default='groovy.csv')
     args = p.parse_args()
 
     if args.command == 'build_caches':
         build_repo_caches(args.rootdir, ros_repos, get_distro_arches(bin_arches))
 
     elif args.command == 'render_csv':
-        render_csv(args.rootdir)
+        render_csv(args.rootdir, args.output_file)
 
     else:
         print ('Command %s not recognized. Please specify build_caches or render_csv.' % args.command)
