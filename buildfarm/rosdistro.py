@@ -3,18 +3,22 @@
 
 from __future__ import print_function
 
-import logging
 import sys
 import yaml, urllib2
 
 URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
 
 class RepoMetadata(object):
-    def __init__(self, name, url, version, status = None):
+    def __init__(self, name, url, version, packages = {}, status = None):
         self.name = name
         self.url = url
-        self.version = version
+        self.full_version = version
+        if version:
+            self.version = version.split('-')[0]
+        else:
+            self.version = None
         self.status = status
+        self.packages = packages
 
 
 def sanitize_package_name(name):
@@ -22,6 +26,8 @@ def sanitize_package_name(name):
 
 
 def debianize_package_name(rosdistro, name):
+    if rosdistro == 'backports':
+        return sanitize_package_name(name)
     return sanitize_package_name("ros-%s-%s"%(rosdistro, name))
 
 
@@ -31,7 +37,11 @@ class Rosdistro:
         self._rosdistro = rosdistro_name
         self._targets = None
         # avaliable for backwards compatability
-        self.repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%rosdistro_name))
+        try:
+            self.repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE % rosdistro_name))
+        except urllib2.HTTPError as ex:
+            print ("Loading distro from '%s'failed with HTTPError %s" % (URL_PROTOTYPE % rosdistro_name, ex), file=sys.stderr)
+            raise
         if 'release-name' not in self.repo_map:
             print("No 'release-name' key in yaml file")
             sys.exit(1)
@@ -65,8 +75,26 @@ class Rosdistro:
     def get_repos(self):
         return self._repoinfo.itervalues()
 
+    def get_repo(self, name):
+        return self._repoinfo[name]
+
     def get_package_list(self):
-        return self._repoinfo.iterkeys()
+        packages = set()
+        for repo, repo_obj in self._repoinfo.iteritems():
+            packages |= set(repo_obj.packages.keys())
+        return packages
+
+    def get_package_checkout_info(self):
+        packages = {}
+        for repo, info  in self._repoinfo.iteritems():
+            for p, path in info.packages.iteritems():
+                if info.version == None: 
+                    print ("Skipping repo %s due to null version" % p)
+                    continue
+                packages[p] = {'url': info.url, 
+                               'version': 'release/%s/%s' % (p, info.version), 
+                               'relative_path': path}
+        return packages
                 
     def get_version(self, package_name):
         if package_name in self._package_in_repo:
@@ -96,6 +124,7 @@ class Rosdistro:
     def get_stack_rosinstall_snippet(self, distro = None):
         if not distro:
             distro = self.get_default_target()
+        raise NotImplemented
             
 
     def compute_rosinstall_snippet(self, local_name, gbp_url, version, distro_name):
@@ -120,10 +149,10 @@ class Rosdistro:
 
 
 def get_target_distros(rosdistro):
-    logging.info("Fetching " + URL_PROTOTYPE%'targets')
+    print("Fetching " + URL_PROTOTYPE%'targets')
     targets_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%'targets'))
     my_targets = [x for x in targets_map if rosdistro in x]
     if len(my_targets) != 1:
-        logging.fatal("Must have exactly one entry for rosdistro %s in targets.yaml"%(rosdistro))
+        print("Must have exactly one entry for rosdistro %s in targets.yaml"%(rosdistro))
         sys.exit(1)
     return my_targets[0][rosdistro]
