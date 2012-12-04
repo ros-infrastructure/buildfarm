@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     rd = rosdistro.Rosdistro(args.rosdistro)
 
-    package_version = rd.get_version(args.short_package_name)
+    package_version = rd.get_version(args.short_package_name, full_version=True)
     print ("package name", args.short_package_name, "version", package_version)
 
     repo_base, extension = os.path.splitext(os.path.basename(args.repo_uri))
