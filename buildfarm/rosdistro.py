@@ -96,9 +96,12 @@ class Rosdistro:
                                'relative_path': path}
         return packages
                 
-    def get_version(self, package_name):
+    def get_version(self, package_name, full_version = False):
         if package_name in self._package_in_repo:
-            return self._repoinfo[self._package_in_repo[package_name]].version
+            if full_version:
+                return self._repoinfo[self._package_in_repo[package_name]].full_version
+            else:
+                return self._repoinfo[self._package_in_repo[package_name]].version
         else:
             return None
 

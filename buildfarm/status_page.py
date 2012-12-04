@@ -155,7 +155,7 @@ def build_repo_cache(dir, ros_repo_name, ros_repo_url, distro, arch):
 
 def get_wet_names_versions(rosdistro):
     rd = buildfarm.rosdistro.Rosdistro(rosdistro)
-    return sorted([(name, rd.get_version(name)) for name in rd.get_package_list()],
+    return sorted([(name, rd.get_version(name, full_version=True)) for name in rd.get_package_list()],
                   key=lambda (name, version): name)
 
 def get_dry_names_versions(rosdistro):
