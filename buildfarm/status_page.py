@@ -153,8 +153,10 @@ def build_repo_cache(dir, ros_repo_name, ros_repo_url, distro, arch):
     # Have to open the cache again after updating.
     cache.open()
 
-def get_wet_names_versions():
-    return get_names_versions(get_wet_names_packages())
+def get_wet_names_versions(rosdistro='groovy'):
+    rd = buildfarm.rosdistro.Rosdistro(rosdistro)
+    return sorted([(name, rd.get_version(name)) for name in rd.get_package_list()],
+                  key=lambda (name, version): name)
 
 def get_dry_names_versions():
     return get_names_versions(get_dry_names_packages())
@@ -163,20 +165,6 @@ def get_names_versions(names_pkgs):
     return sorted([(name, d.get('version')) for name, d in names_pkgs],
                   key=lambda (name, version): name)
 
-def get_wet_names_packages():
-    '''
-    Fetches a yaml file from the web and returns a list of pairs of the form
-
-    [(short_pkg_name, pkg_dict), ...]
-
-    for the wet (catkinized) packages.
-    '''
-    wet_yaml = get_wet_yaml()
-    return wet_yaml['repositories'].items()
-
-def get_wet_yaml():
-    url = 'https://raw.github.com/ros/rosdistro/master/releases/groovy.yaml'
-    return yaml.load(urllib2.urlopen(url))
 
 def get_dry_names_packages():
     '''
