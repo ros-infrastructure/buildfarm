@@ -424,14 +424,14 @@ def make_html_table(header, footer, rows, table_id):
     <thead>
         %s
     </thead>
-    <tbody>
-        %s
-    </tbody>
     <tfoot>
         %s
     </tfoot>
+    <tbody>
+        %s
+    </tbody>
 </table>
-''' % (table_id, header_str, rows_str, footer_str)
+''' % (table_id, header_str, footer_str, rows_str)
 
 
 def make_html_doc(head, body):
