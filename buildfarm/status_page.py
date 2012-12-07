@@ -256,7 +256,7 @@ def format_row(row, metadata_columns):
 
     # urls for each building repository column
     metadata = [None] * 3 + [md for md in metadata_columns[3:]]
-    job_urls = [md['job_url'].format(pkg=row[0]) if md else None for md in metadata]
+    job_urls = [md['job_url'].format(pkg=row[0].replace('_', '-')) if md else None for md in metadata]
 
     row = row[:2] + [format_wet_cell(row[2])] + [format_versions_cell(row[i], latest_version, job_urls[i]) for i in range(3, len(row))]
     if row[3] != row[6] or row[3] != row[9] or row[4] != row[7] or row[4] != row[10] or row[5] != row[8] or row[5] != row[11]:
