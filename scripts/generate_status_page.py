@@ -36,9 +36,37 @@ if __name__ == '__main__':
     else:
         print('Skip generating .csv file')
 
+    def metadata_builder(column_data):
+        distro, jobtype = column_data.split('_', 1)
+        data = {
+            'rosdistro': args.rosdistro,
+            'rosdistro_short': args.rosdistro[0].upper(),
+            'distro': distro,
+            'distro_short': distro[0].upper()
+        }
+        is_source = jobtype == 'source'
+        if is_source:
+            column_label = '{rosdistro_short}src{distro_short}'
+            view_name = '{rosdistro_short}src'
+        else:
+            data['arch_short'] = {'amd64': '64', 'i386': '32'}[jobtype]
+            column_label = '{rosdistro_short}bin{distro_short}{arch_short}'
+            view_name = '{rosdistro_short}bin{distro_short}{arch_short}'
+        data['column_label'] = column_label.format(**data)
+        data['view_url'] = 'http://jenkins.willowgarage.com:8080/view/%s/' % view_name.format(**data)
+
+        if is_source:
+            job_name = 'ros-{rosdistro}-{{pkg}}_sourcedeb'
+        else:
+            data['arch'] = jobtype
+            job_name = 'ros-{rosdistro}-{{pkg}}_binarydeb_{distro}_{arch}'
+        data['job_url'] = ('{view_url}job/%s/' % job_name).format(**data)
+
+        return data
+
     print('Transforming .csv into .html file...')
     with open(csv_file, 'r') as f:
-        html = transform_csv_to_html(f)
+        html = transform_csv_to_html(f, metadata_builder)
     html_file = os.path.join(args.basedir, '%s.html' % args.rosdistro)
     with open(html_file, 'w') as f:
         f.write(html)

@@ -209,7 +209,7 @@ def render_csv(rootdir, outfile, rosdistro):
             w.writerow(row)
 
 
-def transform_csv_to_html(data_source):
+def transform_csv_to_html(data_source, metadata_builder):
     reader = csv.reader(data_source, delimiter=',', quotechar='"')
     rows = [row for row in reader]
 
@@ -224,7 +224,9 @@ def transform_csv_to_html(data_source):
     table_name = 'csv_table'
     html_head = make_html_head(table_name)
 
-    header = map(format_header_cell, header)
+    metadata_columns = [None] * 3 + [metadata_builder(c) for c in header[3:]]
+    header = [format_header_cell(header[i], metadata_columns[i]) for i in range(len(header))]
+
     # count non-None rows per (sub-)column
     footer = [[]] * 3 + [[0] * 3 for c in header[3:]]
     for row in rows:
@@ -233,26 +235,30 @@ def transform_csv_to_html(data_source):
             for j in range(0, len(versions)):
                 if versions[j] != 'None':
                     footer[i][j] += 1
-    rows = map(format_row, rows)
+
+    rows = [format_row(r, metadata_columns) for r in rows]
     body = make_html_legend()
     body += make_html_table(header, footer, rows, table_name)
 
     return make_html_doc(html_head, body)
 
 
-def format_header_cell(cell):
-    replaces = {'oneiric_': 'O', 'precise_': 'P', 'quantal_': 'Q', 'amd64': '64', 'i386': '32', 'source': 'src'}
-    for k, v in replaces.iteritems():
-        cell = cell.replace(k, v, 1)
+def format_header_cell(cell, metadata):
+    if metadata and 'column_label' in metadata:
+        cell = metadata['column_label']
     return cell
 
 
-def format_row(row):
+def format_row(row, metadata_columns):
     latest_version = row[1]
     public_changing_on_sync = [c for c in row[3:] if is_public_changing_on_sync(c)]
     public_regression_on_sync = [c for c in row[3:] if is_public_regression_on_sync(c)]
 
-    row = row[:2] + [format_wet_cell(row[2])] + [format_versions_cell(c, latest_version) for c in row[3:]]
+    # urls for each building repository column
+    metadata = [None] * 3 + [md for md in metadata_columns[3:]]
+    job_urls = [md['job_url'].format(pkg=row[0]) if md else None for md in metadata]
+
+    row = row[:2] + [format_wet_cell(row[2])] + [format_versions_cell(row[i], latest_version, job_urls[i]) for i in range(3, len(row))]
     if row[3] != row[6] or row[3] != row[9] or row[4] != row[7] or row[4] != row[10] or row[5] != row[8] or row[5] != row[11]:
         row[0] += ' <span class="hiddentext">diff</span>'
 
@@ -283,17 +289,19 @@ def format_wet_cell(cell):
     return 'wet' if cell == 'True' else 'dry'
 
 
-def format_versions_cell(cell, latest_version):
+def format_versions_cell(cell, latest_version, url=None):
     repos = ['building', 'shadow-fixed', 'ros/public']
     versions = get_cell_versions(cell)
-    return '&nbsp;'.join([format_version(v, latest_version, r) for v, r in zip(versions, repos)])
+    return '&nbsp;'.join([format_version(v, latest_version, r, url if r == 'building' else None) for v, r in zip(versions, repos)])
 
 
-def format_version(version, latest, repo):
+def format_version(version, latest, repo, url=None):
     label = '%s: %s' % (repo, version)
     color = {'None': 'pkgMissing', latest: 'pkgLatest'}.get(version, 'pkgOutdated')
     # use reasonable names (even if invisible) to be searchable
     order_value = {'None': '3&nbsp;red', latest: '1&nbsp;green'}.get(version, '2&nbsp;blue')
+    if url:
+        order_value = '<a href="%s">%s</a>' % (url, order_value)
     return make_square_div(label, color, order_value)
 
 
@@ -330,6 +338,7 @@ def make_html_head(table_name):
     #theme_links span { float: left; padding: 2px 10px; }
 
     .square { border: 1px solid gray; display: inline-block; width: 15px; height: 15px; font-size: 0px; }
+    .square a { display: block; }
     .pkgLatest { background: #a2d39c; }
     .pkgMissing { background: #ff7878; }
     .pkgOutdated { background: #7ea7d8; }
