@@ -251,15 +251,19 @@ def format_header_cell(cell, metadata):
 
 def format_row(row, metadata_columns):
     latest_version = row[1]
+    is_wet = is_wet_package(row)
     public_changing_on_sync = [c for c in row[3:] if is_public_changing_on_sync(c)]
     public_regression_on_sync = [c for c in row[3:] if is_public_regression_on_sync(c)]
+    has_diff_between_rosdistros = row[3] != row[6] or row[3] != row[9] or row[4] != row[7] or row[4] != row[10] or row[5] != row[8] or row[5] != row[11]
 
     # urls for each building repository column
     metadata = [None] * 3 + [md for md in metadata_columns[3:]]
+    if not is_wet:
+        metadata[3] = metadata[6] = metadata[9] = None
     job_urls = [md['job_url'].format(pkg=row[0].replace('_', '-')) if md else None for md in metadata]
 
-    row = row[:2] + [format_wet_cell(row[2])] + [format_versions_cell(row[i], latest_version, job_urls[i]) for i in range(3, len(row))]
-    if row[3] != row[6] or row[3] != row[9] or row[4] != row[7] or row[4] != row[10] or row[5] != row[8] or row[5] != row[11]:
+    row = row[:2] + ['wet' if is_wet else 'dry'] + [format_versions_cell(row[i], latest_version, job_urls[i]) for i in range(3, len(row))]
+    if has_diff_between_rosdistros:
         row[0] += ' <span class="hiddentext">diff</span>'
 
     if public_changing_on_sync:
@@ -285,8 +289,8 @@ def get_cell_versions(cell):
     return cell.split('|')
 
 
-def format_wet_cell(cell):
-    return 'wet' if cell == 'True' else 'dry'
+def is_wet_package(row):
+    return row[2] == 'True'
 
 
 def format_versions_cell(cell, latest_version, url=None):
