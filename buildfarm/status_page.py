@@ -320,22 +320,26 @@ def make_html_head(table_name):
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 
 <style type="text/css" media="screen">
-    @import "http://datatables.net/media/css/site_jui.ccss";
-    @import "http://datatables.net/release-datatables/media/css/demo_table_jui.css";
-    @import "http://datatables.net/media/css/jui_themes/smoothness/jquery-ui-1.7.2.custom.css";
-    @import "http://datatables.net/release-datatables/extras/TableTools/media/css/TableTools.css";
+    @import "jquery/jquery-ui-1.9.2.custom.min.css";
+    @import "jquery/jquery.dataTables_themeroller.css";
+    @import "jquery/TableTools_JUI.css";
 
-    dl { font-size: 80%%; padding: 0.5em; }
+    body, div, dl, dt, dd, input, th, td { margin:0; padding:0; }
+    table { border-collapse:collapse; border-spacing:0; }
+    th { text-align: left }
+
+    html, body { color: #111; font: 100%%/1.45em "Lucida Grande", Verdana, Arial, Helvetica, sans-serif; margin: 0; padding: 0; }
+
+    a { text-decoration: none; color: #4e6ca3; }
+    a:hover { text-decoration: underline; }
+
+    dl { font-size: 80%%; margin: 0; padding: 0.5em; }
     dt { float: left; font-weight: bold; text-align: right; }
     dt:after { content: ":"; }
     dd { float: left; margin: 0 1.5em 0 0.5em; }
     dl .square { width: 20px; height: 20px; font-size:100%%; text-align: center; }
 
-    /*
-     * Override styles needed due to the mix of three different CSS sources! For proper examples
-     * please see the themes example in the 'Examples' section of the datatables
-     * site.
-     */
+    table.display thead th, table.display td { font-size: 0.8em; }
     .dataTables_info { padding-top: 0; }
     .css_right { float: right; }
     #example_wrapper .fg-toolbar { font-size: 0.8em }
@@ -356,10 +360,10 @@ def make_html_head(table_name):
     .tooltip p {  margin: 0; padding: 0; color: #fff; background-color: #222; padding: 2px 7px; }
 </style>
 
-<script type="text/javascript" src="http://datatables.net/media/javascript/complete.min.js"></script>
-<script type="text/javascript" src="http://datatables.net/release-datatables/media/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="http://datatables.net/release-datatables/extras/FixedHeader/js/FixedHeader.min.js"></script>
-<script type="text/javascript" src="http://datatables.net/release-datatables/extras/TableTools/media/js/TableTools.min.js"></script>
+<script type="text/javascript" src="jquery/jquery-1.8.3.min.js"></script>
+<script type="text/javascript" src="jquery/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="jquery/FixedHeader.min.js"></script>
+<script type="text/javascript" src="jquery/TableTools.min.js"></script>
 
 <script type="text/javascript" charset="utf-8">
     /* <![CDATA[ */
@@ -395,8 +399,7 @@ def make_html_head(table_name):
             }
         } );
         new FixedHeader(oTable);
-        simple_tooltip("span#search", "tooltip");
-        simple_tooltip("div.square", "tooltip");
+        simple_tooltip("#search", "tooltip");
     } );
     /* ]]> */
 </script>
