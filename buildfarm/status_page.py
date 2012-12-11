@@ -398,6 +398,9 @@ def make_html_head(table_name):
                 "sSearch": '<span id="search" title="Special keywords to search for: diff, sync, regression, green, blue, red">Search:</span>'
             }
         } );
+        oTable.fnSetColumnVis(3, false);
+        oTable.fnSetColumnVis(6, false);
+        oTable.fnSetColumnVis(9, false);
 
         new FixedHeader(oTable);
 
