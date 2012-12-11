@@ -398,8 +398,31 @@ def make_html_head(table_name):
                 "sSearch": '<span id="search" title="Special keywords to search for: diff, sync, regression, green, blue, red">Search:</span>'
             }
         } );
+
         new FixedHeader(oTable);
+
         simple_tooltip("#search", "tooltip");
+
+        // modify search to only fire after some time of no input
+        var search_wait_delay = 200;
+        var search_wait = 0;
+        var search_wait_interval;
+        $('.dataTables_filter input')
+        .unbind('keypress keyup')
+        .bind('keypress keyup', function(e) {
+            var item = $(this);
+            search_wait = 0;
+            if (!search_wait_interval) search_wait_interval = setInterval(function() {
+                if (search_wait >= 3){
+                    clearInterval(search_wait_interval);
+                    search_wait_interval = '';
+                    searchTerm = $(item).val();
+                    oTable.fnFilter(searchTerm);
+                    search_wait = 0;
+                }
+                search_wait++;
+            }, search_wait_delay);
+        });
     } );
     /* ]]> */
 </script>
