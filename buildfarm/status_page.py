@@ -301,9 +301,14 @@ def format_versions_cell(cell, latest_version, url=None):
 
 def format_version(version, latest, repo, url=None):
     label = '%s: %s' % (repo, version)
-    color = {'None': 'pkgMissing', latest: 'pkgLatest'}.get(version, 'pkgOutdated')
-    # use reasonable names (even if invisible) to be searchable
-    order_value = {'None': '3&nbsp;red', latest: '1&nbsp;green'}.get(version, '2&nbsp;blue')
+    if latest:
+        color = {'None': 'pkgMissing', latest: 'pkgLatest'}.get(version, 'pkgOutdated')
+        # use reasonable names (even if invisible) to be searchable
+        order_value = {'None': '5&nbsp;red', latest: '1&nbsp;green'}.get(version, '3&nbsp;blue')
+    else:
+        color = {'None': 'pkgIgnore'}.get(version, 'pkgObsolete')
+        # use reasonable names (even if invisible) to be searchable
+        order_value = {'None': '2&nbsp;gray'}.get(version, '4&nbsp;yellow')
     if url:
         order_value = '<a href="%s">%s</a>' % (url, order_value)
     return make_square_div(label, color, order_value)
@@ -333,11 +338,9 @@ def make_html_head(table_name):
     a { text-decoration: none; color: #4e6ca3; }
     a:hover { text-decoration: underline; }
 
-    dl { font-size: 80%%; margin: 0; padding: 0.5em; }
-    dt { float: left; font-weight: bold; text-align: right; }
-    dt:after { content: ":"; }
-    dd { float: left; margin: 0 1.5em 0 0.5em; }
-    dl .square { width: 20px; height: 20px; font-size:100%%; text-align: center; }
+    ul { font-size: 80%%; list-style: none; margin: 0; padding: 0.5em; }
+    li { float: left; margin-right: 1.75em; }
+    li .square { width: 20px; height: 20px; font-size:100%%; text-align: center; }
 
     table.display thead th, table.display td { font-size: 0.8em; }
     .dataTables_info { padding-top: 0; }
@@ -348,8 +351,10 @@ def make_html_head(table_name):
     .square { border: 1px solid gray; display: inline-block; width: 15px; height: 15px; font-size: 0px; }
     .square a { display: block; }
     .pkgLatest { background: #a2d39c; }
-    .pkgMissing { background: #ff7878; }
+    .pkgMissing { background: #f07878; }
     .pkgOutdated { background: #7ea7d8; }
+    .pkgIgnore { background: #c8c8c8; }
+    .pkgObsolete { background: #f0f078; }
     .hiddentext { font-size: 0px; }
 
     .sum { display: block; width: 55px; }
@@ -395,7 +400,7 @@ def make_html_head(table_name):
                 "sRowSelect": "multi"
             },
             "oLanguage": {
-                "sSearch": '<span id="search" title="Special keywords to search for: diff, sync, regression, green, blue, red">Search:</span>'
+                "sSearch": '<span id="search" title="Special keywords to search for: diff, sync, regression, green, blue, red, yellow, gray">Search:</span>'
             }
         } );
         oTable.fnSetColumnVis(3, false);
@@ -439,13 +444,15 @@ def make_html_legend():
         ('<span class="square">1</span>&nbsp;<span class="square">2</span>&nbsp;<span class="square">3</span>', 'The apt repos (1) building, (2) shadow-fixed, (3) ros/public'),
         ('<span class="square pkgLatest">&nbsp;</span>', 'pkg w. same version'.replace(' ', '&nbsp;')),
         ('<span class="square pkgOutdated">&nbsp;</span>', 'pkg w. different version'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgMissing">&nbsp;</span>', 'pkg missing'.replace(' ', '&nbsp;'))
+        ('<span class="square pkgMissing">&nbsp;</span>', 'pkg missing'.replace(' ', '&nbsp;')),
+        ('<span class="square pkgObsolete">&nbsp;</span>', 'pkg obsolete'.replace(' ', '&nbsp;')),
+        ('<span class="square pkgIgnore">&nbsp;</span>', 'pkg intentionally missing'.replace(' ', '&nbsp;'))
     ]
-    definitions = ['<dt>%s</dt><dd>%s</dd>' % (k, v) for (k, v) in definitions]
+    definitions = ['<li><b>%s:</b>&nbsp;%s</li>' % (k, v) for (k, v) in definitions]
     return '''\
-<dl>
+<ul>
     %s
-</dl>
+</ul>
 ''' % ('\n'.join(definitions))
 
 
