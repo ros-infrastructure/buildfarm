@@ -104,12 +104,17 @@ def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
 
     vcs_cache = VcsFileCache(workspace, skip_update=skip_update)
 
+    urls_updated = set([])
     checkout_info = rd_obj.get_package_checkout_info()
     for pkg_name in sorted(checkout_info.keys()):
         pkg_info = checkout_info[pkg_name]
+        url = pkg_info['url']
+        url_updated_before = url in urls_updated
+        urls_updated.add(url)
+        vcs_cache._skip_update = skip_update or url_updated_before
         try:
             pkg_string = vcs_cache.get_file_contents('git',
-                                                     pkg_info['url'],
+                                                     url,
                                                      pkg_info['version'],
                                                      'package.xml')  # os.path.join(pkg_info['relative_path'], 'package.xml'))
             try:
@@ -121,7 +126,7 @@ def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
             print("Failed to get package.xml for %s.  Error: %s" %
                   (pkg_name, ex))
         
-        if not skip_update:
+        if not vcs_cache._skip_update:
             print("Sleeping for github slowdown") 
             time.sleep(1)
 
