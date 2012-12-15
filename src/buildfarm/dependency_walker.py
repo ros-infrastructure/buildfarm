@@ -37,10 +37,7 @@ class VcsFileCache(object):
         if client.path_exists():
             updated = False
             if client.get_url() == repo_url:
-                if not self._skip_update:
-                    updated = client.update(version, force_fetch=True)
-                else:
-                    updated = True
+                updated = client.update(version, force_fetch=not self._skip_update)
             if not updated:
                 print("WARNING: Repo at %s changed url from %s to %s or update failed. Redownloading!" % (repo_path, client.get_url(), repo_url))
                 shutil.rmtree(repo_path)
