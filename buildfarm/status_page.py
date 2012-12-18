@@ -221,8 +221,7 @@ def transform_csv_to_html(data_source, metadata_builder):
     header = [header[column_mapping[i] if column_mapping and i in column_mapping else i] for i in range(len(header))]
     rows = [[row[column_mapping[i] if column_mapping and i in column_mapping else i] for i in range(len(header))] for row in rows]
 
-    table_name = 'csv_table'
-    html_head = make_html_head(table_name)
+    html_head = make_html_head()
 
     metadata_columns = [None] * 3 + [metadata_builder(c) for c in header[3:]]
     header = [format_header_cell(header[i], metadata_columns[i]) for i in range(len(header))]
@@ -238,7 +237,7 @@ def transform_csv_to_html(data_source, metadata_builder):
 
     rows = [format_row(r, metadata_columns) for r in rows]
     body = make_html_legend()
-    body += make_html_table(header, footer, rows, table_name)
+    body += make_html_table(header, footer, rows)
 
     return make_html_doc(html_head, body)
 
@@ -318,7 +317,7 @@ def make_square_div(label, color, order_value):
     return '<div class="square %s" title="%s">%s</div>' % (color, label, order_value)
 
 
-def make_html_head(table_name):
+def make_html_head():
     # Some of the code here is taken from a datatables example.
     return '''
 <title>Build status page</title>
@@ -389,7 +388,7 @@ def make_html_head(table_name):
     }
 
     $(document).ready(function() {
-        var oTable = $('#%s').dataTable( {
+        var oTable = $('#csv_table').dataTable( {
             "bJQueryUI": true,
             "bPaginate": false,
             "bStateSave": true,
@@ -434,7 +433,7 @@ def make_html_head(table_name):
     } );
     /* ]]> */
 </script>
-''' % table_name
+'''
 
 
 def make_html_legend():
@@ -456,7 +455,7 @@ def make_html_legend():
 ''' % ('\n'.join(definitions))
 
 
-def make_html_table(header, footer, rows, table_id):
+def make_html_table(header, footer, rows):
     '''
     Returns a string containing an HTML-formatted table, given a header and some
     rows.
@@ -469,7 +468,7 @@ def make_html_table(header, footer, rows, table_id):
     rows_str = '\n'.join('<tr>' + ' '.join('<td>%s</td>' % c for c in r) + '</tr>' for r in rows)
     footer_str = '<tr>' + ''.join('<th>%s</th>' % ''.join(['<span class="sum repo%s">%d</span>' % (i + 1, v) for i, v in enumerate(c)]) for c in footer) + '</tr>'
     return '''\
-<table class="display" id="%s">
+<table class="display" id="csv_table">
     <thead>
         %s
     </thead>
@@ -480,7 +479,7 @@ def make_html_table(header, footer, rows, table_id):
         %s
     </tbody>
 </table>
-''' % (table_id, header_str, footer_str, rows_str)
+''' % (header_str, footer_str, rows_str)
 
 
 def make_html_doc(head, body):
