@@ -5,6 +5,7 @@ from __future__ import print_function
 import argparse
 import os
 import sys
+import time
 
 from buildfarm.status_page import bin_arches, build_repo_caches, get_distro_arches, render_csv, ros_repos, transform_csv_to_html
 
@@ -20,6 +21,8 @@ def parse_options(args=sys.argv[1:]):
 
 if __name__ == '__main__':
     args = parse_options()
+
+    start_time = time.localtime()
 
     if not args.skip_fetch:
         print('Fetching apt data (this will take some time)...')
@@ -66,7 +69,7 @@ if __name__ == '__main__':
 
     print('Transforming .csv into .html file...')
     with open(csv_file, 'r') as f:
-        html = transform_csv_to_html(f, metadata_builder)
+        html = transform_csv_to_html(f, metadata_builder, args.rosdistro, start_time)
     html_file = os.path.join(args.basedir, '%s.html' % args.rosdistro)
     with open(html_file, 'w') as f:
         f.write(html)

@@ -4,7 +4,7 @@ import csv
 import os
 import logging
 import re
-import sys
+import time
 import urllib2
 import yaml
 
@@ -209,7 +209,7 @@ def render_csv(rootdir, outfile, rosdistro):
             w.writerow(row)
 
 
-def transform_csv_to_html(data_source, metadata_builder):
+def transform_csv_to_html(data_source, metadata_builder, rosdistro, start_time):
     reader = csv.reader(data_source, delimiter=',', quotechar='"')
     rows = [row for row in reader]
 
@@ -221,7 +221,7 @@ def transform_csv_to_html(data_source, metadata_builder):
     header = [header[column_mapping[i] if column_mapping and i in column_mapping else i] for i in range(len(header))]
     rows = [[row[column_mapping[i] if column_mapping and i in column_mapping else i] for i in range(len(header))] for row in rows]
 
-    html_head = make_html_head()
+    html_head = make_html_head(rosdistro, start_time)
 
     metadata_columns = [None] * 3 + [metadata_builder(c) for c in header[3:]]
     header = [format_header_cell(header[i], metadata_columns[i]) for i in range(len(header))]
@@ -317,10 +317,11 @@ def make_square_div(label, color, order_value):
     return '<div class="square %s" title="%s">%s</div>' % (color, label, order_value)
 
 
-def make_html_head():
+def make_html_head(rosdistro, start_time):
+    rosdistro = rosdistro[0].upper() + rosdistro[1:]
     # Some of the code here is taken from a datatables example.
     return '''
-<title>Build status page</title>
+<title>ROS %s - build status page - %s</title>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 
 <style type="text/css" media="screen">
@@ -433,7 +434,7 @@ def make_html_head():
     } );
     /* ]]> */
 </script>
-'''
+''' % (rosdistro, time.strftime('%Y-%m-%d %H:%M:%S %Z', start_time))
 
 
 def make_html_legend():
