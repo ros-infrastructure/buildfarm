@@ -42,6 +42,7 @@
     <hudson.plugins.groovy.SystemGroovy plugin="groovy@@1.12">
       <scriptSource class="hudson.plugins.groovy.StringScriptSource">
         <command>
+// VERFIY THAT NO UPSTREAM PROJECT IS BROKEN
 import hudson.model.Result
 
 project = Thread.currentThread().executable.project
@@ -73,6 +74,38 @@ for (upstream in project.getUpstreamProjects()) {
     <hudson.tasks.Shell>
       <command>@(COMMAND)</command>
     </hudson.tasks.Shell>
+@[if not IS_METAPACKAGES]@
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@@1.12">
+      <scriptSource class="hudson.plugins.groovy.StringScriptSource">
+        <command>
+// CHECK FOR "HASH SUM MISMATCH" AND RETRIGGER JOB
+import java.io.BufferedReader
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+import hudson.model.Cause
+import hudson.model.Result
+
+build = Thread.currentThread().executable
+
+// search build output for hash sum mismatch
+r = build.getLogReader()
+br = new BufferedReader(r)
+pattern = Pattern.compile(&quot;W: Failed to fetch .* Hash Sum mismatch&quot;)
+def line
+while ((line = br.readLine()) != null) {
+	if (pattern.matcher(line).matches()) {
+		println "Aborting build due to 'hash sum mismatch'. Immediately rescheduling new build..."
+		build.project.scheduleBuild(new Cause.UserIdCause())
+		throw new InterruptedException()
+	}
+}
+</command>
+      </scriptSource>
+      <bindings/>
+      <classpath/>
+    </hudson.plugins.groovy.SystemGroovy>
+@[end if]@
   </builders>
   <publishers>
     <hudson.tasks.BuildTrigger>
