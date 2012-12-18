@@ -44,6 +44,7 @@ class VcsFileCache(object):
                 checkedout = client.checkout(repo_url, version, shallow=True)
                 if not checkedout:
                     print("ERROR: Repo at %s could not be checked out from %s with version %s!" % (repo_path, repo_url, version))
+                    
                 # git only
                 if not self._skip_update:
                     client._do_fetch()
@@ -125,6 +126,7 @@ def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
         except VcsError as ex:
             print("Failed to get package.xml for %s.  Error: %s" %
                   (pkg_name, ex))
+            raise ex
         
         if not vcs_cache._skip_update:
             print("Sleeping for github slowdown") 
