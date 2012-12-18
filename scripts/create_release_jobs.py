@@ -2,12 +2,9 @@
 
 from __future__ import print_function
 import argparse
+import os
 import shutil
-import sys
 import tempfile
-import urllib2
-import yaml
-import time 
 
 from buildfarm import dependency_walker, jenkins_support, release_jobs
 
@@ -157,7 +154,7 @@ if __name__ == '__main__':
     workspace = args.repo_workspace
     try:
         if not args.repo_workspace:
-            workspace = tempfile.mkdtemp()
+            workspace = os.path.join(tempfile.gettempdir(), 'repo-workspace-%s' % args.rosdistro)
         package_co_info = rd.get_package_checkout_info()
 
         dependencies = dependency_walker.get_jenkins_dependencies(workspace, rd, skip_update=args.skip_update)
