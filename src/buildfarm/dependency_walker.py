@@ -6,6 +6,8 @@ import os.path
 import copy
 import shutil
 import time
+import logging
+import sys
 
 from vcstools.git import GitClient
 from vcstools.vcs_base import VcsError
@@ -18,6 +20,7 @@ def simplify_repo_name(repo_url):
     return os.path.basename(repo_url)
 
 
+
 class VcsFileCache(object):
     """A class to support caching gbp repos for querying specific files from a repo"""
 
@@ -27,6 +30,11 @@ class VcsFileCache(object):
             os.makedirs(cache_location)
         self._cache_location = cache_location
         self._skip_update = skip_update 
+
+        logger = logging.getLogger('vcstools')
+        for h in logger.handlers:
+            logger.removeHandler(h)
+        logger.addHandler(logging.StreamHandler(sys.stdout))
 
     def _get_file(self, repo_type, repo_url, version, filename):
         """ Fetch the file specificed by filename relative to the root of the repository"""
