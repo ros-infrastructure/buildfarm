@@ -227,17 +227,17 @@ def transform_csv_to_html(data_source, metadata_builder, rosdistro, start_time):
     header = [format_header_cell(header[i], metadata_columns[i]) for i in range(len(header))]
 
     # count non-None rows per (sub-)column
-    footer = [[]] * 3 + [[0] * 3 for c in header[3:]]
+    counts = [[]] * 3 + [[0] * 3 for _ in range(3, len(header))]
     for row in rows:
-        for i in range(3, len(footer)):
+        for i in range(3, len(counts)):
             versions = get_cell_versions(row[i])
             for j in range(0, len(versions)):
                 if versions[j] != 'None':
-                    footer[i][j] += 1
+                    counts[i][j] += 1
 
     rows = [format_row(r, metadata_columns) for r in rows]
     body = make_html_legend()
-    body += make_html_table(header, footer, rows)
+    body += make_html_table(header, counts, rows)
 
     return make_html_doc(html_head, body)
 
@@ -245,6 +245,8 @@ def transform_csv_to_html(data_source, metadata_builder, rosdistro, start_time):
 def format_header_cell(cell, metadata):
     if metadata and 'column_label' in metadata:
         cell = metadata['column_label']
+    else:
+        cell = cell[0].upper() + cell[1:]
     return cell
 
 
@@ -358,9 +360,10 @@ def make_html_head(rosdistro, start_time):
     .pkgOutdated { background: #7ea7d8; }
     .pkgIgnore { background: #c8c8c8; }
     .pkgObsolete { background: #f0f078; }
-    .hiddentext { font-size: 0px; }
+    .hiddentext { color: transparent; font-size: 0px; }
 
-    .sum { display: block; width: 55px; }
+    table.dataTable thead th div.DataTables_sort_wrapper span.sum { position: inherit; }
+    .sum { display: block; font-size: 0.8em; width: 55px; }
     .repo2 {text-align: center; }
     .repo3 {text-align: right; }
 
@@ -459,7 +462,7 @@ def make_html_legend():
 ''' % ('\n'.join(definitions))
 
 
-def make_html_table(header, footer, rows):
+def make_html_table(columns, counts, rows):
     '''
     Returns a string containing an HTML-formatted table, given a header and some
     rows.
@@ -468,9 +471,12 @@ def make_html_table(header, footer, rows):
     '<table>\\n<tr><th>a</th></tr>\\n<tr><td>1</td></tr>\\n<tr><td>2</td></tr>\\n</table>\\n'
 
     '''
-    header_str = '<tr>' + ''.join('<th>%s</th>' % c for c in header) + '</tr>'
+    headers = []
+    for i in range(len(columns)):
+        headers.append('%s<br/>%s' % (columns[i], ''.join(['<span class="sum repo%s">%d</span>' % (i + 1, v) for i, v in enumerate(counts[i])])))
+    header_str = '<tr>' + ''.join('<th>%s</th>' % c for c in headers) + '</tr>'
     rows_str = '\n'.join('<tr>' + ' '.join('<td>%s</td>' % c for c in r) + '</tr>' for r in rows)
-    footer_str = '<tr>' + ''.join('<th>%s</th>' % ''.join(['<span class="sum repo%s">%d</span>' % (i + 1, v) for i, v in enumerate(c)]) for c in footer) + '</tr>'
+    footer_str = '<tr>' + ''.join('<th>%s</th>' % (c if i != 2 else '') for i, c in enumerate(columns)) + '</tr>'
     return '''\
 <table class="display" id="csv_table">
     <thead>
