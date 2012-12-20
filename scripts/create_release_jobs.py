@@ -131,7 +131,7 @@ def doit(distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=F
 
         existing_jobs = set([j['name'] for j in jenkins_instance.get_jobs()])
         relevant_jobs = existing_jobs - configured_jobs
-        relevant_jobs = [j for j in relevant_jobs if rosdistro in j and ('sourcedeb' in j or 'binarydeb' in j)]
+        relevant_jobs = [j for j in relevant_jobs if rosdistro in j and ('_sourcedeb' in j or '_binarydeb' in j)]
 
         for j in relevant_jobs:
             print('Job "%s" detected as extra' % j)
