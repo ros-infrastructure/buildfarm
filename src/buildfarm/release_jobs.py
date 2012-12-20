@@ -35,7 +35,7 @@ def expand(config_template, d):
     return s
 
 
-def compute_missing(distros, fqdn, rosdistro):
+def compute_missing(distros, fqdn, rosdistro, sourcedeb_only=False):
     """ Compute what packages are missing from a repo based on the rosdistro files, both wet and dry. """
 
     repo_url = 'http://%s/repos/building' % fqdn
@@ -63,31 +63,33 @@ def compute_missing(distros, fqdn, rosdistro):
         for d in target_distros:
             if not repo.deb_in_repo(repo_url, deb_name, str(expected_version) + ".*", d, arch='na', source=True):
                 missing[short_package_name].append('%s_source' % d)
+            if not sourcedeb_only:
+                for a in arches:
+                    if not repo.deb_in_repo(repo_url, deb_name, str(expected_version) + ".*", d, a):
+                        missing[short_package_name].append('%s_%s' % (d, a))
+
+    if not sourcedeb_only:
+        #dry stacks
+        # dry dependencies
+        dist = load_distro(distro_uri(rosdistro))
+
+        distro_arches = []
+        for d in target_distros:
             for a in arches:
-                if not repo.deb_in_repo(repo_url, deb_name, str(expected_version) + ".*", d, a):
-                    missing[short_package_name].append('%s_%s' % (d, a))
+                distro_arches.append((d, a))
 
-    #dry stacks
-    # dry dependencies
-    dist = load_distro(distro_uri(rosdistro))
+        for s in dist.stacks:
+            #print ("Analyzing DRY job [%s]" % s)
+            expected_version = dry_get_stack_version(s, dist)
 
-    distro_arches = []
-    for d in target_distros:
-        for a in arches:
-            distro_arches.append((d, a))
-
-    for s in dist.stacks:
-        #print ("Analyzing DRY job [%s]" % s)
-        expected_version = dry_get_stack_version(s, dist)
-
-        # sanitize undeclared versions for string substitution
-        if not expected_version:
-            expected_version = ''
-        missing[s] = []
-        # for each distro arch check if the deb is present. If not trigger the build.
-        for (d, a) in distro_arches:
-            if not repo.deb_in_repo(repo_url, debianize_package_name(rosdistro, s), expected_version + ".*", d, a):
-                missing[s].append('%s_%s' % (d, a))
+            # sanitize undeclared versions for string substitution
+            if not expected_version:
+                expected_version = ''
+            missing[s] = []
+            # for each distro arch check if the deb is present. If not trigger the build.
+            for (d, a) in distro_arches:
+                if not repo.deb_in_repo(repo_url, debianize_package_name(rosdistro, s), expected_version + ".*", d, a):
+                    missing[s].append('%s_%s' % (d, a))
 
     return missing
 

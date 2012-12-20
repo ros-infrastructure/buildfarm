@@ -32,6 +32,8 @@ def parse_options():
     parser.add_argument('--distros', nargs='+',
            help='A list of debian distros. Default: %(default)s',
            default=[])
+    parser.add_argument('--sourcedeb-only', action='store_true', default=False,
+           help='Only check sourcedeb jobs. Default: all')
     parser.add_argument('--commit', dest='commit',
            help='Really?', action='store_true')
     return parser.parse_args()
@@ -72,7 +74,8 @@ if __name__ == '__main__':
     missing = release_jobs.compute_missing(
         args.distros,
         args.fqdn,
-        rosdistro=args.rosdistro)
+        rosdistro=args.rosdistro,
+        sourcedeb_only=args.sourcedeb_only)
 
     pp = pprint.PrettyPrinter()
     print ("net Missing")
