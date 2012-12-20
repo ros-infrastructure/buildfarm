@@ -366,6 +366,9 @@ def make_html_head(rosdistro, start_time):
     .sum { display: block; font-size: 0.8em; width: 55px; }
     .repo2 {text-align: center; }
     .repo3 {text-align: right; }
+    .filter_column input { width: 55px; }
+    th:first-child .filter_column input { width: 150px; }
+    .search_init { color: gray; }
 
     .tooltip { position: absolute; z-index: 999; left: -9999px; border: 1px solid #111; width: 260px; }
     .tooltip p {  margin: 0; padding: 0; color: #fff; background-color: #222; padding: 2px 7px; }
@@ -373,6 +376,7 @@ def make_html_head(rosdistro, start_time):
 
 <script type="text/javascript" src="jquery/jquery-1.8.3.min.js"></script>
 <script type="text/javascript" src="jquery/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="jquery/jquery.dataTables.columnFilter.js"></script>
 <script type="text/javascript" src="jquery/FixedHeader.min.js"></script>
 <script type="text/javascript" src="jquery/TableTools.min.js"></script>
 
@@ -408,6 +412,23 @@ def make_html_head(rosdistro, start_time):
             "oLanguage": {
                 "sSearch": '<span id="search" title="Special keywords to search for: diff, sync, regression, green, blue, red, yellow, gray">Search:</span>'
             }
+        } );
+        oTable.columnFilter( {
+            "aoColumns": [
+                { type: "text" },
+                { type: "text" },
+                { type: "select",  values: ['wet', 'dry'] },
+                { type: "text" },
+                { type: "text" },
+                { type: "text" },
+                { type: "text" },
+                { type: "text" },
+                { type: "text" },
+                { type: "text" },
+                { type: "text" },
+                { type: "text" }
+            ],
+            "bUseColVis": true
         } );
         oTable.fnSetColumnVis(3, false);
         oTable.fnSetColumnVis(6, false);
@@ -448,11 +469,11 @@ def make_html_legend():
         ('wet', '<a href="http://ros.org/wiki/catkin">catkin</a>'),
         ('dry', '<a href="http://ros.org/wiki/rosbuild">rosbuild</a>'),
         ('<span class="square">1</span>&nbsp;<span class="square">2</span>&nbsp;<span class="square">3</span>', 'The apt repos (1) building, (2) shadow-fixed, (3) ros/public'),
-        ('<span class="square pkgLatest">&nbsp;</span>', 'pkg w. same version'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgOutdated">&nbsp;</span>', 'pkg w. different version'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgMissing">&nbsp;</span>', 'pkg missing'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgObsolete">&nbsp;</span>', 'pkg obsolete'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgIgnore">&nbsp;</span>', 'pkg intentionally missing'.replace(' ', '&nbsp;'))
+        ('<span class="square pkgLatest">&nbsp;</span>', 'same version'.replace(' ', '&nbsp;')),
+        ('<span class="square pkgOutdated">&nbsp;</span>', 'different version'.replace(' ', '&nbsp;')),
+        ('<span class="square pkgMissing">&nbsp;</span>', 'missing'.replace(' ', '&nbsp;')),
+        ('<span class="square pkgObsolete">&nbsp;</span>', 'obsolete'.replace(' ', '&nbsp;')),
+        ('<span class="square pkgIgnore">&nbsp;</span>', 'intentionally missing'.replace(' ', '&nbsp;'))
     ]
     definitions = ['<li><b>%s:</b>&nbsp;%s</li>' % (k, v) for (k, v) in definitions]
     return '''\
