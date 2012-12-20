@@ -292,7 +292,7 @@ def format_versions_cell(cell, latest_version, url=None, public_changing_on_sync
     versions = get_cell_versions(cell)
     repos = ['building', 'shadow-fixed', 'ros/public']
     search_suffixes = ['1', '2', '3']
-    cell = '&nbsp;'.join([format_version(v, latest_version, r, s, url if r == 'building' else None) for v, r, s in zip(versions, repos, search_suffixes)])
+    cell = ''.join([format_version(v, latest_version, r, s, url if r == 'building' else None) for v, r, s in zip(versions, repos, search_suffixes)])
 
     if public_changing_on_sync:
         cell += '<span class="hiddentext">sync</span>'
@@ -353,7 +353,7 @@ def make_html_head(rosdistro, start_time):
     #example_wrapper .fg-toolbar { font-size: 0.8em }
     #theme_links span { float: left; padding: 2px 10px; }
 
-    .square { border: 1px solid gray; display: inline-block; width: 15px; height: 15px; font-size: 0px; }
+    .square { border: 1px solid gray; display: inline-block; font-size: 0px; height: 15px; margin-right: 4px; width: 15px; }
     .square a { display: block; }
     .pkgLatest { background: #a2d39c; }
     .pkgMissing { background: #f07878; }
@@ -363,6 +363,7 @@ def make_html_head(rosdistro, start_time):
     .hiddentext { color: transparent; font-size: 0px; }
 
     table.dataTable thead th div.DataTables_sort_wrapper span.sum { position: inherit; }
+    table.DTTT_selectable tbody tr { cursor: inherit; }
     .sum { display: block; font-size: 0.8em; width: 55px; }
     .repo2 {text-align: center; }
     .repo3 {text-align: right; }
