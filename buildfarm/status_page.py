@@ -293,12 +293,13 @@ def is_wet_package(row):
 
 
 def format_versions_cell(cell, latest_version, url=None):
-    repos = ['building', 'shadow-fixed', 'ros/public']
     versions = get_cell_versions(cell)
-    return '&nbsp;'.join([format_version(v, latest_version, r, url if r == 'building' else None) for v, r in zip(versions, repos)])
+    repos = ['building', 'shadow-fixed', 'ros/public']
+    search_suffixes = ['1', '2', '3']
+    return '&nbsp;'.join([format_version(v, latest_version, r, s, url if r == 'building' else None) for v, r, s in zip(versions, repos, search_suffixes)])
 
 
-def format_version(version, latest, repo, url=None):
+def format_version(version, latest, repo, search_suffix, url=None):
     label = '%s: %s' % (repo, version)
     if latest:
         color = {'None': 'pkgMissing', latest: 'pkgLatest'}.get(version, 'pkgOutdated')
@@ -308,6 +309,7 @@ def format_version(version, latest, repo, url=None):
         color = {'None': 'pkgIgnore'}.get(version, 'pkgObsolete')
         # use reasonable names (even if invisible) to be searchable
         order_value = {'None': '2&nbsp;gray'}.get(version, '4&nbsp;yellow')
+    order_value += search_suffix
     if url:
         order_value = '<a href="%s">%s</a>' % (url, order_value)
     return make_square_div(label, color, order_value)
