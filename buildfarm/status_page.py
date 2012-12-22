@@ -75,10 +75,10 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_name
 
     i = len(ros_pkgs_table)
     for pkg_name in non_ros_pkg_names:
-        table['name'][i] = pkg_name
+        undebianized_pkg_name = buildfarm.rosdistro.undebianize_package_name(rosdistro, pkg_name)
+        table['name'][i] = undebianized_pkg_name
         table['version'][i] = ''
         table['wet'][i] = 'unknown'
-        undebianized_pkg_name = buildfarm.rosdistro.undebianize_package_name(rosdistro, pkg_name)
         for da_str in da_strs:
             table[da_str][i] = add_version_cell(table, undebianized_pkg_name, repo_name_da_to_pkgs, da_str, repo_names, rosdistro)
         i += 1
