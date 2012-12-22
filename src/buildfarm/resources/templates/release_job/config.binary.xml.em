@@ -69,7 +69,7 @@ build = Thread.currentThread().executable
 // search build output for hash sum mismatch
 r = build.getLogReader()
 br = new BufferedReader(r)
-pattern = Pattern.compile(&quot;W: Failed to fetch .* Hash Sum mismatch&quot;)
+pattern = Pattern.compile(&quot;.*W: Failed to fetch .* Hash Sum mismatch.*&quot;)
 def line
 while ((line = br.readLine()) != null) {
 	if (pattern.matcher(line).matches()) {
