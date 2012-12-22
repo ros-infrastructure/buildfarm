@@ -54,26 +54,45 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_name
     ros package names and versions followed by debian versions for each
     distro/arch.
     '''
-    left_columns = [('name', object), ('version', object), ('wet', bool)]
+    left_columns = [('name', object), ('version', object), ('wet', object)]
     right_columns = [(da_str, object) for da_str in da_strs]
     columns = left_columns + right_columns
-    table = np.empty(len(ros_pkgs_table), dtype=columns)
+
+    non_ros_pkg_names = set([])
+    ros_pkg_names = set([buildfarm.rosdistro.debianize_package_name(rosdistro, pkg[0]) for pkg in ros_pkgs_table])
+    for pkgs in repo_name_da_to_pkgs.values():
+        pkg_names = set([pkg.name for pkg in pkgs])
+        non_ros_pkg_names |= pkg_names - ros_pkg_names
+
+    table = np.empty(len(ros_pkgs_table) + len(non_ros_pkg_names), dtype=columns)
 
     for i, (name, version, wet) in enumerate(ros_pkgs_table):
         table['name'][i] = name
         table['version'][i] = version
         table['wet'][i] = wet
         for da_str in da_strs:
-            versions = []
-            for j, repo_name in enumerate(repo_names):
-                v = get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name, rosdistro)
-                v = str(v)
-                v = strip_version_suffix(v)
-                versions.append(v)
+            table[da_str][i] = add_version_cell(table, name, repo_name_da_to_pkgs, da_str, repo_names, rosdistro)
 
-            table[da_str][i] = '|'.join(versions)
+    i = len(ros_pkgs_table)
+    for pkg_name in non_ros_pkg_names:
+        table['name'][i] = pkg_name
+        table['version'][i] = ''
+        table['wet'][i] = 'unknown'
+        undebianized_pkg_name = buildfarm.rosdistro.undebianize_package_name(rosdistro, pkg_name)
+        for da_str in da_strs:
+            table[da_str][i] = add_version_cell(table, undebianized_pkg_name, repo_name_da_to_pkgs, da_str, repo_names, rosdistro)
+        i += 1
 
     return table
+
+def add_version_cell(table, pkg_name, repo_name_da_to_pkgs, da_str, repo_names, rosdistro):
+    versions = []
+    for repo_name in repo_names:
+        v = get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, pkg_name, rosdistro)
+        v = str(v)
+        v = strip_version_suffix(v)
+        versions.append(v)
+    return '|'.join(versions)
 
 def strip_version_suffix(version):
     """
@@ -118,9 +137,8 @@ def get_matching_pkg(repo_name_da_to_pkgs, deb_name, repo_name, da_str):
 
 def get_ros_pkgs_table(wet_names_versions, dry_names_versions):
     return np.array(
-        [(name, version, True) for name, version in wet_names_versions] + 
-        [(name, version, False) for name, version in dry_names_versions],
-        dtype=[('name', object), ('version', object), ('wet', bool)])
+        [(name, version, 'True') for name, version in wet_names_versions] + 
+        [(name, version, 'False') for name, version in dry_names_versions])
 
 def get_dist_arch_str(d, a):
     return "%s_%s" % (d, a)
@@ -181,7 +199,7 @@ def get_dry_names_packages(rosdistro):
 def get_pkgs_from_apt_cache(cache_dir, substring):
     cache = apt.Cache(rootdir=cache_dir)
     cache.open()
-    return [cache[name] for name in cache.keys() if substring in name]
+    return [cache[name] for name in cache.keys() if name.startswith(substring)]
 
 def render_csv(rootdir, outfile, rosdistro):
     arches = bin_arches + ['source']
@@ -193,7 +211,7 @@ def render_csv(rootdir, outfile, rosdistro):
     ros_pkgs_table = get_ros_pkgs_table(wet_names_versions, dry_names_versions)
 
     # Get the version of each Debian package in each ROS apt repository.
-    repo_name_da_to_pkgs = dict(((repo_name, da_str), get_pkgs_from_apt_cache(cache, 'ros-%s'%rosdistro))
+    repo_name_da_to_pkgs = dict(((repo_name, da_str), get_pkgs_from_apt_cache(cache, 'ros-%s-' % rosdistro))
                                 for repo_name, da_str, cache in repo_da_caches)
 
     # Make an in-memory table showing the latest deb version for each package.
@@ -252,18 +270,17 @@ def format_header_cell(cell, metadata):
 
 def format_row(row, metadata_columns):
     latest_version = row[1]
-    is_wet = is_wet_package(row)
     public_changing_on_sync = [False] * 3 + [is_public_changing_on_sync(c) for c in row[3:]]
     public_regression_on_sync = [False] * 3 + [is_public_regression_on_sync(c) for c in row[3:]]
     has_diff_between_rosdistros = row[3] != row[6] or row[3] != row[9] or row[4] != row[7] or row[4] != row[10] or row[5] != row[8] or row[5] != row[11]
 
     # urls for each building repository column
     metadata = [None] * 3 + [md for md in metadata_columns[3:]]
-    if not is_wet:
+    if row[2] != 'wet':
         metadata[3] = metadata[6] = metadata[9] = None
     job_urls = [md['job_url'].format(pkg=row[0].replace('_', '-')) if md else None for md in metadata]
 
-    row = row[:2] + ['wet' if is_wet else 'dry'] + [format_versions_cell(row[i], latest_version, job_urls[i], public_changing_on_sync[i], public_regression_on_sync[i]) for i in range(3, len(row))]
+    row = row[:2] + [get_wet_column(row)] + [format_versions_cell(row[i], latest_version, job_urls[i], public_changing_on_sync[i], public_regression_on_sync[i]) for i in range(3, len(row))]
     if has_diff_between_rosdistros:
         row[0] += ' <span class="hiddentext">diff</span>'
 
@@ -284,8 +301,12 @@ def get_cell_versions(cell):
     return cell.split('|')
 
 
-def is_wet_package(row):
-    return row[2] == 'True'
+def get_wet_column(row):
+    value = row[2]
+    mapping = {'True': 'wet', 'False': 'dry'}
+    if value in mapping:
+        return mapping[value]
+    return value
 
 
 def format_versions_cell(cell, latest_version, url=None, public_changing_on_sync=False, public_regression_on_sync=True):
@@ -418,7 +439,7 @@ def make_html_head(rosdistro, start_time):
             "aoColumns": [
                 { type: "text" },
                 { type: "text" },
-                { type: "select",  values: ['wet', 'dry'] },
+                { type: "select",  values: ['wet', 'dry', 'unknown'] },
                 { type: "text" },
                 { type: "text" },
                 { type: "text" },

@@ -31,6 +31,14 @@ def debianize_package_name(rosdistro, name):
     return sanitize_package_name("ros-%s-%s"%(rosdistro, name))
 
 
+def undebianize_package_name(rosdistro, name):
+    if rosdistro != 'backports':
+        prefix = 'ros-%s-' % rosdistro
+        assert(name.startswith(prefix))
+        name = name[len(prefix):]
+    return name.replace('-', '_')
+
+
 # todo raise not exit
 class Rosdistro:
     def __init__(self, rosdistro_name):
