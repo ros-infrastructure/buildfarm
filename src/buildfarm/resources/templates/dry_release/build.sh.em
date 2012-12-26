@@ -46,7 +46,7 @@ git clone git://github.com/willowgarage/catkin-debs.git $WORKSPACE/catkin-debs -
 cd $WORKSPACE/catkin-debs
 . setup.sh
 
-$WORKSPACE/catkin-debs/scripts/count_ros_packages.py $DISTRO_NAME $OS_PLATFORM $ARCH --count 350
+$WORKSPACE/catkin-debs/scripts/count_ros_packages.py $DISTRO_NAME $OS_PLATFORM $ARCH --count 435
 ssh rosbuild@@pub8 -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/prepare_sync.py /var/packages/ros-shadow-fixed/ubuntu -r $DISTRO_NAME -d $OS_PLATFORM -a $ARCH -u http://50.28.27.175/repos/building/ -c
 
 
