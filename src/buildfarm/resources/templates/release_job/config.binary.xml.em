@@ -25,6 +25,10 @@
 // VERFIY THAT NO UPSTREAM PROJECT IS BROKEN
 import hudson.model.Result
 
+println ""
+println "Verify that no upstream project is broken"
+println ""
+
 project = Thread.currentThread().executable.project
 
 for (upstream in project.getUpstreamProjects()) {
@@ -42,9 +46,13 @@ for (upstream in project.getUpstreamProjects()) {
 
 	if (abort) {
 		println "Aborting build since upstream project '" + upstream.name + "' is broken"
+		println ""
 		throw new InterruptedException()
 	}
 }
+
+println "All upstream projects are (un)stable"
+println ""
 </command>
       </scriptSource>
       <bindings/>
@@ -57,12 +65,17 @@ for (upstream in project.getUpstreamProjects()) {
       <scriptSource class="hudson.plugins.groovy.StringScriptSource">
         <command>
 // CHECK FOR "HASH SUM MISMATCH" AND RETRIGGER JOB
+// only triggered when previous build step was successful
 import java.io.BufferedReader
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 import hudson.model.Cause
 import hudson.model.Result
+
+println ""
+println "Check for 'Hash Sum mismatch'"
+println ""
 
 build = Thread.currentThread().executable
 
@@ -74,10 +87,13 @@ def line
 while ((line = br.readLine()) != null) {
 	if (pattern.matcher(line).matches()) {
 		println "Aborting build due to 'hash sum mismatch'. Immediately rescheduling new build..."
+		println ""
 		build.project.scheduleBuild(new Cause.UserIdCause())
 		throw new InterruptedException()
 	}
 }
+println "Pattern not found in build log"
+println ""
 </command>
       </scriptSource>
       <bindings/>
@@ -85,6 +101,22 @@ while ((line = br.readLine()) != null) {
     </hudson.plugins.groovy.SystemGroovy>
   </builders>
   <publishers>
+    <org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder plugin="groovy-postbuild@@1.8">
+      <groovyScript>
+// CHECK FOR VARIOUS REASONS TO RETRIGGER JOB
+// also triggered when a build step has failed
+import hudson.model.Cause
+if (manager.logContains(&quot;.*W: Failed to fetch .* Hash Sum mismatch.*&quot;)) {
+	manager.addInfoBadge("Log contains 'Hash Sum mismatch' - scheduled new build...")
+	manager.build.project.scheduleBuild(new Cause.UserIdCause())
+}
+if (manager.logContains(&quot;.*The lock file '/var/www/repos/building/db/lockfile' already exists.*&quot;)) {
+	manager.addInfoBadge("Log contains 'building/db/lockfile already exists' - scheduled new build...")
+	manager.build.project.scheduleBuild(new Cause.UserIdCause())
+}
+</groovyScript>
+      <behavior>0</behavior>
+    </org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder>
     <org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder plugin="groovy-postbuild@@1.8">
       <groovyScript>
 import java.io.BufferedReader
