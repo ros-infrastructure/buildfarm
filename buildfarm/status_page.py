@@ -272,7 +272,7 @@ def format_row(row, metadata_columns):
     latest_version = row[1]
     public_changing_on_sync = [False] * 3 + [is_public_changing_on_sync(c) for c in row[3:]]
     public_regression_on_sync = [False] * 3 + [is_public_regression_on_sync(c) for c in row[3:]]
-    has_diff_between_rosdistros = row[3] != row[6] or row[3] != row[9] or row[4] != row[7] or row[4] != row[10] or row[5] != row[8] or row[5] != row[11]
+    has_diff_between_rosdistros = len(set(row[3:])) > 1
 
     # urls for each building repository column
     metadata = [None] * 3 + [md for md in metadata_columns[3:]]
@@ -283,6 +283,7 @@ def format_row(row, metadata_columns):
     row = row[:2] + [get_wet_column(row)] + [format_versions_cell(row[i], latest_version, job_urls[i], public_changing_on_sync[i], public_regression_on_sync[i]) for i in range(3, len(row))]
     if has_diff_between_rosdistros:
         row[0] += ' <span class="hiddentext">diff</span>'
+    row[3] = row[6] = row[9] = ''
 
     return row
 
