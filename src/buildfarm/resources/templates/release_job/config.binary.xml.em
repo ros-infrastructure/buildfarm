@@ -114,6 +114,10 @@ if (manager.logContains(&quot;.*The lock file '/var/www/repos/building/db/lockfi
 	manager.addInfoBadge("Log contains 'building/db/lockfile already exists' - scheduled new build...")
 	manager.build.project.scheduleBuild(new Cause.UserIdCause())
 }
+if (manager.logContains(&quot;.*E: Could not get lock /var/lib/dpkg/lock - open \\(11: Resource temporarily unavailable\\).*&quot;)) {
+	manager.addInfoBadge("Log contains 'dpkg/lock temporary unavailable' - scheduled new build...")
+	manager.build.project.scheduleBuild(new Cause.UserIdCause())
+}
 </groovyScript>
       <behavior>0</behavior>
     </org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder>
