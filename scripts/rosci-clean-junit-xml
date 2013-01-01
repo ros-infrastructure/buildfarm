@@ -46,7 +46,8 @@ import os
 import sys
 
 import rospkg
-import buildfarm.junitxml as junitxml
+import buildfarm
+from buildfarm import junitxml as junitxml
 
 def prepare_dirs(output_dir_name):
     test_results_dir = rospkg.get_test_results_dir()
