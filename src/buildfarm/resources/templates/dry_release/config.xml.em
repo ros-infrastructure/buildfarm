@@ -141,6 +141,10 @@ if (manager.logContains(&quot;.*E: Could not get lock /var/lib/dpkg/lock - open 
 	manager.addInfoBadge("Log contains 'dpkg/lock temporary unavailable' - scheduled new build...")
 	manager.build.project.scheduleBuild(new Cause.UserIdCause())
 }
+if (manager.logContains(&quot;.*ERROR: cannot download default sources list from:.*&quot;)) {
+	manager.addInfoBadge("Log contains 'cannot download default sources list' - scheduled new build...")
+	manager.build.project.scheduleBuild(new Cause.UserIdCause())
+}
 </groovyScript>
       <behavior>0</behavior>
     </org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder>
