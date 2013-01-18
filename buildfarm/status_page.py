@@ -279,7 +279,11 @@ def format_row(row, metadata_columns):
         metadata[3] = metadata[6] = metadata[9] = None
     job_urls = [md['job_url'].format(pkg=row[0].replace('_', '-')) if md else None for md in metadata]
 
-    row = row[:2] + [get_wet_column(row)] + [format_versions_cell(row[i], latest_version, job_urls[i], public_changing_on_sync[i]) for i in range(3, len(row))]
+    type_ = get_wet_column(row)
+    # override desired version for unknown (aka variants)
+    if type_ not in ['wet', 'dry']:
+        latest_version = '1.0.0'
+    row = row[:2] + [type_] + [format_versions_cell(row[i], latest_version, job_urls[i], public_changing_on_sync[i]) for i in range(3, len(row))]
     if has_diff_between_rosdistros:
         row[0] += ' <span class="hiddentext">diff</span>'
     row[3] = row[6] = row[9] = ''
