@@ -3,7 +3,6 @@
 from __future__ import print_function
 import argparse
 import os
-import shutil
 import tempfile
 
 from buildfarm import dependency_walker, jenkins_support, release_jobs
@@ -152,27 +151,23 @@ if __name__ == '__main__':
     rd = Rosdistro(args.rosdistro)
 
     workspace = args.repo_workspace
-    try:
-        if not args.repo_workspace:
-            workspace = os.path.join(tempfile.gettempdir(), 'repo-workspace-%s' % args.rosdistro)
-        package_co_info = rd.get_package_checkout_info()
+    if not workspace:
+        workspace = os.path.join(tempfile.gettempdir(), 'repo-workspace-%s' % args.rosdistro)
 
-        dependencies = dependency_walker.get_jenkins_dependencies(workspace, rd, skip_update=args.skip_update)
+    package_co_info = rd.get_package_checkout_info()
 
-        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies)
+    dependencies = dependency_walker.get_jenkins_dependencies(workspace, rd, skip_update=args.skip_update)
 
-        combined_jobgraph = {}
-        for k, v in dependencies.iteritems():
-            combined_jobgraph[k] = v
-        for k, v in dry_jobgraph.iteritems():
-            combined_jobgraph[k] = v
+    dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies)
 
-        # setup a job triggered by all other debjobs
-        combined_jobgraph[debianize_package_name(args.rosdistro, 'metapackages')] = combined_jobgraph.keys()
+    combined_jobgraph = {}
+    for k, v in dependencies.iteritems():
+        combined_jobgraph[k] = v
+    for k, v in dry_jobgraph.iteritems():
+        combined_jobgraph[k] = v
 
-    finally:
-        if not args.repo_workspace:
-            shutil.rmtree(workspace)
+    # setup a job triggered by all other debjobs
+    combined_jobgraph[debianize_package_name(args.rosdistro, 'metapackages')] = combined_jobgraph.keys()
 
     results_map = doit(
         args.distros,
