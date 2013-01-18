@@ -271,7 +271,6 @@ def format_header_cell(cell, metadata):
 def format_row(row, metadata_columns):
     latest_version = row[1]
     public_changing_on_sync = [False] * 3 + [is_public_changing_on_sync(c) for c in row[3:]]
-    regression = [False] * 3 + [is_regression(c) for c in row[3:]]
     has_diff_between_rosdistros = len(set(row[3:])) > 1
 
     # urls for each building repository column
@@ -280,7 +279,7 @@ def format_row(row, metadata_columns):
         metadata[3] = metadata[6] = metadata[9] = None
     job_urls = [md['job_url'].format(pkg=row[0].replace('_', '-')) if md else None for md in metadata]
 
-    row = row[:2] + [get_wet_column(row)] + [format_versions_cell(row[i], latest_version, job_urls[i], public_changing_on_sync[i], regression[i]) for i in range(3, len(row))]
+    row = row[:2] + [get_wet_column(row)] + [format_versions_cell(row[i], latest_version, job_urls[i], public_changing_on_sync[i]) for i in range(3, len(row))]
     if has_diff_between_rosdistros:
         row[0] += ' <span class="hiddentext">diff</span>'
     row[3] = row[6] = row[9] = ''
@@ -291,12 +290,6 @@ def format_row(row, metadata_columns):
 def is_public_changing_on_sync(cell):
     versions = get_cell_versions(cell)
     return versions[1] != versions[2]
-
-
-def is_regression(cell):
-    versions = get_cell_versions(cell)
-    # public has a package and either building or shadow-fixed don't
-    return versions[2] != 'None' and (versions[0] == 'None' or versions[1] == 'None')
 
 
 def get_cell_versions(cell):
@@ -311,21 +304,19 @@ def get_wet_column(row):
     return value
 
 
-def format_versions_cell(cell, latest_version, url=None, public_changing_on_sync=False, regression=True):
+def format_versions_cell(cell, latest_version, url=None, public_changing_on_sync=False):
     versions = get_cell_versions(cell)
     repos = ['building', 'shadow-fixed', 'ros/public']
     search_suffixes = ['1', '2', '3']
-    cell = ''.join([format_version(v, latest_version, r, s, url if r == 'building' else None) for v, r, s in zip(versions, repos, search_suffixes)])
+    cell = ''.join([format_version(v, latest_version, r, s, versions[-1], url if r == 'building' else None) for v, r, s in zip(versions, repos, search_suffixes)])
 
     if public_changing_on_sync:
         cell += '<span class="hiddentext">sync</span>'
-    if regression:
-        cell += '<span class="hiddentext">regression</span>'
 
     return cell
 
 
-def format_version(version, latest, repo, search_suffix, url=None):
+def format_version(version, latest, repo, search_suffix, public_version, url=None):
     label = '%s: %s' % (repo, version)
     if latest:
         color = {'None': 'pkgMissing', latest: 'pkgLatest'}.get(version, 'pkgOutdated')
@@ -336,9 +327,16 @@ def format_version(version, latest, repo, search_suffix, url=None):
         # use reasonable names (even if invisible) to be searchable
         order_value = {'None': '2&nbsp;gray'}.get(version, '4&nbsp;yellow')
     order_value += search_suffix
+    if repo != 'ros/public' and is_regression(version, public_version):
+        order_value += '&nbsp;regression' + search_suffix
     if url:
         order_value = '<a href="%s">%s</a>' % (url, order_value)
     return make_square_div(label, color, order_value)
+
+
+def is_regression(version, public_version):
+    # public has a package and specific repo doesn't
+    return public_version != 'None' and version == 'None'
 
 
 def make_square_div(label, color, order_value):
