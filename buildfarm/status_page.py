@@ -271,7 +271,9 @@ def format_header_cell(cell, metadata):
 def format_row(row, metadata_columns):
     latest_version = row[1]
     public_changing_on_sync = [False] * 3 + [is_public_changing_on_sync(c) for c in row[3:]]
-    has_diff_between_rosdistros = len(set(row[3:])) > 1
+    # as long as the status page is generated on lucid it does not handle source repos correctly which therefore need to be skipped
+    row_without_sources = [c for i, c in enumerate(row) if i > 2 and i % 3]
+    has_diff_between_rosdistros = len(set(row_without_sources)) > 1
 
     # urls for each building repository column
     metadata = [None] * 3 + [md for md in metadata_columns[3:]]
