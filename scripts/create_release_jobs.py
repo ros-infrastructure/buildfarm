@@ -82,7 +82,7 @@ def doit(distros, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit
             pkg_name = rd.debianize_package_name(p)
             results[pkg_name] = release_jobs.doit(r.url,
                  pkg_name,
-                 packages[repo_name],
+                 packages[p],
                  target_distros,
                  fqdn,
                  jobs_graph,
