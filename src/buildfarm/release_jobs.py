@@ -117,7 +117,7 @@ def dry_get_versioned_dependency_tree(rosdistro):
         raise
     dependency_tree = {}
     versions = {}
-    maintainers = {}
+    maintainer_dict = {}
     for s in d.stacks:
         version = d.stacks[s].version
         versions[s] = version
@@ -131,8 +131,8 @@ def dry_get_versioned_dependency_tree(rosdistro):
             maintainers = _extract_emails(yaml_info['maintainer'])
         if not maintainers and 'contact' in yaml_info:
             maintainers = _extract_emails(yaml_info['contact'])
-        maintainers[s] = maintainers
-    return dependency_tree, versions, maintainers
+        maintainer_dict[s] = maintainers
+    return dependency_tree, versions, maintainer_dict
 
 
 def _extract_emails(value):
