@@ -277,7 +277,9 @@ def format_row(row, metadata_columns):
 
     # urls for each building repository column
     metadata = [None] * 3 + [md for md in metadata_columns[3:]]
-    if row[2] != 'wet':
+    if row[2] == 'unknown':
+        metadata = [None for _ in range(len(metadata))]
+    if row[2] == 'False':  # dry
         metadata[3] = metadata[6] = metadata[9] = None
     job_urls = [md['job_url'].format(pkg=row[0].replace('_', '-')) if md else None for md in metadata]
 
