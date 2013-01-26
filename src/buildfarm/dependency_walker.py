@@ -11,7 +11,7 @@ import sys
 
 from vcstools.git import GitClient
 from vcstools.vcs_base import VcsError
-import catkin_pkg.package as catpak
+from catkin_pkg.package import parse_package_string
 from catkin_pkg.package import InvalidPackage
 
 
@@ -108,7 +108,7 @@ def _get_depends(packages, package, recursive=False, buildtime=False):
     return result
 
 
-def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
+def get_packages(workspace, rd_obj, skip_update=False):
     packages = {}
 
     vcs_cache = VcsFileCache(workspace, skip_update=skip_update)
@@ -127,7 +127,7 @@ def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
                                                      pkg_info['version'],
                                                      'package.xml')  # os.path.join(pkg_info['relative_path'], 'package.xml'))
             try:
-                p = catpak.parse_package_string(pkg_string)
+                p = parse_package_string(pkg_string)
                 packages[p.name] = p
             except InvalidPackage as ex:
                 print('package.xml for %s is invalid.  Error: %s' % (pkg_name, ex))
@@ -135,11 +135,14 @@ def get_jenkins_dependencies(workspace, rd_obj, skip_update=False):
             print("Failed to get package.xml for %s.  Error: %s" %
                   (pkg_name, ex))
             raise ex
-        
+
         if not vcs_cache._skip_update:
             print("Sleeping for github slowdown") 
             time.sleep(1)
+    return packages
 
+
+def get_jenkins_dependencies(rd_obj, packages):
     result = {}
     for pkg_name in sorted(packages.keys()):
         p = packages[pkg_name]

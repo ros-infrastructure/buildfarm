@@ -182,8 +182,11 @@ if __name__ == '__main__':
     try:
         if not args.repos:
             workspace = tempfile.mkdtemp()
-        dependencies = dependency_walker.get_jenkins_dependencies(workspace, rd, skip_update=args.skip_update)
-        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies) 
+        packages = dependency_walker.get_packages(workspace, rd, skip_update=args.skip_update)
+        dependencies = dependency_walker.get_jenkins_dependencies(rd, packages)
+
+        stack_depends, _ = release_jobs.dry_get_stack_dependencies(args.rosdistro)
+        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies, stack_depends)
         
         combined_jobgraph = {}
         for k, v in dependencies.iteritems():

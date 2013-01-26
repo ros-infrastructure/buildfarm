@@ -4,6 +4,7 @@ from __future__ import print_function
 import em
 import pkg_resources
 import os
+import re
 import sys
 from xml.sax.saxutils import escape
 import xml.etree.ElementTree as ET
@@ -116,6 +117,7 @@ def dry_get_versioned_dependency_tree(rosdistro):
         raise
     dependency_tree = {}
     versions = {}
+    maintainer_dict = {}
     for s in d.stacks:
         version = d.stacks[s].version
         versions[s] = version
@@ -124,15 +126,29 @@ def dry_get_versioned_dependency_tree(rosdistro):
             dependency_tree[s] = yaml_info['depends']
         else:
             dependency_tree[s] = []
-    return dependency_tree, versions
+        maintainers = []
+        if 'maintainer' in yaml_info:
+            maintainers = _extract_emails(yaml_info['maintainer'])
+        if not maintainers and 'contact' in yaml_info:
+            maintainers = _extract_emails(yaml_info['contact'])
+        maintainer_dict[s] = maintainers
+    return dependency_tree, versions, maintainer_dict
 
 
-def dry_generate_jobgraph(rosdistro, wet_jobgraph):
+def _extract_emails(value):
+    values = re.split(' |,|;|<|>|\(|\)|\[|\]|\n|\r', value)
+    return [v for v in values if v.find('@', 1, -3) != -1]
+
+
+def dry_get_stack_dependencies(rosdistro):
     if rosdistro == 'backports':
-        return {}
+        return {}, {}
 
-    (stack_depends, _) = dry_get_versioned_dependency_tree(rosdistro)
+    (stack_depends, _, maintainers) = dry_get_versioned_dependency_tree(rosdistro)
+    return stack_depends, maintainers
 
+
+def dry_generate_jobgraph(rosdistro, wet_jobgraph, stack_depends):
     jobgraph = {}
     for key, val in stack_depends.iteritems():
         dry_depends = [debianize_package_name(rosdistro, p) for p in val]
@@ -260,13 +276,14 @@ def add_dependent_to_dict(packagename, jobgraph):
     return dependents
 
 
-def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
+def dry_binarydeb_jobs(stackname, dry_maintainers, rosdistro, distros, jobgraph):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
     package = debianize_package_name(rosdistro, stackname)
     d = dict(
         PACKAGE=package,
         ROSDISTRO=rosdistro,
         STACK_NAME=stackname,
+        NOTIFICATION_EMAIL=' '.join(dry_maintainers),
         USERNAME=jenkins_config.username,
         IS_METAPACKAGES=(stackname == 'metapackages')
     )
@@ -286,13 +303,14 @@ def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
     return jobs
 
 
-def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
+def binarydeb_jobs(package, maintainer_emails, distros, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
     d = dict(
         DISTROS=distros,
         FQDN=fqdn,
         ROS_PACKAGE_REPO=ros_package_repo,
         PACKAGE=package,
+        NOTIFICATION_EMAIL=' '.join(maintainer_emails),
         USERNAME=jenkins_config.username
     )
     jobs = []
@@ -309,7 +327,7 @@ def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50
     return jobs
 
 
-def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name):
+def sourcedeb_job(package, maintainer_emails, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
 
     d = dict(
@@ -319,6 +337,7 @@ def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro
         DISTROS=distros,
         CHILD_PROJECTS=child_projects,
         PACKAGE=package,
+        NOTIFICATION_EMAIL=' '.join(maintainer_emails),
         ROSDISTRO=rosdistro,
         SHORT_PACKAGE_NAME=short_package_name,
         USERNAME=jenkins_config.username
@@ -326,9 +345,9 @@ def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro
     return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
 
-def dry_doit(package, distros, rosdistro, jobgraph, commit, jenkins_instance):
+def dry_doit(package, dry_maintainers, distros, rosdistro, jobgraph, commit, jenkins_instance):
 
-    jobs = dry_binarydeb_jobs(package, rosdistro, distros, jobgraph)
+    jobs = dry_binarydeb_jobs(package, dry_maintainers, rosdistro, distros, jobgraph)
 
     successful_jobs = []
     failed_jobs = []
@@ -349,13 +368,11 @@ def dry_doit(package, distros, rosdistro, jobgraph, commit, jenkins_instance):
     return (unattempted_jobs, successful_jobs, failed_jobs)
 
 
-def doit(release_uri, package, distros, fqdn, job_graph, rosdistro, short_package_name, commit, jenkins_instance):
-
-    #package = os.path.splitext(os.path.basename(release_uri))[0]
-
-    binary_jobs = binarydeb_jobs(package, distros, fqdn, job_graph)
+def doit(release_uri, package_name, package, distros, fqdn, job_graph, rosdistro, short_package_name, commit, jenkins_instance):
+    maintainer_emails = [m.email for m in package.maintainers]
+    binary_jobs = binarydeb_jobs(package_name, maintainer_emails, distros, fqdn, job_graph)
     child_projects = zip(*binary_jobs)[0]  # unzip the binary_jobs tuple
-    source_job = sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name)
+    source_job = sourcedeb_job(package_name, maintainer_emails, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name)
     jobs = [source_job] + binary_jobs
     successful_jobs = []
     failed_jobs = []
