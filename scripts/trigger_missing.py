@@ -1,23 +1,12 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+
 import argparse
-import shutil
-import sys
-import tempfile
-import urllib2
-import yaml
-import time
-
-
 import pprint
 
 from buildfarm import jenkins_support, release_jobs
-
-import rospkg.distro
-
 from buildfarm.rosdistro import debianize_package_name
-
 
 
 def parse_options():
@@ -75,8 +64,6 @@ def trigger_if_necessary(da, pkg, rosdistro, jenkins_instance, missing_by_arch):
 if __name__ == '__main__':
     args = parse_options()
 
-
-
     missing = release_jobs.compute_missing(
         args.distros,
         args.fqdn,
@@ -85,8 +72,7 @@ if __name__ == '__main__':
 
     pp = pprint.PrettyPrinter()
     print ("net Missing")
-    pp.pprint (missing)
-
+    pp.pprint(missing)
 
     if args.commit:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
@@ -115,10 +101,4 @@ if __name__ == '__main__':
         print('Triggered %d jobs, skipped %d jobs.' % (triggered, skipped))
 
     else:
-        
         print('This was not pushed to the server.  If you want to do so use "--commit" to do it for real.')
-
-
-
-    
-
