@@ -9,7 +9,9 @@ import urllib2
 import yaml
 import time
 
-from buildfarm import dependency_walker, jenkins_support, release_jobs
+from buildfarm import dependency_walker_fuerte as dependency_walker
+from buildfarm import jenkins_support
+from buildfarm import release_jobs_fuerte as release_jobs
 
 import rospkg.distro
 
