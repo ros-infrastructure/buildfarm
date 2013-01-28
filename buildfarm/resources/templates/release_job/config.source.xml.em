@@ -11,57 +11,12 @@
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
-  <!--
-  <scm class="hudson.plugins.git.GitSCM">
-    <configVersion>1</configVersion>
-    <remoteRepositories>
-      <org.spearce.jgit.transport.RemoteConfig>
-        <string>origin</string>
-        <int>5</int>
-        <string>fetch</string>
-        <string>+refs/heads/*:refs/remotes/origin/*</string>
-        <string>receivepack</string>
-        <string>git-upload-pack</string>
-        <string>uploadpack</string>
-        <string>git-upload-pack</string>
-        <string>url</string>
-        <string>@(RELEASE_URI)</string>
-        <string>tagopt</string>
-        <string></string>
-      </org.spearce.jgit.transport.RemoteConfig>
-    </remoteRepositories>
-    <branches>
-      <hudson.plugins.git.BranchSpec>
-        <name>@(RELEASE_BRANCH)</name>
-      </hudson.plugins.git.BranchSpec>
-    </branches>
-    <mergeOptions/>
-    <recursiveSubmodules>false</recursiveSubmodules>
-    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-    <authorOrCommitter>false</authorOrCommitter>
-    <clean>false</clean>
-    <wipeOutWorkspace>true</wipeOutWorkspace>
-    <pruneBranches>false</pruneBranches>
-    <buildChooser class="hudson.plugins.git.util.DefaultBuildChooser"/>
-    <gitTool>Default</gitTool>
-    <submoduleCfg class="list"/>
-    <relativeTargetDir>@(PACKAGE)</relativeTargetDir>
-    <excludedRegions></excludedRegions>
-    <excludedUsers></excludedUsers>
-    <skipTag>false</skipTag>
-  </scm>
-  -->
   <assignedNode>debbuild</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
-    <!--
-    <hudson.triggers.SCMTrigger>
-      <spec>*/5 * * * *</spec>
-    </hudson.triggers.SCMTrigger>
-    -->
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
@@ -83,6 +38,11 @@
       <regexpForFailed/>
       <setForMatrix>false</setForMatrix>
     </hudson.plugins.descriptionsetter.DescriptionSetterPublisher>
+    <hudson.tasks.Mailer>
+      <recipients>@(NOTIFICATION_EMAIL)</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
   </publishers>
   <buildWrappers/>
 </project>

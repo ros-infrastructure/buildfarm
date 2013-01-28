@@ -61,6 +61,8 @@ sudo PYTHONPATH=$PYTHONPATH $WORKSPACE/catkin-debs/scripts/setup_apt_root.py $di
 #    exit 0
 #fi
 
+
+# update apt update
 sudo apt-get update -c $aptconffile -o Apt::Architecture=$arch
 
 # check precondition that all dependents exist, don't check if no dependencies
@@ -76,6 +78,7 @@ mkdir -p $work_dir
 cd $work_dir
 
 
+# Pull the sourcedeb
 sudo apt-get source $PACKAGE -c $aptconffile
 
 # extract version number from the dsc file
@@ -127,36 +130,13 @@ sudo pbuilder  --build \
 
 
 
-# invalidate all binary packages which will depend on this package
+# Upload invalidate and add to the repo
+UPLOAD_DIR=/tmp/upload/${PACKAGE}_${distro}_$arch
 
-cat > invalidate.py << DELIM
-#!/usr/bin/env python
-import paramiko
-cmd = "( flock 200; /usr/bin/reprepro -b /var/www/repos/building -T deb -V removefilter $distro \"Package (% ros-* ), Architecture (== $arch ), ( Depends (% *$PACKAGE[, ]* ) | Depends (% *$PACKAGE ) )\" ) 200>/var/www/repos/building/lock"
-ssh = paramiko.SSHClient()
-ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-ssh.connect('$ROS_REPO_FQDN', username='rosbuild')
-stdin, stdout, stderr = ssh.exec_command(cmd)
-print "Invalidation results:", stdout.readlines()
-ssh.close()
-DELIM
-
-echo "invalidation script contents for debugging:"
-cat invalidate.py
-python invalidate.py
-
-# push the new deb, config followed by execution
-echo """
-[debtarget]
-method                  = scp
-fqdn                    = $ROS_REPO_FQDN
-incoming                = /var/www/repos/building/queue/$distro
-run_dinstall            = 0
-post_upload_command     = ssh rosbuild@@$ROS_REPO_FQDN -- '( flock 200; /usr/bin/reprepro -b /var/www/repos/building --ignore=emptyfilenamepart -V processincoming $distro ) 200>/var/www/repos/building/lock'
-""" > $output_dir/dput.cf
-
-dput -u -c $output_dir/dput.cf debtarget $output_dir/*$DISTRO*.changes
-
+ssh rosbuild@@$ROS_REPO_FQDN -- mkdir -p $UPLOAD_DIR
+ssh rosbuild@@$ROS_REPO_FQDN -- rm -rf $UPLOAD_DIR/*
+scp -r $output_dir/*$distro* rosbuild@@$ROS_REPO_FQDN:$UPLOAD_DIR
+ssh rosbuild@@$ROS_REPO_FQDN -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -d $distro -a $arch -f $UPLOAD_DIR -p $PACKAGE -c --delete --invalidate
 
 # update apt again
 sudo apt-get update -c $aptconffile -o Apt::Architecture=$arch
