@@ -44,6 +44,8 @@ import tempfile
 import shutil
 import gzip
 
+#from .core import debianize_name
+
 class BadRepo(Exception): pass
 
 _Packages_cache = {}
@@ -157,8 +159,8 @@ def deb_in_repo(repo_url, deb_name, deb_version, os_platform, arch, use_regex=Tr
     """
     if source:
         packagelist = get_source_Packages(repo_url, os_platform, cache)
-
-        M = re.search('^Package: %s.*\n.*\n.*\n.*\nVersion: %s'%(deb_name, deb_version), packagelist, re.MULTILINE)
+        search_string = '^Package: %s\nFormat: .*\nBinary: .*\nArchitecture: .*\nVersion: %s'%(deb_name, deb_version)
+        M = re.search(search_string, packagelist, re.MULTILINE)
         return M is not None
     else:
         packagelist = get_Packages(repo_url, os_platform, arch, cache)
@@ -178,6 +180,7 @@ def get_depends(repo_url, deb_name, os_platform, arch):
     # more robust to any bad state we may have caused to the shadow
     # repo.
     package_deps = load_Packages(repo_url, os_platform, arch)
+    done = False
     queue = [deb_name]
     depends = set()
     # This is not particularly efficient, but it does not need to
@@ -194,4 +197,15 @@ def get_depends(repo_url, deb_name, os_platform, arch):
                 queue.append(package)
                 depends.add(package)
     return list(depends)
+
+#def get_stack_version(packageslist, distro_name, stack_name):
+#    """
+#    Get the ROS version number of the stack in the repository
+#    """
+#    deb_name = "ros-%s-%s"%(distro_name, debianize_name(stack_name))
+#    match = [vm for sm, vm, _, _ in packageslist if sm == deb_name]
+#    if match:
+#        return match[0].split('-')[0]
+#    else:
+#        return None
 
