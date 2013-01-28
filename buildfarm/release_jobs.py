@@ -190,7 +190,7 @@ def compare_xml_children(a, b):
 
         b_found = b.findall(tag)
         if not b_found:
-            #print("When comparing xml. Failed to find tag %s" % tag)
+            #print("When comparing xml. Failed to find tag '%s'" % tag)
             return False
 
         #If multiple of the same tags try them all
@@ -214,11 +214,6 @@ def create_jenkins_job(jobname, config, jenkins_instance):
         if jobname in [job['name'] for job in jobs]:
             remote_config = jenkins_instance.get_job_config(jobname)
             if not compare_configs(remote_config, config):
-                #import difflib
-                #differ = difflib.Differ()
-                #diff = differ.compare(remote_config.splitlines(), config.splitlines())
-                #print("Different Config for %s !!!!!!!!!!!!!" % jobname)
-                #print("\n".join(diff))
                 jenkins_instance.reconfig_job(jobname, config)
             else:
                 print("Skipping %s as config is the same" % jobname)
@@ -377,9 +372,6 @@ def doit(release_uri, package_name, package, distros, fqdn, job_graph, rosdistro
     successful_jobs = []
     failed_jobs = []
     for job_name, config in jobs:
-        #if job_name == 'ros-groovy-catkin_binarydeb_precise_amd64':
-        #    print(job_name, config)
-
         if commit:
             if create_jenkins_job(job_name, config, jenkins_instance):
                 successful_jobs.append(job_name)

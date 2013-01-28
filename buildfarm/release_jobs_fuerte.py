@@ -223,10 +223,10 @@ def compare_xml_children(a, b):
 
         b_found = b.findall(tag)
         if not b_found:
-            print("Failed to find tags %s" % tag)
+            #print("When comparing xml. Failed to find tag '%s'" % tag)
             return False
 
-        #If multple of the same tags try them all
+        #If multiple of the same tags try them all
         match_found = False
         for b_child in b_found:
             match_found = compare_xml_children(b_child, child) and compare_xml_text_and_attribute(b_child, child)
@@ -255,7 +255,7 @@ def create_jenkins_job(jobname, config, jenkins_instance):
             jenkins_instance.create_job(jobname, config)
         return True
     except jenkins.JenkinsException as ex:
-        print('Failed to configure "%s" with error: %s' % (jobname, ex))
+        print('Failed to configure "%s" with error: %s' % (jobname, ex), file=sys.stderr)
         return False
 
 
@@ -384,7 +384,7 @@ def dry_doit(package, distros,  rosdistro, jobgraph, commit, jenkins_instance):
                 else:
                     failed_jobs.append(job_name)
             except urllib2.URLError as ex:
-                print ("Job creation failed with URLErro error %s" % ex)
+                print ("Job creation failed with URLError %s" % ex, file=sys.stderr)
                 failed_jobs.append(job_name)
 
     unattempted_jobs = [job for (job, config) in jobs if job not in successful_jobs and job not in failed_jobs]
