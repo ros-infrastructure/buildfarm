@@ -280,7 +280,8 @@ def dry_binarydeb_jobs(stackname, dry_maintainers, rosdistro, distros, jobgraph)
         STACK_NAME=stackname,
         NOTIFICATION_EMAIL=' '.join(dry_maintainers),
         USERNAME=jenkins_config.username,
-        IS_METAPACKAGES=(stackname == 'metapackages')
+        IS_METAPACKAGES=(stackname == 'metapackages'),
+        PACKAGES_FOR_SYNC='435'
     )
     jobs = []
     for distro in distros:

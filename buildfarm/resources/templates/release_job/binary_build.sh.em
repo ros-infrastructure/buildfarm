@@ -34,10 +34,6 @@ else
 fi
 
 
-sudo apt-get update
-sudo apt-get install -y pbuilder python-empy python-argparse debhelper # todo move to server setup, or confirm it's there
-sudo apt-get install -y qemu-arm-static # on precise it's now qemu-user-static I believe
-
 if [ -e $WORKSPACE/catkin-debs ]
 then
   rm -rf $WORKSPACE/catkin-debs

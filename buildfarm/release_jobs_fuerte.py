@@ -312,7 +312,10 @@ def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
         PACKAGE=package,
         ROSDISTRO=rosdistro,
         STACK_NAME=stackname,
-        USERNAME=jenkins_config.username
+        NOTIFICATION_EMAIL='',
+        USERNAME=jenkins_config.username,
+        IS_METAPACKAGES=(stackname == 'metapackages'),
+        PACKAGES_FOR_SYNC='250'
     )
     jobs = []
     for distro in distros:
@@ -336,6 +339,7 @@ def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50
         FQDN=fqdn,
         ROS_PACKAGE_REPO=ros_package_repo,
         PACKAGE=package,
+        NOTIFICATION_EMAIL='',
         USERNAME= jenkins_config.username
     )
     jobs = []
@@ -364,6 +368,7 @@ def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro
     PACKAGE=package,
     ROSDISTRO=rosdistro,
     SHORT_PACKAGE_NAME=short_package_name,
+    NOTIFICATION_EMAIL='',
     USERNAME= jenkins_config.username
     )
     return  (sourcedeb_job_name(package), create_sourcedeb_config(d))

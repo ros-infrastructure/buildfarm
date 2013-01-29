@@ -8,6 +8,7 @@ ARCH=@(ARCH)
 STACK_NAME=@(STACK_NAME)
 PACKAGE_NAME=@(PACKAGE)
 DISTRO_NAME=@(ROSDISTRO)
+PACKAGES_FOR_SYNC=@(PACKAGES_FOR_SYNC)
 
 
 
@@ -16,8 +17,6 @@ echo $STACK_NAME
 echo $OS_PLATFORM
 echo $ARCH
 
-sudo apt-get update
-sudo apt-get install pbuilder git-core python-rospkg python-vcstools -y
 
 
 # Building package
@@ -46,10 +45,7 @@ git clone git://github.com/willowgarage/catkin-debs.git $WORKSPACE/catkin-debs -
 cd $WORKSPACE/catkin-debs
 . setup.sh
 
-$WORKSPACE/catkin-debs/scripts/count_ros_packages.py $DISTRO_NAME $OS_PLATFORM $ARCH --count 435
+$WORKSPACE/catkin-debs/scripts/count_ros_packages.py $DISTRO_NAME $OS_PLATFORM $ARCH --count $PACKAGES_FOR_SYNC
 ssh rosbuild@@pub8 -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/prepare_sync.py /var/packages/ros-shadow-fixed/ubuntu -r $DISTRO_NAME -d $OS_PLATFORM -a $ARCH -u http://50.28.27.175/repos/building/ -c
 
-
 @[end if]
-
-
