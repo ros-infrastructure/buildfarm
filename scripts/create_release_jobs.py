@@ -3,6 +3,7 @@
 from __future__ import print_function
 import argparse
 import os
+import sys
 import tempfile
 
 from buildfarm import dependency_walker, jenkins_support, release_jobs
@@ -22,7 +23,7 @@ def parse_options():
            help='The source repo to push to, fully qualified something...',
            default='50.28.27.175')
     parser.add_argument(dest='rosdistro',
-           help='The ros distro. electric, fuerte, groovy')
+           help='The ros distro. groovy, hydro, ...')
     parser.add_argument('--distros', nargs='+',
            help='A list of debian distros. Default: %(default)s',
            default=[])
@@ -144,6 +145,10 @@ def doit(distros, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit
 
 if __name__ == '__main__':
     args = parse_options()
+
+    if args.rosdistro == 'fuerte':
+        print("'fuerte' is not supported as the rosdistro by this script. Use 'create_release_jobs_fuerte.py' instead.")
+        sys.exit(1)
 
     repo = 'http://%s/repos/building' % args.fqdn
 

@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 import argparse
+import os
 import shutil
 import sys
 import tempfile
@@ -30,7 +31,7 @@ def parse_options():
            help='The source repo to push to, fully qualified something...',
            default='50.28.27.175')
     parser.add_argument(dest='rosdistro',
-           help='The ros distro. electric, fuerte, groovy')
+           help="The ros distro. Only 'fuerte' is supported by this script")
     parser.add_argument('--distros', nargs='+',
            help='A list of debian distros. Default: %(default)s',
            default=[])
@@ -40,7 +41,7 @@ def parse_options():
            help='Delete extra jobs', action='store_true', default=False)
     parser.add_argument('--wet-only', dest='wet_only',
            help='Only setup wet jobs', action='store_true', default=False)
-    parser.add_argument('--repo-workspace', dest='repos', action='store',
+    parser.add_argument('--repo-workspace', action='store',
            help='A directory into which all the repositories will be checked out into.')
     return parser.parse_args()
 
@@ -143,6 +144,11 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
 
 if __name__ == '__main__':
     args = parse_options()
+
+    if args.rosdistro != 'fuerte':
+        print("Only 'fuerte' is supported as the rosdistro by this script. Use 'create_release_jobs.py' instead.")
+        sys.exit(1)
+
     repo = 'http://%s/repos/building' % args.fqdn
 
     print('Fetching "%s"' % (URL_PROTOTYPE % args.rosdistro))
@@ -159,9 +165,12 @@ if __name__ == '__main__':
         print('Wrong type value in yaml file')
         sys.exit(1)
 
-    workspace = args.repos
+    workspace = args.repo_workspace
+    if not workspace:
+        workspace = os.path.join(tempfile.gettempdir(), 'repo-workspace-%s' % args.rosdistro)
+
     try:
-        if not args.repos:
+        if not args.repo_workspace:
             workspace = tempfile.mkdtemp()
         (dependencies, package_names_by_url) = dependency_walker.get_dependencies(workspace, repo_map['repositories'], args.rosdistro)
         dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro)
@@ -176,7 +185,7 @@ if __name__ == '__main__':
         combined_jobgraph[debianize_package_name(args.rosdistro, 'metapackages')] = combined_jobgraph.keys()
 
     finally:
-        if not args.repos:
+        if not args.repo_workspace:
             shutil.rmtree(workspace)
 
     results_map = doit(repo_map,
