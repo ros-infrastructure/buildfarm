@@ -81,6 +81,8 @@ if __name__ == '__main__':
         for pkg in sorted(missing.iterkeys()):
             dist_archs = missing[pkg]
             for da in dist_archs:
+                if da.endswith('_source'):
+                    da = 'source'
                 if da not in missing_by_arch:
                     missing_by_arch[da] = []
                 missing_by_arch[da].append(pkg)
