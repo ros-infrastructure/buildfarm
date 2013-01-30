@@ -1,7 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description></description>
+  <description>Generate the rosdistro cache and make it available.&#xd;
+&#xd;
+Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator>
     <daysToKeep>30</daysToKeep>
     <numToKeep>50</numToKeep>

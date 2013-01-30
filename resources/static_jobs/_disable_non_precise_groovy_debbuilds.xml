@@ -1,12 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>turned off this downselector 12/24/2012 Tully</description>
+  <description>Disable binarydeb jobs of specific platforms/architectures.&#xd;
+&#xd;
+Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator>
     <daysToKeep>30</daysToKeep>
     <numToKeep>10</numToKeep>
-    <artifactDaysToKeep>30</artifactDaysToKeep>
-    <artifactNumToKeep>10</artifactNumToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties/>
@@ -26,9 +28,10 @@ import java.util.regex.Pattern
 
 accept_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_.+&quot;)
 enable_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_precise_amd64&quot;)
-reject1_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_oneiric_amd64&quot;)
-reject2_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_precise_amd64&quot;)
-reject3_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_quantal_amd64&quot;)
+//reject1_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_oneiric_amd64&quot;)
+//reject2_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_precise_amd64&quot;)
+//reject3_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_quantal_amd64&quot;)
+
 for (p in hudson.model.Hudson.instance.projects) {
 	if (!accept_pattern.matcher(p.name).matches()) continue
 	if (enable_pattern.matcher(p.name).matches()) {
@@ -37,12 +40,12 @@ for (p in hudson.model.Hudson.instance.projects) {
 		p.save()
 		continue
 	}
-//	if (reject1_pattern.matcher(p.name).matches()) continue
-//	if (reject2_pattern.matcher(p.name).matches()) continue
-//	if (reject3_pattern.matcher(p.name).matches()) continue
+	//if (reject1_pattern.matcher(p.name).matches()) continue
+	//if (reject2_pattern.matcher(p.name).matches()) continue
+	//if (reject3_pattern.matcher(p.name).matches()) continue
 	println &quot;Disable &quot; + p.name
 	p.disable()
-        p.save()
+	p.save()
 }</command>
       </scriptSource>
       <bindings></bindings>

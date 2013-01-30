@@ -1,7 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>A documentation job for ROS tools that are independent of any distro.</description>
+  <description>Documentation job for ROS tools that are independent of any distro.&#xd;
+&#xd;
+Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator>
     <daysToKeep>30</daysToKeep>
     <numToKeep>10</numToKeep>
