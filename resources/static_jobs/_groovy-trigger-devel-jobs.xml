@@ -40,6 +40,12 @@ for (p in hudson.model.Hudson.instance.getAllItems(AbstractProject)) {
       <classpath></classpath>
     </hudson.plugins.groovy.SystemGroovy>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.tasks.Mailer>
+      <recipients>tfoote@willowgarage.com dthomas@willowgarage.com</recipients>
+      <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
   <buildWrappers/>
 </project>

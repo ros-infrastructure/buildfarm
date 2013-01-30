@@ -29,6 +29,12 @@ Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in 
       <command>generate_jenkins_doc groovy --delete</command>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.tasks.Mailer>
+      <recipients>tfoote@willowgarage.com dthomas@willowgarage.com</recipients>
+      <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
   <buildWrappers/>
 </project>
