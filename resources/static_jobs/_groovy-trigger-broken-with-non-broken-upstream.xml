@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <logRotator>
+    <daysToKeep>30</daysToKeep>
+    <numToKeep>10</numToKeep>
+    <artifactDaysToKeep>30</artifactDaysToKeep>
+    <artifactNumToKeep>10</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.12">
+      <scriptSource class="hudson.plugins.groovy.StringScriptSource">
+        <command>// trigger all broken jobs which have no broken upstream jobs
+
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+import hudson.model.Cause
+import hudson.model.Result
+
+println &quot;Triggering builds for the following jobs:&quot;
+
+def prefix = &quot;ros-groovy-&quot;
+pattern_src = Pattern.compile(prefix + &quot;.+_sourcedeb&quot;)
+pattern_bin = Pattern.compile(prefix + &quot;.+_binarydeb_.+&quot;)
+for (p in hudson.model.Hudson.instance.projects) {
+  if (!pattern_src.matcher(p.name).matches() &amp;&amp; !pattern_bin.matcher(p.name).matches()) continue
+  if (p.isDisabled()) continue
+  if (p.isInQueue() || p.isBuilding()) continue
+
+  // skip (un)stable jobs
+  if (p.getNextBuildNumber() &gt; 1) {
+    def lb = p.getLastBuild()
+    if (lb) {
+      def r = lb.getResult()
+      if (r) {
+        if (r.isBetterOrEqualTo(Result.UNSTABLE)) continue
+      }
+    }
+  }
+
+  // skip if any upstream job is broken
+  any_upstream_broken = false
+  for (u in p.getUpstreamProjects()) {
+    any_upstream_broken = true
+    if (u.getNextBuildNumber() &gt; 1) {
+      def lb = u.getLastBuild()
+      if (lb) {
+        def r = lb.getResult()
+        if (r) {
+          if (r.isBetterOrEqualTo(Result.UNSTABLE)) {
+            any_upstream_broken = false
+          }
+        }
+      }
+    }
+    if (any_upstream_broken) break
+  }
+  if (any_upstream_broken) continue
+
+  println &quot;&lt;a href=\&quot;&quot; + p.getAbsoluteUrl() + &quot;\&quot;&gt;&quot; + p.name + &quot;&lt;/a&gt;&quot;
+
+  scheduled = p.scheduleBuild(new Cause.UserIdCause())
+  if (!scheduled) {
+    println &quot;FAILED to schedule build&quot;
+  }
+}</command>
+      </scriptSource>
+      <bindings></bindings>
+      <classpath></classpath>
+    </hudson.plugins.groovy.SystemGroovy>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

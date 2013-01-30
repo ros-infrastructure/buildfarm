@@ -1,0 +1,112 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This will delete subdirectories on each connectede slave which is not associated with an active job.  &#xd;
+&#xd;
+See this thread for more info: http://jenkins.361315.n4.nabble.com/Workspace-cleanup-after-job-removal-td4628469.html&#xd;
+</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.12">
+      <scriptSource class="hudson.plugins.groovy.StringScriptSource">
+        <command>import hudson.FilePath;
+
+// Initialize dryRun parameter to TRUE if not given as script parameter
+if( !binding.variables.containsKey(&quot;dryRun&quot;) ) {
+  dryRun = true;
+}
+
+if( dryRun == true ) {
+  println &quot;** Execute a dryRun - no files will ever be deleted **&quot;;
+}
+
+// shortcut to Jenkins instance
+def jenkins = jenkins.model.Jenkins.instance;
+
+// Search for Projects without custom workspace and collect their name
+//
+def jobNames = jenkins.items.findAll { it instanceof hudson.model.Job &amp;&amp; it.customWorkspace==null }.collect { it.name };
+
+println(&quot;Existing Jobs: &quot;);
+jobNames.each {println &quot;  $it&quot;}
+
+
+// Slaves create a workspace for each job under their &apos;workspaceRoot&apos;.
+// The subdirectory is named after the job name, possibly with a @ followed by a 
+// number in case of matrix jobs.
+// We simply list the workspace content and try to find a matching job. If none
+// is found, the directory is scheduled for deletion.
+//
+// This process is done only for slaves that are online.
+// There is no need to inspect Master since job workspaces will be automatically
+// deleted when the job definition is deleted.
+//
+for (slave in jenkins.slaves)
+{
+  println &quot;&quot;;
+  
+  // Make sure slave is online
+  if( ! slave.computer.online ) {
+    println(&quot;Slave &apos;$slave.nodeName&apos; is currently offline - skip workspace cleanup&quot;);
+    continue;
+  }
+  
+  // Retrieve the a FilePath to the workspace root
+  def wsRoot = slave.workspaceRoot;
+  if( wsRoot == null ) {
+    printlnt(&quot;Slave &apos;$slave.nodeName&apos; has a &lt;null&gt; workspaceRoot - skip workspace cleanup&quot;);
+    continue;
+  }
+  
+  // List workspace content and perform cleanup
+  println(&quot;Slave &apos;$slave.nodeName&apos; is online - perform workspace cleanup:&quot;);
+  
+  def subdirs = wsRoot.list();
+  
+  if( subdirs.size() == 0 ) {
+    println(&quot;  (workspace is empty)&quot;);
+    continue;
+  }
+  
+  for(d in subdirs) {
+    
+    // Remove any suffixes from the dir name
+    def dirName = d.name.split(&quot;@&quot;)[0];
+    
+    // Find matching job
+    def jobMatch = jobNames.find { it==dirName };
+      
+    if ( jobMatch != null ) {
+      println(&quot;  KEEP: $d --&gt; job:$jobMatch&quot;);
+    }
+    else {
+      if( dryRun == true ) {
+      	println(&quot; DELETE: $d (dryRun)&quot;);
+      }
+      else {
+        println(&quot;  DELETE: $d&quot;);
+        mode = d.mode()
+        println(&quot;  MODE: $mode&quot;);
+      	d.deleteRecursive();
+      }
+    }
+  }
+}
+</command>
+      </scriptSource>
+      <bindings>dryRun = false</bindings>
+      <classpath></classpath>
+    </hudson.plugins.groovy.SystemGroovy>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

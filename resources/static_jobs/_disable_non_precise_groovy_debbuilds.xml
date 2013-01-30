@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>turned off this downselector 12/24/2012 Tully</description>
+  <logRotator>
+    <daysToKeep>30</daysToKeep>
+    <numToKeep>10</numToKeep>
+    <artifactDaysToKeep>30</artifactDaysToKeep>
+    <artifactNumToKeep>10</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.12">
+      <scriptSource class="hudson.plugins.groovy.StringScriptSource">
+        <command>import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+accept_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_.+&quot;)
+enable_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_precise_amd64&quot;)
+reject1_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_oneiric_amd64&quot;)
+reject2_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_precise_amd64&quot;)
+reject3_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_quantal_amd64&quot;)
+for (p in hudson.model.Hudson.instance.projects) {
+	if (!accept_pattern.matcher(p.name).matches()) continue
+	if (enable_pattern.matcher(p.name).matches()) {
+		println &quot;Enable &quot; + p.name
+		p.enable()
+		p.save()
+		continue
+	}
+//	if (reject1_pattern.matcher(p.name).matches()) continue
+//	if (reject2_pattern.matcher(p.name).matches()) continue
+//	if (reject3_pattern.matcher(p.name).matches()) continue
+	println &quot;Disable &quot; + p.name
+	p.disable()
+        p.save()
+}</command>
+      </scriptSource>
+      <bindings></bindings>
+      <classpath></classpath>
+    </hudson.plugins.groovy.SystemGroovy>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

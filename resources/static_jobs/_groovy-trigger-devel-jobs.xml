@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <logRotator>
+    <daysToKeep>30</daysToKeep>
+    <numToKeep>10</numToKeep>
+    <artifactDaysToKeep>30</artifactDaysToKeep>
+    <artifactNumToKeep>10</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.12">
+      <scriptSource class="hudson.plugins.groovy.StringScriptSource">
+        <command>import java.util.regex.Matcher
+import java.util.regex.Pattern
+import hudson.model.AbstractProject
+import hudson.model.Result
+
+pattern = Pattern.compile(&quot;devel-groovy-.+&quot;)
+for (p in hudson.model.Hudson.instance.getAllItems(AbstractProject)) {
+	if (!pattern.matcher(p.name).matches()) continue
+	if (p.isBuilding() || p.isInQueue()) continue
+	println p.name
+	p.scheduleBuild()
+}</command>
+      </scriptSource>
+      <bindings></bindings>
+      <classpath></classpath>
+    </hudson.plugins.groovy.SystemGroovy>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

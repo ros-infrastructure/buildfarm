@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>DO NOT EDIT. THIS JOB IS GENERATED.</description>
+  <logRotator>
+    <daysToKeep>30</daysToKeep>
+    <numToKeep>10</numToKeep>
+    <artifactDaysToKeep>30</artifactDaysToKeep>
+    <artifactNumToKeep>10</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>debbuild</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>true</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>*/15 * * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -x
+
+#stop on error
+set -o errexit
+
+sudo apt-get update
+sudo apt-get install python-jenkins python-catkin-pkg -y python-rospkg
+
+rm -rf catkin-debs
+git clone git://github.com/willowgarage/catkin-debs.git -b master
+
+export PYTHONPATH=$WORKSPACE/catkin-debs
+$WORKSPACE/catkin-debs/scripts/generate_status_page.py fuerte --basedir $WORKSPACE/fuerte_apt_cache
+
+scp -o StrictHostKeyChecking=no $WORKSPACE/fuerte_apt_cache/fuerte.* wgs32:/var/www/www.ros.org/html/debbuild/</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
