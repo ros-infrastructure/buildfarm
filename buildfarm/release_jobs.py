@@ -289,6 +289,8 @@ def dry_binarydeb_jobs(stackname, dry_maintainers, rosdistro, distros, jobgraph)
         IS_METAPACKAGES=(stackname == 'metapackages'),
         PACKAGES_FOR_SYNC='435'
     )
+    print(dry_maintainers)
+    print(d['NOTIFICATION_EMAIL'])
     jobs = []
     for distro in distros:
         for arch in ('i386', 'amd64'):  # removed 'armel' as it as qemu debootstrap is segfaulting
