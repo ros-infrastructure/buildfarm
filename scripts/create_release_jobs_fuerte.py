@@ -35,6 +35,9 @@ def parse_options():
     parser.add_argument('--distros', nargs='+',
            help='A list of debian distros. Default: %(default)s',
            default=[])
+    parser.add_argument('--arches', nargs='+',
+           help='A list of debian architectures. Default: %(default)s',
+           default=[])
     parser.add_argument('--commit', dest='commit',
            help='Really?', action='store_true', default=False)
     parser.add_argument('--delete', dest='delete',
@@ -46,7 +49,7 @@ def parse_options():
     return parser.parse_args()
 
 
-def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=False):
+def doit(repo_map, package_names_by_url, distros, arches, fqdn, jobs_graph, rosdistro, commit=False, delete_extra_jobs=False):
     jenkins_instance = None
     if args.commit or delete_extra_jobs:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
@@ -69,6 +72,9 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
             sys.exit(1)
         default_distros = my_targets[0][rosdistro]
 
+    # TODO: pull target arches from rosdistro
+    target_arches = arches
+
     # We take the intersection of repo-specific targets with default
     # targets.
     results = {}
@@ -90,6 +96,7 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
         results[package_names_by_url[url]] = release_jobs.doit(url,
              package_names_by_url[url],
              target_distros,
+             target_arches,
              fqdn,
              jobs_graph,
              rosdistro=rosdistro,
@@ -114,11 +121,11 @@ def doit(repo_map, package_names_by_url, distros, fqdn, jobs_graph, rosdistro, c
 
     for s in d.stacks:
         print ("Configuring DRY job [%s]" % s)
-        results[debianize_package_name(rosdistro, s) ] = release_jobs.dry_doit(s, default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
+        results[debianize_package_name(rosdistro, s) ] = release_jobs.dry_doit(s, default_distros, target_arches, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
         time.sleep(1)
 
     # special metapackages job
-    results[debianize_package_name(rosdistro, 'metapackages') ] = release_jobs.dry_doit('metapackages', default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
+    results[debianize_package_name(rosdistro, 'metapackages') ] = release_jobs.dry_doit('metapackages', default_distros, target_arches, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
 
     if delete_extra_jobs:
         # clean up extra jobs
@@ -191,6 +198,7 @@ if __name__ == '__main__':
     results_map = doit(repo_map,
         package_names_by_url,
         args.distros,
+        args.arches,
         args.fqdn,
         combined_jobgraph,
         rosdistro=args.rosdistro,
