@@ -1,8 +1,7 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<project>
+<?xml version="1.0" encoding="UTF-8"?><project>
   <actions/>
-  <description>Reconfigure devel jobs for Groovy.&#xd;
-&#xd;
+  <description>Reconfigure devel jobs for Groovy.&#13;
+&#13;
 Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator>
     <daysToKeep>30</daysToKeep>
