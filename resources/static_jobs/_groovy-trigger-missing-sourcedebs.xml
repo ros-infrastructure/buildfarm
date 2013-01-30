@@ -23,7 +23,7 @@ Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in 
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>groovy-devel</name>
+        <name>master</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <disableSubmodules>false</disableSubmodules>
