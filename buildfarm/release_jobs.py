@@ -164,11 +164,17 @@ def dry_generate_jobgraph(rosdistro, wet_jobgraph, stack_depends):
     return jobgraph
 
 
-def compare_configs(a, b):
+def compare_configs(a, b, jobname):
     """Return True if the configs are the same, except the
     description, else False"""
     aroot = ET.fromstring(a)
-    broot = ET.fromstring(b)
+    try:
+        broot = ET.fromstring(b)
+    except ET.ParseError as e:
+        print("Generated config for job '%s' is invalid XML:" % jobname, file=sys.stderr)
+        print(b, file=sys.stderr)
+        print('--', file=sys.stderr)
+        raise e
     return compare_xml_children(aroot, broot)
 
 
@@ -213,7 +219,7 @@ def create_jenkins_job(jobname, config, jenkins_instance):
         print("working on job", jobname)
         if jobname in [job['name'] for job in jobs]:
             remote_config = jenkins_instance.get_job_config(jobname)
-            if not compare_configs(remote_config, config):
+            if not compare_configs(remote_config, config, jobname):
                 jenkins_instance.reconfig_job(jobname, config)
             else:
                 print("Skipping %s as config is the same" % jobname)
@@ -278,7 +284,7 @@ def dry_binarydeb_jobs(stackname, dry_maintainers, rosdistro, distros, jobgraph)
         PACKAGE=package,
         ROSDISTRO=rosdistro,
         STACK_NAME=stackname,
-        NOTIFICATION_EMAIL=' '.join(dry_maintainers),
+        NOTIFICATION_EMAIL=escape(' '.join(dry_maintainers)),
         USERNAME=jenkins_config.username,
         IS_METAPACKAGES=(stackname == 'metapackages'),
         PACKAGES_FOR_SYNC='435'
@@ -306,7 +312,7 @@ def binarydeb_jobs(package, maintainer_emails, distros, fqdn, jobgraph, ros_pack
         FQDN=fqdn,
         ROS_PACKAGE_REPO=ros_package_repo,
         PACKAGE=package,
-        NOTIFICATION_EMAIL=' '.join(maintainer_emails),
+        NOTIFICATION_EMAIL=escape(' '.join(maintainer_emails)),
         USERNAME=jenkins_config.username
     )
     jobs = []
@@ -333,7 +339,7 @@ def sourcedeb_job(package, maintainer_emails, distros, fqdn, release_uri, child_
         DISTROS=distros,
         CHILD_PROJECTS=child_projects,
         PACKAGE=package,
-        NOTIFICATION_EMAIL=' '.join(maintainer_emails),
+        NOTIFICATION_EMAIL=escape(' '.join(maintainer_emails)),
         ROSDISTRO=rosdistro,
         SHORT_PACKAGE_NAME=short_package_name,
         USERNAME=jenkins_config.username
