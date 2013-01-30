@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import argparse
+import difflib
 import jenkins
 import os
 import sys
@@ -35,6 +36,10 @@ def create_jenkins_job(jenkins_instance, name, config, commit):
                     jenkins_instance.reconfig_job(name, config)
                 else:
                     print('  not performed.')
+                diff = difflib.unified_diff(remote_config.splitlines(), config.splitlines(), 'remote', name + '.xml', n=0, lineterm='')
+                for line in diff:
+                    print(line)
+                print('')
             else:
                 print("Skipping job '%s' as config is the same" % name)
         else:
