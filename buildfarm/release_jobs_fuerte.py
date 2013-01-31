@@ -330,12 +330,11 @@ def dry_binarydeb_jobs(stackname, rosdistro, distros, arches, jobgraph):
             #print ("config of %s is %s" % (job_name, config))
     return jobs
 
-def binarydeb_jobs(package, distros, arches, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
+def binarydeb_jobs(package, distros, arches, fqdn, jobgraph):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
     d = dict(
         DISTROS=distros,
         FQDN=fqdn,
-        ROS_PACKAGE_REPO=ros_package_repo,
         PACKAGE=package,
         NOTIFICATION_EMAIL='',
         USERNAME= jenkins_config.username
