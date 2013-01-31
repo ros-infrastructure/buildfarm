@@ -37,7 +37,7 @@ def parse_options():
            default=[])
     parser.add_argument('--arches', nargs='+',
            help='A list of debian architectures. Default: %(default)s',
-           default=[])
+           default=['i386','amd64'])
     parser.add_argument('--commit', dest='commit',
            help='Really?', action='store_true', default=False)
     parser.add_argument('--delete', dest='delete',

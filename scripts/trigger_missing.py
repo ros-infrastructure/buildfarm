@@ -23,7 +23,7 @@ def parse_options():
            default=[])
     parser.add_argument('--arches', nargs='+',
            help='A list of debian arches. Default: %(default)s',
-           default=[])
+           default=['i386','amd64'])
     parser.add_argument('--sourcedeb-only', action='store_true', default=False,
            help='Only check sourcedeb jobs. Default: all')
     parser.add_argument('--commit', dest='commit',
