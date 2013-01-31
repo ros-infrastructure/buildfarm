@@ -49,7 +49,7 @@ def _check_repo_map(rosdistro, repo_map):
         print('Wrong type value in yaml file')
         sys.exit(1)
 
-def compute_missing(distros, fqdn, rosdistro):
+def compute_missing(distros, arches, fqdn, rosdistro):
     """
     Compute what packages are missing from a repo based on the rosdistro files, both wet and dry.
 
@@ -69,8 +69,6 @@ def compute_missing(distros, fqdn, rosdistro):
     # Figure out default distros.  Command-line arg takes precedence; if
     # it's not specified, then read targets.yaml.
     default_distros = distros or fetch_distros_from_yaml(rosdistro)
-
-    arches = ['amd64', 'i386']
 
     missing_wet = get_missing_wet_packages(repo_map, default_distros, rosdistro, repo_url, arches)
     missing_dry = get_missing_dry_packages(rosdistro, default_distros, arches, repo_url)
@@ -305,7 +303,7 @@ def add_dependent_to_dict(packagename, jobgraph):
 
 
 
-def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
+def dry_binarydeb_jobs(stackname, rosdistro, distros, arches, jobgraph):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
     package = debianize_package_name(rosdistro, stackname)
     d = dict(
@@ -319,7 +317,7 @@ def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
     )
     jobs = []
     for distro in distros:
-        for arch in ('i386', 'amd64'):  # removed 'armel' as it as qemu debootstrap is segfaulting
+        for arch in arches:
             d['ARCH'] = arch
             d['DISTRO'] = distro
 
@@ -332,7 +330,7 @@ def dry_binarydeb_jobs(stackname, rosdistro, distros, jobgraph):
             #print ("config of %s is %s" % (job_name, config))
     return jobs
 
-def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
+def binarydeb_jobs(package, distros, arches, fqdn, jobgraph, ros_package_repo="http://50.28.27.175/repos/building"):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
     d = dict(
         DISTROS=distros,
@@ -344,7 +342,7 @@ def binarydeb_jobs(package, distros, fqdn, jobgraph, ros_package_repo="http://50
     )
     jobs = []
     for distro in distros:
-        for arch in ('i386', 'amd64'):  # removed 'armel' as it as qemu debootstrap is segfaulting
+        for arch in arches:
             d['ARCH'] = arch
             d['DISTRO'] = distro
             d["CHILD_PROJECTS"] = calc_child_jobs(package, distro, arch, jobgraph)
@@ -374,9 +372,9 @@ def sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro
     return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
 
-def dry_doit(package, distros,  rosdistro, jobgraph, commit, jenkins_instance):
+def dry_doit(package, distros, arches, rosdistro, jobgraph, commit, jenkins_instance):
 
-    jobs = dry_binarydeb_jobs(package, rosdistro, distros, jobgraph)
+    jobs = dry_binarydeb_jobs(package, rosdistro, distros, arches, jobgraph)
 
     successful_jobs = []
     failed_jobs = []
@@ -397,8 +395,8 @@ def dry_doit(package, distros,  rosdistro, jobgraph, commit, jenkins_instance):
     return (unattempted_jobs, successful_jobs, failed_jobs)
 
 
-def doit(release_uri, package, distros, fqdn, job_graph, rosdistro, short_package_name, commit, jenkins_instance):
-    binary_jobs = binarydeb_jobs(package, distros, fqdn, job_graph)
+def doit(release_uri, package, distros, arches, fqdn, job_graph, rosdistro, short_package_name, commit, jenkins_instance):
+    binary_jobs = binarydeb_jobs(package, distros, arches, fqdn, job_graph)
     child_projects = zip(*binary_jobs)[0]  # unzip the binary_jobs tuple
     source_job = sourcedeb_job(package, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name)
     jobs = [source_job] + binary_jobs

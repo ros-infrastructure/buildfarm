@@ -27,6 +27,9 @@ def parse_options():
     parser.add_argument('--distros', nargs='+',
            help='A list of debian distros. Default: %(default)s',
            default=[])
+    parser.add_argument('--arches', nargs='+',
+           help='A list of debian architectures. Default: %(default)s',
+           default=['i386','amd64'])
     parser.add_argument('--commit', dest='commit',
            help='Really?', action='store_true', default=False)
     parser.add_argument('--delete', dest='delete',
@@ -45,7 +48,7 @@ def parse_options():
     return args
 
 
-def doit(distros, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit=False, delete_extra_jobs=False, whitelist_repos=None):
+def doit(distros, arches, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit=False, delete_extra_jobs=False, whitelist_repos=None):
     jenkins_instance = None
     if args.commit or delete_extra_jobs:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
@@ -58,6 +61,9 @@ def doit(distros, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit
         default_distros = distros
     else:
         default_distros = rd.get_target_distros()
+
+    # TODO: pull raches from rosdistro
+    target_arches = arches
 
     # We take the intersection of repo-specific targets with default
     # targets.
@@ -85,6 +91,7 @@ def doit(distros, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit
                  pkg_name,
                  packages[p],
                  target_distros,
+                 target_arches,
                  fqdn,
                  jobs_graph,
                  rosdistro=rosdistro,
@@ -113,12 +120,12 @@ def doit(distros, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit
         if not d.stacks[s].version:
             print('- skipping "%s" since version is null' % s)
             continue
-        results[rd.debianize_package_name(s)] = release_jobs.dry_doit(s, dry_maintainers[s], default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
+        results[rd.debianize_package_name(s)] = release_jobs.dry_doit(s, dry_maintainers[s], default_distros, target_arches, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
         #time.sleep(1)
 
     # special metapackages job
     if not whitelist_repos or 'metapackages' in whitelist_repos:
-        results[rd.debianize_package_name('metapackages')] = release_jobs.dry_doit('metapackages', [], default_distros, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
+        results[rd.debianize_package_name('metapackages')] = release_jobs.dry_doit('metapackages', [], default_distros, target_arches, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance)
 
     if delete_extra_jobs:
         assert(not whitelist_repos)
@@ -179,6 +186,7 @@ if __name__ == '__main__':
 
     results_map = doit(
         args.distros,
+        args.arches,
         args.fqdn,
         combined_jobgraph,
         rosdistro=args.rosdistro,
