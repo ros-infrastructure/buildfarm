@@ -11,7 +11,7 @@ import vcstools
 from rosdistro import sanitize_package_name, debianize_package_name
 
 
-def get_stack_of_remote_repository(name, type_, url, workspace=None, version=None):
+def get_stack_of_remote_repository(name, type_, url, workspace=None, version=None, skip_update=False):
     if workspace is None:
         workspace = tempfile.mkdtemp()
     if not os.path.isdir(workspace):
@@ -23,7 +23,10 @@ def get_stack_of_remote_repository(name, type_, url, workspace=None, version=Non
     is_good = False
     if client.path_exists():
         if client.get_url() == url:
-            is_good = client.update(version if version is not None else '')
+            if not skip_update:
+                is_good = client.update(version if version is not None else '')
+            else:
+                is_good = True
         if not is_good:
             shutil.rmtree(workdir)
     if not is_good:
@@ -40,11 +43,11 @@ def get_stack_of_remote_repository(name, type_, url, workspace=None, version=Non
     return rospkg.stack.parse_stack_file(stack_xml_path)
 
 
-def get_stacks(workspace, repository_dict, rosdistro):
+def get_stacks(workspace, repository_dict, rosdistro, skip_update=False):
     stacks = {}
 
     #print repository_dict
-    any_errors = False
+    errors = []
     for name, r in sorted(repository_dict.items()):
         url = r.url
         if r.full_version is None:
@@ -55,21 +58,21 @@ def get_stacks(workspace, repository_dict, rosdistro):
         # try getting the release branch
         stack = None
         try:
-            stack = get_stack_of_remote_repository(name, 'git', url, workspace, version_number)
+            stack = get_stack_of_remote_repository(name, 'git', url, workspace, version_number, skip_update)
         except Exception as e:
             # try getting the release branch without the debian number if it has one
             index = version_number.rfind('-')
             if index == -1:
                 print("Could not fetch '%s' from '%s' with version '%s': %s" % (name, url, version_number, e))
-                any_errors = True
+                errors.append(name)
                 continue
             version_number = version_number[:index]
             print("  trying tag '%s'" % version_number)
             try:
-                stack = get_stack_of_remote_repository(name, 'git', url, workspace, version_number)
+                stack = get_stack_of_remote_repository(name, 'git', url, workspace, version_number, skip_update)
             except Exception as e:
                 print("Could not fetch '%s' from '%s' with version '%s': %s" % (name, url, version_number, e))
-                any_errors = True
+                errors.append(name)
                 continue
 
         if stack:
@@ -78,8 +81,8 @@ def get_stacks(workspace, repository_dict, rosdistro):
             stack[name] = None
             print("Processing backport %s, no package.xml file found in repo %s. Continuing" % (name, url))
 
-    if any_errors:
-        raise RuntimeError('Could not fetch one or more stacks.')
+    if errors:
+        raise RuntimeError('Could not fetch stacks: %s' % ', '.join(errors))
 
     return stacks
 
