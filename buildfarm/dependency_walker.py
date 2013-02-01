@@ -142,17 +142,16 @@ def get_packages(workspace, rd_obj, skip_update=False):
     return packages
 
 
-def get_jenkins_dependencies(rd_obj, packages):
+def get_jenkins_dependencies(rosdistro, packages):
     result = {}
     for pkg_name in sorted(packages.keys()):
         p = packages[pkg_name]
-        deb_name = debianize_package_name(rd_obj._rosdistro,
-                                          p.name)
+        deb_name = debianize_package_name(rosdistro, p.name)
         build_depends = _get_depends(packages, p, recursive=False, buildtime=True)
         run_depends = _get_depends(packages, p, recursive=False, buildtime=False)
 
         # switching to only set first level dependencies to clean up clutter in jenkins instead of the recursive ones below
-        result[deb_name] = [debianize_package_name(rd_obj._rosdistro, d.name) for d in build_depends | run_depends]
+        result[deb_name] = [debianize_package_name(rosdistro, d.name) for d in build_depends | run_depends]
         continue
 
     return result

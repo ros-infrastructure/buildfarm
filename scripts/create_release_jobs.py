@@ -6,7 +6,7 @@ import os
 import sys
 import tempfile
 
-from buildfarm import dependency_walker, jenkins_support, release_jobs
+from buildfarm import jenkins_support, release_jobs
 
 import rospkg.distro
 
@@ -23,13 +23,13 @@ def parse_options():
            help='The source repo to push to, fully qualified something...',
            default='50.28.27.175')
     parser.add_argument(dest='rosdistro',
-           help='The ros distro. groovy, hydro, ...')
+           help='The ros distro. fuerte, groovy, hydro, ...')
     parser.add_argument('--distros', nargs='+',
            help='A list of debian distros. Default: %(default)s',
            default=[])
     parser.add_argument('--arches', nargs='+',
            help='A list of debian architectures. Default: %(default)s',
-           default=['i386','amd64'])
+           default=['i386', 'amd64'])
     parser.add_argument('--commit', dest='commit',
            help='Really?', action='store_true', default=False)
     parser.add_argument('--delete', dest='delete',
@@ -48,12 +48,10 @@ def parse_options():
     return args
 
 
-def doit(distros, arches, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit=False, delete_extra_jobs=False, whitelist_repos=None):
+def doit(rd, distros, arches, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit=False, delete_extra_jobs=False, whitelist_repos=None):
     jenkins_instance = None
     if args.commit or delete_extra_jobs:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
-
-    rd = Rosdistro(rosdistro)
 
     # Figure out default distros.  Command-line arg takes precedence; if
     # it's not specified, then read targets.yaml.
@@ -153,10 +151,6 @@ def doit(distros, arches, fqdn, jobs_graph, rosdistro, packages, dry_maintainers
 if __name__ == '__main__':
     args = parse_options()
 
-    if args.rosdistro == 'fuerte':
-        print("'fuerte' is not supported as the rosdistro by this script. Use 'create_release_jobs_fuerte.py' instead.")
-        sys.exit(1)
-
     repo = 'http://%s/repos/building' % args.fqdn
 
     print('Loading rosdistro %s' % args.rosdistro)
@@ -167,10 +161,15 @@ if __name__ == '__main__':
     if not workspace:
         workspace = os.path.join(tempfile.gettempdir(), 'repo-workspace-%s' % args.rosdistro)
 
-    package_co_info = rd.get_package_checkout_info()
-
-    packages = dependency_walker.get_packages(workspace, rd, skip_update=args.skip_update)
-    dependencies = dependency_walker.get_jenkins_dependencies(rd, packages)
+    if args.rosdistro != 'fuerte':
+        from buildfarm import dependency_walker
+        packages = dependency_walker.get_packages(workspace, rd, skip_update=args.skip_update)
+        dependencies = dependency_walker.get_jenkins_dependencies(args.rosdistro, packages)
+    else:
+        from buildfarm import dependency_walker_fuerte
+        stacks = dependency_walker_fuerte.get_stacks(workspace, rd._repoinfo, args.rosdistro)
+        dependencies = dependency_walker_fuerte.get_dependencies(args.rosdistro, stacks)
+        packages = stacks
 
     stack_depends, dry_maintainers = release_jobs.dry_get_stack_dependencies(args.rosdistro)
     dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies, stack_depends)
@@ -185,6 +184,7 @@ if __name__ == '__main__':
     combined_jobgraph[debianize_package_name(args.rosdistro, 'metapackages')] = combined_jobgraph.keys()
 
     results_map = doit(
+        rd,
         args.distros,
         args.arches,
         args.fqdn,

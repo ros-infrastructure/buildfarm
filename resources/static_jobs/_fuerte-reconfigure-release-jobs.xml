@@ -65,7 +65,7 @@ Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in 
 
 
 source ./setup.sh
-./scripts/create_release_jobs_fuerte.py fuerte --repo-work $WORKSPACE/fuerterepo/ --commit --delete</command>
+./scripts/create_release_jobs.py fuerte --repo-work $WORKSPACE/fuerterepo/ --commit --delete</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

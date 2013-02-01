@@ -14,14 +14,6 @@ To reconfigure Jenkins run the create_release_jobs.py script.
 
 If you do not specify a custom workspace the gbp repositories will be cached under /tmp/repo-workspace-ROSDISTRO, so that you only have to update not clone the whole repo every time.
 
-Fuerte
-------
-
-    scripts/create_release_jobs_fuerte.py fuerte --commit
-
-Groovy
-------
-
     scripts/create_release_jobs.py groovy --commit
 
 If a package has been renamed or removed use the --delete option to remove jobs other than the ones just configured.

@@ -20,7 +20,7 @@ setup(
         'scripts/assert_package_present.py',
         'scripts/count_ros_packages.py',
         'scripts/create_release_jobs.py',
-        'scripts/create_release_jobs_fuerte.py',
+        'scripts/create_static_jobs.py',
         'scripts/generate_sourcedeb',
         'scripts/generate_status_page.py',
         'scripts/setup_apt_root.py',
