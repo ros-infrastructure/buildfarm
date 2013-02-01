@@ -269,7 +269,7 @@ def add_dependent_to_dict(packagename, jobgraph):
     return dependents
 
 
-def dry_binarydeb_jobs(stackname, dry_maintainers, rosdistro, distros, arches, jobgraph):
+def dry_binarydeb_jobs(stackname, dry_maintainers, rosdistro, distros, arches, jobgraph, packages_for_sync):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
     package = debianize_package_name(rosdistro, stackname)
     d = dict(
@@ -279,7 +279,7 @@ def dry_binarydeb_jobs(stackname, dry_maintainers, rosdistro, distros, arches, j
         NOTIFICATION_EMAIL=' '.join(dry_maintainers),
         USERNAME=jenkins_config.username,
         IS_METAPACKAGES=(stackname == 'metapackages'),
-        PACKAGES_FOR_SYNC='435'
+        PACKAGES_FOR_SYNC=str(packages_for_sync)
     )
     jobs = []
     for distro in distros:
@@ -338,9 +338,9 @@ def sourcedeb_job(package, maintainer_emails, distros, fqdn, release_uri, child_
     return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
 
-def dry_doit(package, dry_maintainers, distros, arches, rosdistro, jobgraph, commit, jenkins_instance):
+def dry_doit(package, dry_maintainers, distros, arches, rosdistro, jobgraph, commit, jenkins_instance, packages_for_sync):
 
-    jobs = dry_binarydeb_jobs(package, dry_maintainers, rosdistro, distros, arches, jobgraph)
+    jobs = dry_binarydeb_jobs(package, dry_maintainers, rosdistro, distros, arches, jobgraph, packages_for_sync)
 
     successful_jobs = []
     failed_jobs = []
