@@ -42,28 +42,24 @@ class VcsFileCache(object):
         repo_path = os.path.join(self._cache_location, name)
         #client = VcsClient(repo_type, repo_path)
         client = GitClient(repo_path)  # using git only
+        updated = False
         if client.path_exists():
-            updated = False
             if client.get_url() == repo_url:
-                updated = client.update(version, force_fetch=not self._skip_update)
-            if not updated:
-                print("WARNING: Repo at %s changed url from %s to %s or update failed. Redownloading!" % (repo_path, client.get_url(), repo_url))
-                shutil.rmtree(repo_path)
-                checkedout = client.checkout(repo_url, version, shallow=True)
-                if not checkedout:
-                    print("ERROR: Repo at %s could not be checked out from %s with version %s!" % (repo_path, repo_url, version))
-                    
-                # git only
                 if not self._skip_update:
-                    client._do_fetch()
-        else:
-            checkedout = client.checkout(repo_url, version, shallow=True)
-            if not checkedout:
-                print("ERROR: Repo at %s could not be checked out from %s with version %s!" % (repo_path, repo_url, version))
+                    updated = client.update(version, force_fetch=True)
+                else:
+                    updated = client._do_update(version)
+            if not updated:
+                shutil.rmtree(repo_path)
+        if not updated:
+            updated = client.checkout(repo_url, version, shallow=True)
+
+        if not updated:
+            raise VcsError("Impossible to update/checkout repo '%s' with version '%s'." % (repo_url, version))
 
         full_filename = os.path.join(repo_path, filename)
         if not os.path.exists(full_filename):
-            raise VcsError("Requested file %s missing from repo %s version %s (viewed at version %s).  It was expected at: %s" %
+            raise VcsError("Requested file '%s' missing from repo '%s' version '%s' (viewed at version '%s').  It was expected at: %s" %
                            (filename, repo_url, version, client.get_version(), full_filename))
 
         return full_filename
@@ -113,11 +109,13 @@ def get_packages(workspace, rd_obj, skip_update=False):
 
     vcs_cache = VcsFileCache(workspace, skip_update=skip_update)
 
+    errors = []
     urls_updated = set([])
     checkout_info = rd_obj.get_package_checkout_info()
     for pkg_name in sorted(checkout_info.keys()):
         pkg_info = checkout_info[pkg_name]
         url = pkg_info['url']
+        print("Get '%s' from '%s' from tag '%s'" % (pkg_name, url, pkg_info['version']))
         url_updated_before = url in urls_updated
         urls_updated.add(url)
         vcs_cache._skip_update = skip_update or url_updated_before
@@ -130,15 +128,19 @@ def get_packages(workspace, rd_obj, skip_update=False):
                 p = parse_package_string(pkg_string)
                 packages[p.name] = p
             except InvalidPackage as ex:
-                print('package.xml for %s is invalid.  Error: %s' % (pkg_name, ex))
+                print("package.xml for '%s' is invalid.  Error: %s" % (pkg_name, ex))
+                errors.append(pkg_name)
         except VcsError as ex:
-            print("Failed to get package.xml for %s.  Error: %s" %
-                  (pkg_name, ex))
-            raise ex
+            print("Failed to get package.xml for '%s'.  Error: %s" % (pkg_name, ex))
+            errors.append(pkg_name)
 
         if not vcs_cache._skip_update:
-            print("Sleeping for github slowdown") 
+            print("Sleeping for github slowdown")
             time.sleep(1)
+
+    if errors:
+        raise RuntimeError('Could not fetch stacks: %s' % ', '.join(errors))
+
     return packages
 
 
