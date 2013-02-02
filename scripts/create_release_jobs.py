@@ -82,7 +82,7 @@ def doit(rd, distros, arches, fqdn, jobs_graph, rosdistro, packages, dry_maintai
 
         for p in sorted(r.packages.iterkeys()):
             if not r.version:
-                print('- skipping "%s" since version is null' % r.name)
+                print('- skipping "%s" since version is null' % p)
                 continue
             pkg_name = rd.debianize_package_name(p)
             results[pkg_name] = release_jobs.doit(r.url,
@@ -176,14 +176,18 @@ if __name__ == '__main__':
         dependencies = dependency_walker_fuerte.get_dependencies(args.rosdistro, stacks)
         packages = stacks
 
-    stack_depends, dry_maintainers = release_jobs.dry_get_stack_dependencies(args.rosdistro)
-    dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies, stack_depends)
+    if not args.wet_only:
+        stack_depends, dry_maintainers = release_jobs.dry_get_stack_dependencies(args.rosdistro)
+        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies, stack_depends)
+    else:
+        dry_maintainers = []
 
     combined_jobgraph = {}
     for k, v in dependencies.iteritems():
         combined_jobgraph[k] = v
-    for k, v in dry_jobgraph.iteritems():
-        combined_jobgraph[k] = v
+    if not args.wet_only:
+        for k, v in dry_jobgraph.iteritems():
+            combined_jobgraph[k] = v
 
     # setup a job triggered by all other debjobs
     combined_jobgraph[debianize_package_name(args.rosdistro, 'metapackages')] = combined_jobgraph.keys()
