@@ -30,7 +30,7 @@ def get_stack_of_remote_repository(name, type_, url, workspace=None, version=Non
         if not is_good:
             shutil.rmtree(workdir)
     if not is_good:
-        is_good = client.checkout(url, version=version if version is not None else '', shallow=True)
+        is_good = client.checkout(url, version=version if version is not None else '')
 
     if not is_good:
         raise RuntimeError('Impossible to update/checkout repo.')
@@ -121,6 +121,6 @@ def get_dependencies(rosdistro, stacks):
         # recursive runtime depends of build depends
         recursive_runtime_dependencies = _get_dependencies(runtime_dependencies, k, build_deps, True)
         #print 'Recursive runtime-dependencies:', ', '.join(recursive_runtime_dependencies)
-        result[packages[k]] = [debianize_package_name(rosdistro, d) for d in build_deps | recursive_runtime_dependencies]
+        result[packages[k]] = build_deps | recursive_runtime_dependencies
         #print 'Combined dependencies:', ', '.join(result[packages[k]])
     return result
