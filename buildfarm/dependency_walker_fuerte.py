@@ -119,7 +119,7 @@ def get_dependencies(rosdistro, stacks):
         #print '\nDependencies for: ', k
         build_deps = _get_dependencies(build_dependencies, k, packages)
         # recursive runtime depends of build depends
-        recursive_runtime_dependencies = _get_dependencies(runtime_dependencies, k, build_deps, True)
+        recursive_runtime_dependencies = _get_dependencies(runtime_dependencies, k, packages, True)
         #print 'Recursive runtime-dependencies:', ', '.join(recursive_runtime_dependencies)
         result[packages[k]] = build_deps | recursive_runtime_dependencies
         #print 'Combined dependencies:', ', '.join(result[packages[k]])
