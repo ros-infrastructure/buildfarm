@@ -56,17 +56,15 @@ from rosdeb.source_deb import download_control
 NAME = 'build_debs.py' 
 TARBALL_URL = "https://code.ros.org/svn/release/download/stacks/%(stack_name)s/%(base_name)s/%(f_name)s"
 
-
-REPO_URL='http://50.28.27.175/repos/building'
-
-REPO_HOSTNAME='50.28.27.175'
 REPO_PATH ='/var/www/repos/building'
 REPO_USERNAME='rosbuild'
-REPO_LOGIN="%s@%s" % (REPO_USERNAME, REPO_HOSTNAME)
 
 TGZ_VERSION='dry_6'
 
 import traceback
+
+def repo_url(fqdn):
+   return "http://%s/repos/building"%(fqdn)
 
 class StackBuildFailure(Exception):
 
@@ -89,13 +87,6 @@ class InternalBuildFailure(Exception):
     def __str__(self):
         return self._message
 
-    
-def deb_in_repo(deb_name, deb_version, os_platform, arch, cache=None):
-    return rosdeb.deb_in_repo(REPO_URL, deb_name, deb_version, os_platform, arch, use_regex=True, cache=cache)
-
-def get_depends(deb_name, os_platform, arch):
-    debug("get_depends from %s"%(REPO_URL))
-    return rosdeb.get_depends(REPO_URL, deb_name, os_platform, arch)
     
 def download_files(stack_name, stack_version, staging_dir, files):
     import urllib
@@ -156,7 +147,7 @@ def compute_deps(distro, stack_name):
 
     return ordered_deps
 
-def create_chroot(distro, distro_name, os_platform, arch):
+def create_chroot(distro, distro_name, os_platform, arch, repo_fqdn):
 
     distro_tgz = os.path.join('/var/cache/pbuilder', "%s-%s-%s.tgz"%(os_platform, arch, TGZ_VERSION))
     cache_dir = '/home/rosbuild/aptcache/%s-%s'%(os_platform, arch)
@@ -204,7 +195,7 @@ def create_chroot(distro, distro_name, os_platform, arch):
     if arch == 'armel':
         debootstrap_type = 'qemu-debootstrap'
         mirror = 'http://ports.ubuntu.com/ubuntu-ports/'
-    shadow_mirror = 'deb %s %s main' % (REPO_URL, os_platform)
+    shadow_mirror = 'deb %s %s main' % (repo_url(repo_fqdn), os_platform)
     updates_mirror = "deb http://aptproxy.willowgarage.com/us.archive.ubuntu.com/ubuntu/ %s-updates main restricted universe multiverse"%(os_platform)
     # --othermirror uses a | as a separator
     other_mirror = '%s|%s'%(updates_mirror, shadow_mirror)
@@ -218,7 +209,7 @@ def create_chroot(distro, distro_name, os_platform, arch):
     subprocess.check_call(command, stderr=subprocess.STDOUT)
 
 
-def do_deb_build(distro_name, stack_name, stack_version, os_platform, arch, staging_dir, noupload, interactive):
+def do_deb_build(distro_name, stack_name, stack_version, os_platform, arch, staging_dir, noupload, interactive, repo_fqdn):
     debug("Actually trying to build %s-%s..."%(stack_name, stack_version))
 
     distro_tgz = os.path.join('/var/cache/pbuilder', "%s-%s-%s.tgz"%(os_platform, arch, TGZ_VERSION))
@@ -373,16 +364,15 @@ dpkg -l %(deb_name)s
 
     if not noupload:
         
-        invalidate_debs(deb_name, os_platform, arch)
+        invalidate_debs(deb_name, os_platform, arch, repo_fqdn)
 
-        if not upload_debs(files,distro_name,os_platform,arch):
+        if not upload_debs(files, distro_name, os_platform, arch, repo_fqdn):
             print "Upload of debs failed!!!"
             return 1
     return 0
 
 
-def invalidate_debs(package, os_platform, arch):
-    repo_fqdn = REPO_HOSTNAME
+def invalidate_debs(package, os_platform, arch, repo_fqdn):
     repo_path = REPO_PATH
 #    cmd = "/usr/bin/reprepro -b %(repo_path)s -T deb -V listfilter %(os_platform)s \" ( Package (== %(package)s ), Architecture (== %(arch)s ) ) | (Architecture (== %(arch)s ), ( Depends ($ %(package)s,* ) | Depends ($ *%(package)s ) )\" "%locals()
 
@@ -408,9 +398,9 @@ def invalidate_debs(package, os_platform, arch):
     ssh.close()
 
 
-def upload_debs(files,distro_name,os_platform,arch):
+def upload_debs(files, distro_name, os_platform, arch, repo_fqdn):
     replace_elements  = {}
-    replace_elements['repo_hostname'] = REPO_HOSTNAME
+    replace_elements['repo_hostname'] = repo_fqdn
     replace_elements['repo_incoming_path'] = os.path.join(REPO_PATH, 'queue', os_platform)
     replace_elements['repo_path'] = REPO_PATH
     replace_elements['distro'] = os_platform
@@ -453,13 +443,13 @@ post_upload_command     = ssh %(repo_username)s@%(repo_hostname)s -- /usr/bin/re
             # ??? What was this doing?
             #rosdeb.repo._Packages_cache = {}
 
-def upload_binary_debs(files,distro_name,os_platform,arch):
+def upload_binary_debs(files, distro_name, os_platform, arch, repo_fqdn):
 
     if len(files) == 0:
         debug("No debs to upload.")
         return 1 # no files to upload
 
-    subprocess.check_call(['scp'] + files + ['%s:%s/queue/%s'%(REPO_LOGIN, REPO_PATH, os_platform)], stderr=subprocess.STDOUT)
+    subprocess.check_call(['scp'] + files + ['%s@%s:%s/queue/%s'%(REPO_USERNAME, repo_fqdn, REPO_PATH, os_platform)], stderr=subprocess.STDOUT)
 
     base_files = [x.split('/')[-1] for x in files]
 
@@ -472,7 +462,7 @@ def upload_binary_debs(files,distro_name,os_platform,arch):
 
     # This script moves files into queue directory, removes all dependent debs, removes the existing deb, and then processes the incoming files
     remote_cmd = "TMPFILE=`mktemp` || exit 1 && cat > ${TMPFILE} && chmod +x ${TMPFILE} && ${TMPFILE}; ret=${?}; rm ${TMPFILE}; exit ${ret}"
-    run_script = subprocess.Popen(['ssh', REPO_LOGIN, remote_cmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    run_script = subprocess.Popen(['ssh', "%s@%s"%(REPO_USERNAME, repo_fqdn), remote_cmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     script_content = """
 #!/bin/bash
 set -o errexit
@@ -495,42 +485,11 @@ rm %(new_files)s
         return 0
 
 
-def lock_debs(distro, os_platform, arch):
-
-        remote_cmd = "TMPFILE=`mktemp` || exit 1 && cat > ${TMPFILE} && chmod +x ${TMPFILE} && ${TMPFILE}; ret=${?}; rm ${TMPFILE}; exit ${ret}"
-        run_script = subprocess.Popen(['ssh', REPO_LOGIN, remote_cmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        platform_upper = os_platform.upper()
-
-        # This script:
-        #  * Sets up the update to pull the os/distro/arch set that we want
-        #  * Purges all of the existing os/distro/arch debs from the repo
-        #  * Invokes the update to pull down the new debs
-        script_content = """
-#!/bin/bash
-set -o errexit
-(
-flock 200
-export %(platform_upper)s_UPDATE=ros-%(os_platform)s-%(distro)s-%(arch)s
-/var/packages/ros-shadow-fixed/ubuntu/conf/gen_distributions.sh > /var/packages/ros-shadow-fixed/ubuntu/conf/distributions
-reprepro -V -b /var/packages/ros-shadow-fixed/ubuntu -A %(arch)s removefilter %(os_platform)s 'Package (%% ros-%(distro)s-*)'
-reprepro -V -b /var/packages/ros-shadow-fixed/ubuntu --noskipold update %(os_platform)s
-) 200>/var/lock/ros-shadow.lock
-"""%locals()
-
-        #Actually run script and check result
-        debug("locking debs into fixed repo: \n[[[%s]]]"%(script_content))
-        (o,e) = run_script.communicate(script_content)
-        res = run_script.wait()
-        debug("output of run_script: %s"%o)
-        if res != 0:
-            raise InternalBuildFailure("Could not run version-locking script:\n%s\n%s"%(o, e))
-
 def debug(msg):
     print "[build_debs]: %s"%(msg)
     
     
-def build_debs(distro, stack_name, os_platform, arch, staging_dir, force, noupload, interactive):
+def build_debs(distro, stack_name, os_platform, arch, staging_dir, force, noupload, interactive, repo_fqdn):
     distro_name = distro.release_name
 
     if stack_name not in distro.released_stacks:
@@ -549,13 +508,13 @@ def build_debs(distro, stack_name, os_platform, arch, staging_dir, force, nouplo
 
     debug("Attempting to build: %s"%(str(stack_name)))
     #si = load_info(stack_name, stack_version)
-    missing_depends = list_missing.compute_missing_depends(stack_name, distro, os_platform, arch, repo = REPO_URL)
+    missing_depends = list_missing.compute_missing_depends(stack_name, distro, os_platform, arch, repo = repo_url(repo_fqdn))
     if not missing_depends:
         # Create the environment where we build the debs, if necessary
-        create_chroot(distro, distro_name, os_platform, arch)
+        create_chroot(distro, distro_name, os_platform, arch, repo_fqdn)
         debug("Initiating build of: %s"%(str(stack_name)))
         try:
-            do_deb_build(distro_name, stack_name, stack_version, os_platform, arch, staging_dir, noupload, interactive)
+            do_deb_build(distro_name, stack_name, stack_version, os_platform, arch, staging_dir, noupload, interactive, repo_fqdn)
         except Exception, ex:
             debug("Exception was %s" % ex)
             debug("Build of [%s] failed, adding to broken list"%(str(stack_name)))
@@ -660,11 +619,11 @@ Description: Meta package for %(metapackage)s variant of ROS.
 
 
 
-def gen_metapkgs(distro, os_platform, arch, staging_dir, force=False):
+def gen_metapkgs(distro, os_platform, arch, staging_dir, repo_fqdn, force=False):
     distro_name = distro.release_name
 
     # Retrieve the package list from the shadow repo
-    packageurl=REPO_URL+"/dists/%(os_platform)s/main/binary-%(arch)s/Packages"%locals()
+    packageurl=repo_url(repo_fqdn)+"/dists/%(os_platform)s/main/binary-%(arch)s/Packages"%locals()
     packagetxt = urllib2.urlopen(packageurl).read()
     packagelist = parse_deb_packages(packagetxt)
 
@@ -710,13 +669,13 @@ def gen_metapkgs(distro, os_platform, arch, staging_dir, force=False):
     else:
         missing.append('all')
 
-    upload_binary_debs(debs, distro_name, os_platform, arch)
+    upload_binary_debs(debs, distro_name, os_platform, arch, repo_fqdn)
 
     if missing:
         raise StackBuildFailure("Did not generate all metapkgs: %s."%missing)
 
 
-def gen_metapkgs_setup(staging_dir_arg, distro, os_platform, arch):
+def gen_metapkgs_setup(staging_dir_arg, distro, os_platform, arch, repo_fqdn):
     if staging_dir_arg is not None:
         staging_dir    = staging_dir_arg
         staging_dir = os.path.abspath(staging_dir)
@@ -727,7 +686,7 @@ def gen_metapkgs_setup(staging_dir_arg, distro, os_platform, arch):
     failure_message = None
 
     try:
-        gen_metapkgs(distro, os_platform, arch, staging_dir)
+        gen_metapkgs(distro, os_platform, arch, staging_dir, repo_fqdn)
     except BuildFailure, e:
         failure_message = "Failure Message:\n"+"="*80+'\n'+str(e)
     except StackBuildFailure, e:
@@ -753,8 +712,8 @@ def single_deb_main():
                       dest="force", default=False, action="store_true")
     parser.add_option("--noupload",
                       dest="noupload", default=False, action="store_true")
-#    parser.add_option("--repo",
-#                      dest="repo-hostname", default='pub8', action="store")
+    parser.add_option("--fqdn",
+                      dest="fqdn", default='50.28.27.175', action="store")
     parser.add_option("--interactive",
                       dest="interactive", default=False, action="store_true")
     parser.add_option('--smtp', dest="smtp", default='pub1.willowgarage.com', metavar="SMTP_SERVER")
@@ -790,9 +749,9 @@ def single_deb_main():
         distro = load_distro(uri)
 
         if stack_name == 'metapackages':
-            (warning_message, failure_message) = gen_metapkgs_setup(options.staging_dir, distro, os_platform, arch)
+            (warning_message, failure_message) = gen_metapkgs_setup(options.staging_dir, distro, os_platform, arch, options.fqdn)
         else:
-            build_debs(distro, stack_name, os_platform, arch, staging_dir, options.force, options.noupload, options.interactive)
+            build_debs(distro, stack_name, os_platform, arch, staging_dir, options.force, options.noupload, options.interactive, options.fqdn)
 
     except StackBuildFailure, e:
         warning_message = "Warning Message:\n"+"="*80+'\n'+str(e)
