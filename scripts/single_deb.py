@@ -150,15 +150,11 @@ def compute_deps(distro, stack_name):
 def create_chroot(distro, distro_name, os_platform, arch, repo_fqdn):
 
     distro_tgz = os.path.join('/var/cache/pbuilder', "%s-%s-%s.tgz"%(os_platform, arch, TGZ_VERSION))
-    cache_dir = '/home/rosbuild/aptcache/%s-%s'%(os_platform, arch)
 
     if os.path.exists(distro_tgz) and os.path.getsize(distro_tgz) > 0:  # Zero sized file left in place if last build crashed
         return
 
     debug("re-creating pbuilder cache")
-
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
 
     try:
         debug('loading ros stack info')
@@ -203,7 +199,7 @@ def create_chroot(distro, distro_name, os_platform, arch, repo_fqdn):
     debug("pbuilder verison : [%s]"%(str(command)))
     subprocess.check_call(command, stderr=subprocess.STDOUT)
 
-    command = ['sudo', 'pbuilder', '--create', '--distribution', os_platform, '--debootstrap', debootstrap_type, '--debootstrapopts', '--arch=%s'%arch, '--mirror', mirror, '--othermirror', other_mirror, '--basetgz', distro_tgz, '--components', 'main restricted universe multiverse', '--extrapackages', deplist, '--aptcache', cache_dir]
+    command = ['sudo', 'pbuilder', '--create', '--distribution', os_platform, '--debootstrap', debootstrap_type, '--debootstrapopts', '--arch=%s'%arch, '--mirror', mirror, '--othermirror', other_mirror, '--basetgz', distro_tgz, '--components', 'main restricted universe multiverse', '--extrapackages', deplist]
     command.extend(['--debootstrapopts', '--keyring=/etc/apt/trusted.gpg', '--keyring', '/etc/apt/trusted.gpg'])
     debug("Setting up chroot: [%s]"%(str(command)))
     subprocess.check_call(command, stderr=subprocess.STDOUT)
@@ -213,7 +209,6 @@ def do_deb_build(distro_name, stack_name, stack_version, os_platform, arch, stag
     debug("Actually trying to build %s-%s..."%(stack_name, stack_version))
 
     distro_tgz = os.path.join('/var/cache/pbuilder', "%s-%s-%s.tgz"%(os_platform, arch, TGZ_VERSION))
-    cache_dir = '/home/rosbuild/aptcache/%s-%s'%(os_platform, arch)
 
     deb_name = "ros-%s-%s"%(distro_name, debianize_name(stack_name))
     deb_version = debianize_version(stack_version, '0', os_platform)
@@ -236,9 +231,6 @@ def do_deb_build(distro_name, stack_name, stack_version, os_platform, arch, stag
     hook_dir = os.path.join(staging_dir, 'hooks')
     results_dir = os.path.join(staging_dir, 'results')
     build_dir = os.path.join(staging_dir, 'pbuilder')
-
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
 
     if not os.path.exists(hook_dir):
         os.makedirs(hook_dir)
@@ -310,7 +302,7 @@ echo "Resuming pbuilder"
 
     # Actually build the deb.  This results in the deb being located in results_dir
     debug("starting pbuilder build of %s-%s"%(stack_name, stack_version))
-    subprocess.check_call(archcmd+ ['sudo', 'pbuilder', '--build', '--basetgz', distro_tgz, '--configfile', conf_file, '--hookdir', hook_dir, '--buildresult', results_dir, '--binary-arch', '--buildplace', build_dir, '--aptcache', cache_dir, dsc_file], stderr=subprocess.STDOUT)
+    subprocess.check_call(archcmd+ ['sudo', 'pbuilder', '--build', '--basetgz', distro_tgz, '--configfile', conf_file, '--hookdir', hook_dir, '--buildresult', results_dir, '--binary-arch', '--buildplace', build_dir, dsc_file], stderr=subprocess.STDOUT)
 
     # Set up an RE to look for the debian file and find the build_version
     deb_version_wild = debianize_version(stack_version, '(\w*)', os_platform)
@@ -352,7 +344,7 @@ dpkg -l %(deb_name)s
 
 
     debug("starting verify script for %s-%s"%(stack_name, stack_version))
-    subprocess.check_call(archcmd + ['sudo', 'pbuilder', '--execute', '--basetgz', distro_tgz, '--configfile', conf_file, '--bindmounts', results_dir, '--buildplace', build_dir, '--aptcache', cache_dir, verify_script], stderr=subprocess.STDOUT)
+    subprocess.check_call(archcmd + ['sudo', 'pbuilder', '--execute', '--basetgz', distro_tgz, '--configfile', conf_file, '--bindmounts', results_dir, '--buildplace', build_dir, verify_script], stderr=subprocess.STDOUT)
 
     # Upload the debs to the server
     base_files = ['%s_%s.changes'%(deb_file, arch)] # , "%s_%s.deb"%(deb_file_final, arch)
