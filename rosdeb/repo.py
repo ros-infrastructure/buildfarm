@@ -138,3 +138,21 @@ def get_depends(repo_url, deb_name, os_platform, arch):
                 depends.add(package)
     return list(depends)
 
+def get_stack_version(packageslist, distro_name, stack_name):
+    """
+    Get the ROS version number of the stack in the repository
+    """
+    deb_name = "ros-%s-%s"%(distro_name, debianize_name(stack_name))
+    match = [vm for sm, vm, _, _ in packageslist if sm == deb_name]
+    if match:
+        return match[0].split('-')[0]
+    else:
+        return None
+
+def get_repo_version(repo_url, distro, os_platform, arch):
+    """
+    Return the greatest build-stamp for any deb in the repository
+    """
+    packagelist = load_Packages(repo_url, os_platform, arch)
+    return max(['0'] + [x[1][x[1].find('-')+1:x[1].find('~')] for x in packagelist if x[3] == distro.release_name])
+

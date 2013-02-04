@@ -49,10 +49,8 @@ import tempfile
 import time
 import rospkg.distro
 
-import rosdeb
-
-from rosdeb import ubuntu_release, debianize_name, debianize_version, platforms, ubuntu_release_name, \
-    deb_in_repo, load_Packages, get_repo_version, get_stack_version, BadRepo
+from core import debianize_name, debianize_version
+from repo import deb_in_repo, load_Packages, get_repo_version, get_stack_version, BadRepo
 
 NAME = 'list_missing.py' 
 TARBALL_URL = "https://code.ros.org/svn/release/download/stacks/%(stack_name)s/%(base_name)s/%(f_name)s"
@@ -565,8 +563,8 @@ def list_missing_main():
             parser.error('invalid args: only specify <distro> when using --all')
         distro_name = args[0]
         try:
-            import rosdeb.targets
-            targets = rosdeb.targets.os_platform[distro_name]
+            import targets
+            targets = targets.os_platform[distro_name]
         except:
             parser.error("unknown distro for --all target")
 
@@ -584,8 +582,8 @@ def list_missing_main():
             parser.error('invalid args: only specify <distro> when using --all')
         distro_name = args[0]
         try:
-            import rosdeb.targets
-            os_platforms = rosdeb.targets.os_platform[distro_name]
+            import targets
+            os_platforms = targets.os_platform[distro_name]
         except:
             parser.error("unknown distro for --all target")
 
