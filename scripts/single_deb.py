@@ -405,6 +405,7 @@ def upload_debs(files, distro_name, os_platform, arch, repo_fqdn):
             tf.write("""
 [debtarget]
 method                  = scp
+login                   = %(repo_username)s
 fqdn                    = %(repo_hostname)s
 incoming                = %(repo_incoming_path)s
 run_dinstall            = 0
