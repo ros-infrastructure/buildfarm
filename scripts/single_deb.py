@@ -229,7 +229,7 @@ def do_deb_build(distro_name, stack_name, stack_version, os_platform, arch, stag
     ros_file = "%s-%s"%(stack_name, stack_version)
     deb_file = "%s_%s"%(deb_name, deb_version)
 
-    conf_file = os.path.join(roslib.packages.get_pkg_dir('rosdeb'),'config','pbuilder.conf')
+    conf_file = os.path.join(os.path.dirname(rosdeb.__file__),'config','pbuilder.conf')
 
     # Make sure the distro chroot exists
     if not os.path.exists(distro_tgz):

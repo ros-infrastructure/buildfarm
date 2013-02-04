@@ -41,8 +41,6 @@ import hashlib
 
 import yaml
 
-import roslib.packages
-
 from rosdeb.core import debianize_name
 
 def make_source_deb(distro_name, stack_name, stack_version, os_platform_name, staging_dir):
@@ -54,7 +52,7 @@ def make_source_deb(distro_name, stack_name, stack_version, os_platform_name, st
     """
     debian_name = 'ros-%s-%s'%(distro_name, debianize_name(stack_name))
 
-    tmpl_d = os.path.join(roslib.packages.get_pkg_dir('rosdeb'), 'resources', 'source_deb')
+    tmpl_d = os.path.join(os.path.dirname(__file__), 'resources', 'source_deb')
     
     tarball = os.path.join(staging_dir, "%s-%s.tar.bz2"%(stack_name, stack_version))
     if not os.path.exists(tarball):

@@ -35,8 +35,6 @@
 Build debs for a package and all of its dependencies as necessary
 """
 
-import roslib; roslib.load_manifest('rosdeb')
-
 import os
 import sys
 import cStringIO
