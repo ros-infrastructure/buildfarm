@@ -49,11 +49,9 @@ import time
 
 from rospkg.distro import distro_uri, load_distro
 import rosdeb
-from rosdeb import debianize_name, debianize_version, rosdistro, targets
+from rosdeb import debianize_name, debianize_version, rosdistro, targets, list_missing
 from rosdeb.rosutil import send_email
 from rosdeb.source_deb import download_control
-
-import list_missing
 
 NAME = 'build_debs.py' 
 TARBALL_URL = "https://code.ros.org/svn/release/download/stacks/%(stack_name)s/%(base_name)s/%(f_name)s"
