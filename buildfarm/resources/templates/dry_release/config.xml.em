@@ -145,6 +145,10 @@ if (manager.logContains(&quot;.*ERROR: cannot download default sources list from
 	manager.addInfoBadge("Log contains 'cannot download default sources list' - scheduled new build...")
 	manager.build.project.scheduleBuild(new Cause.UserIdCause())
 }
+if (manager.logContains(&quot;.*ERROR: Not all sources were able to be updated.*&quot;)) {
+	manager.addInfoBadge("Log contains 'Not all sources were able to be updated' - scheduled new build...")
+	manager.build.project.scheduleBuild(new Cause.UserIdCause())
+}
 </groovyScript>
       <behavior>0</behavior>
     </org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder>
