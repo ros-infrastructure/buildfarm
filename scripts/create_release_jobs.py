@@ -108,7 +108,7 @@ def doit(rd, distros, arches, fqdn, jobs_graph, rosdistro, packages, dry_maintai
         return results
 
     if rosdistro == 'fuerte':
-        packages_for_sync = 350
+        packages_for_sync = 300
     else:
         packages_for_sync = 485
 
