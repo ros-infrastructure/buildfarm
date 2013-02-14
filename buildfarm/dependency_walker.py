@@ -52,7 +52,7 @@ class VcsFileCache(object):
             if not updated:
                 shutil.rmtree(repo_path)
         if not updated:
-            updated = client.checkout(repo_url, version, shallow=True)
+            updated = client.checkout(repo_url, version)
 
         if not updated:
             raise VcsError("Impossible to update/checkout repo '%s' with version '%s'." % (repo_url, version))
