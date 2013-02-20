@@ -30,9 +30,6 @@ Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in 
 #stop on error
 set -o errexit
 
-sudo apt-get update
-sudo apt-get install python-jenkins python-catkin-pkg -y python-rospkg
-
 rm -rf catkin-debs
 git clone git://github.com/willowgarage/catkin-debs.git -b master
 
