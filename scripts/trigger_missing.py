@@ -60,8 +60,7 @@ def trigger_if_necessary(da, pkg, rosdistro, jenkins_instance, missing_by_arch):
                     return False
 
     print ("Triggering '%s'" % (job_name))
-    jenkins_instance.build_job(job_name)
-    return True
+    return jenkins_instance.build_job(job_name)
 
 
 if __name__ == '__main__':
