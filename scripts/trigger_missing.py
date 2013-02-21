@@ -74,8 +74,9 @@ if __name__ == '__main__':
         rosdistro=args.rosdistro,
         sourcedeb_only=args.sourcedeb_only)
 
+    print('')
+    print('Missing packages:')
     pp = pprint.PrettyPrinter()
-    print ("net Missing")
     pp.pprint(missing)
 
     if args.commit:
@@ -88,13 +89,17 @@ if __name__ == '__main__':
                 if da.endswith('_source'):
                     da = 'source'
                 if da not in missing_by_arch:
-                    missing_by_arch[da] = []
-                missing_by_arch[da].append(pkg)
+                    missing_by_arch[da] = set([])
+                missing_by_arch[da].add(pkg)
+
+        print('')
+        print('Missing packages by arch:')
+        pp.pprint(missing_by_arch)
 
         triggered = 0
         skipped = 0
         for da in missing_by_arch:
-            for pkg in missing_by_arch[da]:
+            for pkg in sorted(missing_by_arch[da]):
                 try:
                     success = trigger_if_necessary(da, pkg, args.rosdistro, jenkins_instance, missing_by_arch)
                     if success:
