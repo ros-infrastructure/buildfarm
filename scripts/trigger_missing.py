@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import argparse
+import jenkins
 import pprint
 
 from buildfarm import jenkins_support, release_jobs
@@ -60,7 +61,13 @@ def trigger_if_necessary(da, pkg, rosdistro, jenkins_instance, missing_by_arch):
                     return False
 
     print ("Triggering '%s'" % (job_name))
-    return jenkins_instance.build_job(job_name)
+    #return jenkins_instance.build_job(job_name)
+    # replicate internal implementation of Jenkins.build_job()
+    import urllib2
+    if not jenkins_instance.job_exists(job_name):
+        raise jenkins.JenkinsException('no such job[%s]' % (job_name))
+    # pass parameters to create a POST request instead of GET
+    return jenkins_instance.jenkins_open(urllib2.Request(jenkins_instance.build_job_url(job_name), [('foo', 'bar')]))
 
 
 if __name__ == '__main__':
