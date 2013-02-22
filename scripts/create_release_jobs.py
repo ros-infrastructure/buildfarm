@@ -176,18 +176,15 @@ if __name__ == '__main__':
         dependencies = dependency_walker_fuerte.get_dependencies(args.rosdistro, stacks)
         packages = stacks
 
-    if not args.wet_only:
-        stack_depends, dry_maintainers = release_jobs.dry_get_stack_dependencies(args.rosdistro)
-        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies, stack_depends)
-    else:
-        dry_maintainers = []
+    # even for wet_only the dry packages need to be consider, else they are not added as downstream dependencies for the wet jobs
+    stack_depends, dry_maintainers = release_jobs.dry_get_stack_dependencies(args.rosdistro)
+    dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies, stack_depends)
 
     combined_jobgraph = {}
     for k, v in dependencies.iteritems():
         combined_jobgraph[k] = v
-    if not args.wet_only:
-        for k, v in dry_jobgraph.iteritems():
-            combined_jobgraph[k] = v
+    for k, v in dry_jobgraph.iteritems():
+        combined_jobgraph[k] = v
 
     # setup a job triggered by all other debjobs
     combined_jobgraph[debianize_package_name(args.rosdistro, 'metapackages')] = combined_jobgraph.keys()
