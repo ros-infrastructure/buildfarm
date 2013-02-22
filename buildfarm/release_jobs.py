@@ -167,42 +167,9 @@ def compare_configs(a, b):
     description, else False"""
     aroot = ET.fromstring(a)
     broot = ET.fromstring(b)
-    return compare_xml_children(aroot, broot)
-
-
-def compare_xml_text_and_attribute(a, b):
-    if not a.text == b.text:
-        #print("text %s does not match %s" %( a.text, b.text) )
-        return False
-    if not a.attrib == b.attrib:
-        #print("attrib %s does not match %s" %(a.attrib, b.attrib ) )
-        return False
-    return True
-
-
-def compare_xml_children(a, b):
-    for child in a:
-        tag = child.tag
-        if tag == 'description':
-            continue
-
-        b_found = b.findall(tag)
-        if not b_found:
-            #print("When comparing xml. Failed to find tag '%s'" % tag)
-            return False
-
-        #If multiple of the same tags try them all
-        match_found = False
-        for b_child in b_found:
-            match_found = compare_xml_children(b_child, child) and compare_xml_text_and_attribute(b_child, child)
-            if match_found:
-                continue
-
-        if not match_found:
-            #print("Found %d tags %s, none matched" % (len(b_found), tag ))
-            return False
-
-    return True
+    aroot.find('description').text = ''
+    broot.find('description').text = ''
+    return ET.tostring(aroot) == ET.tostring(broot)
 
 
 def create_jenkins_job(jobname, config, jenkins_instance):
