@@ -108,7 +108,20 @@ pattern = Pattern.compile(&quot;.*W: Failed to fetch .* Hash Sum mismatch.*&quot
 def line
 while ((line = br.readLine()) != null) {
 	if (pattern.matcher(line).matches()) {
-		println "Aborting build due to 'hash sum mismatch'. Immediately rescheduling new build..."
+		println "Aborting build due to 'hash sum mismatch'"
+		// check if previous build was already rescheduling to avoid infinite loop
+		pr = build.getPreviousBuild().getLogReader()
+		if (pr) {
+			pbr = new BufferedReader(pr)
+			while ((line = pbr.readLine()) != null) {
+				if (pattern.matcher(line).matches()) {
+					println "Skip rescheduling new build since this was already a rescheduled build"
+					println ""
+					return
+				}
+			}
+		}
+		println "Immediately rescheduling new build..."
 		println ""
 		build.project.scheduleBuild(new Cause.UserIdCause())
 		throw new InterruptedException()
