@@ -9,7 +9,7 @@ import time
 import logging
 import sys
 
-from vcstools.git import GitClient
+from vcstools.git import GitClient, GitError
 from vcstools.vcs_base import VcsError
 from catkin_pkg.package import parse_package_string
 from catkin_pkg.package import InvalidPackage
@@ -48,7 +48,10 @@ class VcsFileCache(object):
                 if not self._skip_update:
                     updated = client.update(version, force_fetch=True)
                 else:
-                    updated = client._do_update(version)
+                    try: # catch exception which can be caused by calling internal API
+                        updated = client._do_update(version)
+                    except GitError as ex:
+                        updated = False
             if not updated:
                 shutil.rmtree(repo_path)
         if not updated:
@@ -120,10 +123,18 @@ def get_packages(workspace, rd_obj, skip_update=False):
         urls_updated.add(url)
         vcs_cache._skip_update = skip_update or url_updated_before
         try:
-            pkg_string = vcs_cache.get_file_contents('git',
-                                                     url,
-                                                     pkg_info['version'],
-                                                     'package.xml')  # os.path.join(pkg_info['relative_path'], 'package.xml'))
+            try: 
+                pkg_string = vcs_cache.get_file_contents('git',
+                                                         url,
+                                                         pkg_info['full_version'],
+                                                         'package.xml')  
+            except VcsError as ex:
+                print("Trying old release tag format")
+                pkg_string = vcs_cache.get_file_contents('git',
+                                                         url,
+                                                         pkg_info['version'],
+                                                         'package.xml') 
+                
             try:
                 p = parse_package_string(pkg_string)
                 packages[p.name] = p

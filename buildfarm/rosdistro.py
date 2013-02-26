@@ -101,9 +101,10 @@ class Rosdistro:
                     continue
                 packages[p] = {'url': info.url, 
                                'version': 'release/%s/%s' % (p, info.version), 
+                               'full_version': 'release/%s/%s/%s' % (self._rosdistro, p, info.full_version), 
                                'relative_path': path}
         return packages
-                
+
     def get_version(self, package_name, full_version = False):
         if package_name in self._package_in_repo:
             if full_version:
