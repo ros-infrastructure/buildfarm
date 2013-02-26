@@ -82,7 +82,7 @@ build = Thread.currentThread().executable
 // search build output for hash sum mismatch
 r = build.getLogReader()
 br = new BufferedReader(r)
-pattern = Pattern.compile(&quot;.*W: Failed to fetch .* Hash Sum mismatch.*&quot;)
+pattern = Pattern.compile(".*W: Failed to fetch .* Hash Sum mismatch.*")
 def line
 while ((line = br.readLine()) != null) {
 	if (pattern.matcher(line).matches()) {
@@ -133,15 +133,15 @@ def reschedule_build(msg) {
 	manager.build.project.scheduleBuild(new Cause.UserIdCause())
 }
 
-if (manager.logContains(&quot;.*W: Failed to fetch .* Hash Sum mismatch.*&quot;)) {
+if (manager.logContains(".*W: Failed to fetch .* Hash Sum mismatch.*")) {
 	reschedule_build("Hash Sum mismatch")
-} else if (manager.logContains(&quot;.*The lock file '/var/www/repos/building/db/lockfile' already exists.*&quot;)) {
+} else if (manager.logContains(".*The lock file '/var/www/repos/building/db/lockfile' already exists.*")) {
 	reschedule_build("building/db/lockfile already exists")
-} else if (manager.logContains(&quot;.*E: Could not get lock /var/lib/dpkg/lock - open \\(11: Resource temporarily unavailable\\).*&quot;)) {
+} else if (manager.logContains(".*E: Could not get lock /var/lib/dpkg/lock - open \\(11: Resource temporarily unavailable\\).*")) {
 	reschedule_build("dpkg/lock temporary unavailable")
-} else if (manager.logContains(&quot;.*ERROR: cannot download default sources list from:.*&quot;)) {
+} else if (manager.logContains(".*ERROR: cannot download default sources list from:.*")) {
 	reschedule_build("cannot download default sources list")
-} else if (manager.logContains(&quot;.*ERROR: Not all sources were able to be updated.*&quot;)) {
+} else if (manager.logContains(".*ERROR: Not all sources were able to be updated.*")) {
 	reschedule_build("Not all sources were able to be updated")
 }
 </groovyScript>
@@ -170,8 +170,8 @@ class Group {
 }
 
 // define notification groups
-warnings_group = new Group(label=&quot;Warnings&quot;, badge=&quot;warning.gif&quot;, summary_icon=&quot;warning.png&quot;)
-deprecations_group = new Group(label=&quot;Deprecations&quot;, badge=&quot;info.gif&quot;, summary_icon=&quot;star.png&quot;)
+warnings_group = new Group(label="Warnings", badge="warning.gif", summary_icon="warning.png")
+deprecations_group = new Group(label="Deprecations", badge="info.gif", summary_icon="star.png")
 
 class MatchExtractor {
 	Pattern pattern
@@ -196,11 +196,11 @@ class MatchExtractor {
 
 // define patterns and extraction parameters
 // catkin_pkg warnings for invalid package.xml files
-warnings_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile(&quot;WARNING\\(s\\) in .*:&quot;), next_lines=1, skip_first_line=true))
+warnings_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile("WARNING\\(s\\) in .*:"), next_lines=1, skip_first_line=true))
 // custom catkin deprecation messages
-deprecations_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile(&quot;.*\\) is deprecated.*&quot;)))
+deprecations_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile(".*\\) is deprecated.*")))
 // c++ compiler warning for usage of a deprecated function
-deprecations_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile(&quot;.* is deprecated \\(declared at .*&quot;)))
+deprecations_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile(".* is deprecated \\(declared at .*")))
 
 
 groups = [warnings_group, deprecations_group]
@@ -222,7 +222,7 @@ while ((line = br.readLine()) != null) {
 						data.add(line)
 					}
 				}
-				group.matched_items.add(data.join(&quot;&lt;br/&gt;&quot;))
+				group.matched_items.add(data.join("&lt;br/&gt;"))
 			}
 		}
 	}
@@ -232,16 +232,16 @@ while ((line = br.readLine()) != null) {
 mark_unstable = false
 for (group in groups) {
 	if (group.matched_items) {
-		manager.addBadge(group.badge, &quot;&quot;)
-		summary_text = &quot;&quot;
+		manager.addBadge(group.badge, "")
+		summary_text = ""
 		if (group.label) {
-			summary_text += group.label + &quot;:&quot;
+			summary_text += group.label + ":"
 		}
-		summary_text += &quot;&lt;ul&gt;&quot;
+		summary_text += "&lt;ul&gt;"
 		for(i in group.matched_items) {
-			summary_text += &quot;&lt;li&gt;&quot; + i + &quot;&lt;/li&gt;&quot;
+			summary_text += "&lt;li&gt;" + i + "&lt;/li&gt;"
 		}
-		summary_text += &quot;&lt;/ul&gt;&quot;
+		summary_text += "&lt;/ul&gt;"
 		summary = manager.createSummary(group.summary_icon)
 		summary.appendText(summary_text, false)
 		if (group.mark_unstable) mark_unstable = true
