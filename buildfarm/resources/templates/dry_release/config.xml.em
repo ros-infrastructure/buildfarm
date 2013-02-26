@@ -142,25 +142,30 @@ println ""
 // CHECK FOR VARIOUS REASONS TO RETRIGGER JOB
 // also triggered when a build step has failed
 import hudson.model.Cause
+
+def reschedule_build(msg) {
+	pb = manager.build.getPreviousBuild()
+	if (pb) {
+		pba = pb.getBadgeActions()
+		if (pba.size() > 0) {
+			manager.addInfoBadge("Log contains '" + msg + "' - skip rescheduling new build since this was already a rescheduled build")
+			return
+		}
+	}
+	manager.addInfoBadge("Log contains '" + msg + "' - scheduled new build...")
+	manager.build.project.scheduleBuild(new Cause.UserIdCause())
+}
+
 if (manager.logContains(&quot;.*W: Failed to fetch .* Hash Sum mismatch.*&quot;)) {
-	manager.addInfoBadge("Log contains 'Hash Sum mismatch' - scheduled new build...")
-	manager.build.project.scheduleBuild(new Cause.UserIdCause())
-}
-if (manager.logContains(&quot;.*The lock file '/var/www/repos/building/db/lockfile' already exists.*&quot;)) {
-	manager.addInfoBadge("Log contains 'building/db/lockfile already exists' - scheduled new build...")
-	manager.build.project.scheduleBuild(new Cause.UserIdCause())
-}
-if (manager.logContains(&quot;.*E: Could not get lock /var/lib/dpkg/lock - open \\(11: Resource temporarily unavailable\\).*&quot;)) {
-	manager.addInfoBadge("Log contains 'dpkg/lock temporary unavailable' - scheduled new build...")
-	manager.build.project.scheduleBuild(new Cause.UserIdCause())
-}
-if (manager.logContains(&quot;.*ERROR: cannot download default sources list from:.*&quot;)) {
-	manager.addInfoBadge("Log contains 'cannot download default sources list' - scheduled new build...")
-	manager.build.project.scheduleBuild(new Cause.UserIdCause())
-}
-if (manager.logContains(&quot;.*ERROR: Not all sources were able to be updated.*&quot;)) {
-	manager.addInfoBadge("Log contains 'Not all sources were able to be updated' - scheduled new build...")
-	manager.build.project.scheduleBuild(new Cause.UserIdCause())
+	reschedule_build("Hash Sum mismatch")
+} else if (manager.logContains(&quot;.*The lock file '/var/www/repos/building/db/lockfile' already exists.*&quot;)) {
+	reschedule_build("building/db/lockfile already exists")
+} else if (manager.logContains(&quot;.*E: Could not get lock /var/lib/dpkg/lock - open \\(11: Resource temporarily unavailable\\).*&quot;)) {
+	reschedule_build("dpkg/lock temporary unavailable")
+} else if (manager.logContains(&quot;.*ERROR: cannot download default sources list from:.*&quot;)) {
+	reschedule_build("cannot download default sources list")
+} else if (manager.logContains(&quot;.*ERROR: Not all sources were able to be updated.*&quot;)) {
+	reschedule_build("Not all sources were able to be updated")
 }
 </groovyScript>
       <behavior>0</behavior>
