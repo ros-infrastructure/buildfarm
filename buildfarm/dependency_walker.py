@@ -118,7 +118,7 @@ def get_packages(workspace, rd_obj, skip_update=False):
     for pkg_name in sorted(checkout_info.keys()):
         pkg_info = checkout_info[pkg_name]
         url = pkg_info['url']
-        print("Get '%s' from '%s' from tag '%s'" % (pkg_name, url, pkg_info['version']))
+        print("Get '%s' from '%s' from tag '%s'" % (pkg_name, url, pkg_info['full_version']))
         url_updated_before = url in urls_updated
         urls_updated.add(url)
         vcs_cache._skip_update = skip_update or url_updated_before
@@ -129,7 +129,7 @@ def get_packages(workspace, rd_obj, skip_update=False):
                                                          pkg_info['full_version'],
                                                          'package.xml')  
             except VcsError as ex:
-                print("Trying old release tag format")
+                print("  trying old release tag '%s'" % pkg_info['version'])
                 pkg_string = vcs_cache.get_file_contents('git',
                                                          url,
                                                          pkg_info['version'],
