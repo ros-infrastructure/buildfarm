@@ -20,27 +20,25 @@ def simplify_repo_name(repo_url):
     return os.path.basename(repo_url)
 
 
-
 class VcsFileCache(object):
     """A class to support caching gbp repos for querying specific files from a repo"""
 
     def __init__(self, cache_location, skip_update):
-        # make sure the cache dir exists and ifnot create it
+        # make sure the cache dir exists and if not create it
         if not os.path.exists(cache_location):
             os.makedirs(cache_location)
         self._cache_location = cache_location
-        self._skip_update = skip_update 
+        self._skip_update = skip_update
 
         logger = logging.getLogger('vcstools')
         for h in logger.handlers:
             logger.removeHandler(h)
         logger.addHandler(logging.StreamHandler(sys.stdout))
 
-    def _get_file(self, repo_type, repo_url, version, filename):
+    def _get_file(self, _repo_type, repo_url, version, filename):
         """ Fetch the file specificed by filename relative to the root of the repository"""
         name = simplify_repo_name(repo_url)
         repo_path = os.path.join(self._cache_location, name)
-        #client = VcsClient(repo_type, repo_path)
         client = GitClient(repo_path)  # using git only
         updated = False
         if client.path_exists():
@@ -50,9 +48,9 @@ class VcsFileCache(object):
                     updated = client.update(version, force_fetch=True)
                     logging.disable(logging.NOTSET)
                 else:
-                    try: # catch exception which can be caused by calling internal API
+                    try:  # catch exception which can be caused by calling internal API
                         updated = client._do_update(version)
-                    except GitError as ex:
+                    except GitError:
                         updated = False
             if not updated:
                 shutil.rmtree(repo_path)
@@ -127,18 +125,18 @@ def get_packages(workspace, rd_obj, skip_update=False):
         urls_updated.add(url)
         vcs_cache._skip_update = skip_update or url_updated_before
         try:
-            try: 
+            try:
                 pkg_string = vcs_cache.get_file_contents('git',
                                                          url,
                                                          pkg_info['full_version'],
-                                                         'package.xml')  
+                                                         'package.xml')
             except VcsError as ex:
-                print("  trying old release tag '%s'" % pkg_info['version'])
+                print("  trying tag '%s'" % pkg_info['version'])
                 pkg_string = vcs_cache.get_file_contents('git',
                                                          url,
                                                          pkg_info['version'],
-                                                         'package.xml') 
-                
+                                                         'package.xml')
+
             try:
                 p = parse_package_string(pkg_string)
                 packages[p.name] = p
