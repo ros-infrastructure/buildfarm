@@ -72,8 +72,14 @@ def get_stacks(workspace, repository_dict, rosdistro, skip_update=False):
                 stack = get_stack_of_remote_repository(name, 'git', url, workspace, version_number, skip_update)
             except Exception as e:
                 print("Could not fetch '%s' from '%s' with version '%s': %s" % (name, url, version_number, e))
-                errors.append(name)
-                continue
+                try:
+                    # Support for the bloom 0.3 tag locations.  
+                    version_number = 'release/%s/%s/%s' % (rosdistro, name, r.full_version)
+                    stack = get_stack_of_remote_repository(name, 'git', url, workspace, version_number, skip_update)
+                except Exception as e:
+                    print("Could not fetch '%s' from '%s' with version '%s': %s" % (name, url, version_number, e))
+                    errors.append(name)
+                    continue
 
         if stack:
             stacks[name] = stack
