@@ -46,7 +46,9 @@ class VcsFileCache(object):
         if client.path_exists():
             if client.get_url() == repo_url:
                 if not self._skip_update:
+                    logging.disable(logging.WARNING)
                     updated = client.update(version, force_fetch=True)
+                    logging.disable(logging.NOTSET)
                 else:
                     try: # catch exception which can be caused by calling internal API
                         updated = client._do_update(version)
@@ -55,7 +57,9 @@ class VcsFileCache(object):
             if not updated:
                 shutil.rmtree(repo_path)
         if not updated:
+            logging.disable(logging.WARNING)
             updated = client.checkout(repo_url, version)
+            logging.disable(logging.NOTSET)
 
         if not updated:
             raise VcsError("Impossible to update/checkout repo '%s' with version '%s'." % (repo_url, version))
