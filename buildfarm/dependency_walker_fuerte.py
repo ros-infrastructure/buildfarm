@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import logging
 import os
 import rospkg.stack
 import shutil
@@ -24,13 +25,17 @@ def get_stack_of_remote_repository(name, type_, url, workspace=None, version=Non
     if client.path_exists():
         if client.get_url() == url:
             if not skip_update:
+                logging.disable(logging.WARNING)
                 is_good = client.update(version if version is not None else '')
+                logging.disable(logging.NOTSET)
             else:
                 is_good = True
         if not is_good:
             shutil.rmtree(workdir)
     if not is_good:
+        logging.disable(logging.WARNING)
         is_good = client.checkout(url, version=version if version is not None else '')
+        logging.disable(logging.NOTSET)
 
     if not is_good:
         raise RuntimeError('Impossible to update/checkout repo.')
