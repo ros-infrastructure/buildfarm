@@ -19,7 +19,7 @@ Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in 
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
     <hudson.triggers.TimerTrigger>
-      <spec>22 22 * * *</spec>
+      <spec>22 22 * * 6</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
