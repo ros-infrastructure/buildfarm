@@ -49,7 +49,9 @@ class VcsFileCache(object):
                     logging.disable(logging.NOTSET)
                 else:
                     try:  # catch exception which can be caused by calling internal API
+                        logging.disable(logging.WARNING)
                         updated = client._do_update(version)
+                        logging.disable(logging.NOTSET)
                     except GitError:
                         updated = False
             if not updated:
