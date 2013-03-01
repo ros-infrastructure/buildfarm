@@ -625,7 +625,7 @@ def gen_metapkgs(distro, os_platform, arch, staging_dir, repo_fqdn, force=False)
 
     missing = []
 
-    missing_primary, missing_dep, missing_excluded, missing_excluded_dep = list_missing.get_missing(distro, os_platform, arch)
+    missing_primary, missing_dep, missing_excluded, missing_excluded_dep = list_missing.get_missing(distro, os_platform, arch, repo = repo_url(repo_fqdn))
 
     missing_ok = missing_excluded.union(missing_excluded_dep)
 
