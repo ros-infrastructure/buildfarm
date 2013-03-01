@@ -189,7 +189,7 @@ def create_chroot(distro, distro_name, os_platform, arch, repo_fqdn):
     debootstrap_type = 'debootstrap' # use default
     mirror = 'http://aptproxy.willowgarage.com/archive.ubuntu.com/ubuntu' # use wg mirror
     updates_mirror = "deb http://aptproxy.willowgarage.com/us.archive.ubuntu.com/ubuntu/ %s-updates main restricted universe multiverse"%(os_platform)
-    if arch == 'armel':
+    if arch == 'armel' or arch == 'armhf':
         debootstrap_type = 'qemu-debootstrap'
         mirror = 'http://ports.ubuntu.com/ubuntu-ports/'
         updates_mirror = "deb http://ports.ubuntu.com/ubuntu-ports/ %s-updates main restricted universe multiverse"%(os_platform)
@@ -296,7 +296,7 @@ echo "Resuming pbuilder"
             os.chmod(p, stat.S_IRWXU)
 
 
-    if arch == 'amd64' or arch == 'armel':
+    if arch == 'amd64' or arch == 'armel' or arch == 'armhf':
         archcmd = []
     else:
         archcmd = ['setarch', arch]
