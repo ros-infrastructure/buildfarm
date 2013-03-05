@@ -67,7 +67,7 @@ def trigger_if_necessary(da, pkg, rosdistro, jenkins_instance, missing_by_arch):
     if not jenkins_instance.job_exists(job_name):
         raise jenkins.JenkinsException('no such job[%s]' % (job_name))
     # pass parameters to create a POST request instead of GET
-    return jenkins_instance.jenkins_open(urllib2.Request(jenkins_instance.build_job_url(job_name), [('foo', 'bar')]))
+    return jenkins_instance.jenkins_open(urllib2.Request(jenkins_instance.build_job_url(job_name), 'foo=bar'))
 
 
 if __name__ == '__main__':
