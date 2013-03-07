@@ -520,7 +520,7 @@ def build_debs(distro, stack_name, os_platform, arch, staging_dir, force, nouplo
     if broken.union(skipped):
         raise StackBuildFailure("debbuild did not complete successfully. A list of broken and skipped stacks are below. Broken means the stack itself did not build. Skipped stacks means that the stack's dependencies could not be built.\n\nBroken stacks: %s.  Skipped stacks: %s"%(broken, skipped))
 
-EMAIL_FROM_ADDR = 'ROS debian build system <noreply@willowgarage.com>'
+EMAIL_FROM_ADDR = 'ROS debian build system <noreply@osrfoundation.org>'
 
 
 def parse_deb_packages(text):
