@@ -71,6 +71,11 @@ make upload</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
+    <hudson.plugins.descriptionsetter.DescriptionSetterPublisher>
+      <regexp>dpkg-buildpackage: source version ([^\s]+)-1</regexp>
+      <regexpForFailed>dpkg-buildpackage: source version ([^\s]+)-1</regexpForFailed>
+      <setForMatrix>false</setForMatrix>
+    </hudson.plugins.descriptionsetter.DescriptionSetterPublisher>
     <hudson.tasks.Mailer>
       <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
