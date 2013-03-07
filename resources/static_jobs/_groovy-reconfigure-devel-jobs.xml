@@ -35,7 +35,7 @@ Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in 
   </builders>
   <publishers>
     <hudson.tasks.Mailer>
-      <recipients>ros-buildfarm-status@@googlegroups.com</recipients>
+      <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>

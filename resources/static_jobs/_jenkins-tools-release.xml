@@ -72,7 +72,7 @@ make upload</command>
   </builders>
   <publishers>
     <hudson.tasks.Mailer>
-      <recipients>ros-buildfarm-status@@googlegroups.com</recipients>
+      <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>

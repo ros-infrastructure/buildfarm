@@ -44,7 +44,7 @@ scp -o StrictHostKeyChecking=no -qr groovy-dependencies.tar.gz rosbuild@wgs32:/v
   </builders>
   <publishers>
     <hudson.tasks.Mailer>
-      <recipients>ros-buildfarm-status@@googlegroups.com</recipients>
+      <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
