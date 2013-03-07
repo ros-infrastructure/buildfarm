@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
   <actions/>
-  <description>Disable binarydeb jobs of specific platforms/architectures.&#13;
-&#13;
+  <description>Disable binarydeb jobs of specific platforms/architectures.&#xd;
+&#xd;
 Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator>
     <daysToKeep>180</daysToKeep>
@@ -29,16 +30,16 @@ Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in 
         <command>import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-accept_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_.+&quot;)
-enable_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_precise_amd64&quot;)
-//reject1_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_oneiric_amd64&quot;)
-//reject2_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_precise_amd64&quot;)
-//reject3_pattern = Pattern.compile(&quot;ros-groovy-.+binarydeb_quantal_amd64&quot;)
+accept_pattern = Pattern.compile("ros-groovy-.+binarydeb_.+")
+enable_pattern = Pattern.compile("ros-groovy-.+binarydeb_precise_amd64")
+//reject1_pattern = Pattern.compile("ros-groovy-.+binarydeb_oneiric_amd64")
+//reject2_pattern = Pattern.compile("ros-groovy-.+binarydeb_precise_amd64")
+//reject3_pattern = Pattern.compile("ros-groovy-.+binarydeb_quantal_amd64")
 
 for (p in hudson.model.Hudson.instance.projects) {
 	if (!accept_pattern.matcher(p.name).matches()) continue
 	if (enable_pattern.matcher(p.name).matches()) {
-		println &quot;Enable &quot; + p.name
+		println "Enable " + p.name
 		p.enable()
 		p.save()
 		continue
@@ -46,17 +47,17 @@ for (p in hudson.model.Hudson.instance.projects) {
 	//if (reject1_pattern.matcher(p.name).matches()) continue
 	//if (reject2_pattern.matcher(p.name).matches()) continue
 	//if (reject3_pattern.matcher(p.name).matches()) continue
-	println &quot;Disable &quot; + p.name
+	println "Disable " + p.name
 	p.disable()
 	p.save()
 }</command>
       </scriptSource>
-      <bindings></bindings>
-      <classpath></classpath>
+      <bindings />
+      <classpath/>
     </hudson.plugins.groovy.SystemGroovy>
   </builders>
   <publishers>
-    <hudson.tasks.Mailer>
+    <hudson.tasks.Mailer plugin="mailer@1.4">
       <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>

@@ -22,7 +22,9 @@ def parse_arguments(args=sys.argv[1:]):
 def compare_configs(a, b):
     a_root = ElementTree.fromstring(a)
     b_root = ElementTree.fromstring(b)
-    return ElementTree.tostring(a_root) == ElementTree.tostring(b_root)
+    a_str = ElementTree.tostring(a_root)
+    b_str = ElementTree.tostring(b_root)
+    return a_str == b_str, a_str, b_str
 
 
 def create_jenkins_job(jenkins_instance, name, config, commit):
@@ -30,13 +32,14 @@ def create_jenkins_job(jenkins_instance, name, config, commit):
         jobs = jenkins_instance.get_jobs()
         if name in [job['name'] for job in jobs]:
             remote_config = jenkins_instance.get_job_config(name)
-            if not compare_configs(remote_config, config):
+            configs_equal, remote_config_cleaned, config_cleaned = compare_configs(remote_config, config)
+            if not configs_equal:
                 print("Reconfiguring job '%s'" % name)
                 if commit:
                     jenkins_instance.reconfig_job(name, config)
                 else:
                     print('  not performed.')
-                diff = difflib.unified_diff(remote_config.splitlines(), config.splitlines(), 'remote', name + '.xml', n=0, lineterm='')
+                diff = difflib.unified_diff(remote_config_cleaned.splitlines(), config_cleaned.splitlines(), 'remote', name + '.xml', n=0, lineterm='')
                 for line in diff:
                     print(line)
                 print('')

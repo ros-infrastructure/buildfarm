@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
   <actions/>
-  <description>Delete subdirectories on each connected slave which is not associated with an active job.&#13;
-See this thread for more info: http://jenkins.361315.n4.nabble.com/Workspace-cleanup-after-job-removal-td4628469.html&#13;
-&#13;
+  <description>Delete subdirectories on each connected slave which is not associated with an active job.&#xd;
+See this thread for more info: http://jenkins.361315.n4.nabble.com/Workspace-cleanup-after-job-removal-td4628469.html&#xd;
+&#xd;
 Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
@@ -24,12 +25,12 @@ Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in 
         <command>import hudson.FilePath;
 
 // Initialize dryRun parameter to TRUE if not given as script parameter
-if( !binding.variables.containsKey(&quot;dryRun&quot;) ) {
+if( !binding.variables.containsKey("dryRun") ) {
   dryRun = true;
 }
 
 if( dryRun == true ) {
-  println &quot;** Execute a dryRun - no files will ever be deleted **&quot;;
+  println "** Execute a dryRun - no files will ever be deleted **";
 }
 
 // shortcut to Jenkins instance
@@ -39,8 +40,8 @@ def jenkins = jenkins.model.Jenkins.instance;
 //
 def jobNames = jenkins.items.findAll { it instanceof hudson.model.Job &amp;&amp; it.customWorkspace==null }.collect { it.name };
 
-println(&quot;Existing Jobs: &quot;);
-jobNames.each {println &quot;  $it&quot;}
+println("Existing Jobs: ");
+jobNames.each {println "  $it"}
 
 
 // Slaves create a workspace for each job under their &apos;workspaceRoot&apos;.
@@ -55,50 +56,50 @@ jobNames.each {println &quot;  $it&quot;}
 //
 for (slave in jenkins.slaves)
 {
-  println &quot;&quot;;
+  println "";
   
   // Make sure slave is online
   if( ! slave.computer.online ) {
-    println(&quot;Slave &apos;$slave.nodeName&apos; is currently offline - skip workspace cleanup&quot;);
+    println("Slave &apos;$slave.nodeName&apos; is currently offline - skip workspace cleanup");
     continue;
   }
   
   // Retrieve the a FilePath to the workspace root
   def wsRoot = slave.workspaceRoot;
   if( wsRoot == null ) {
-    printlnt(&quot;Slave &apos;$slave.nodeName&apos; has a &lt;null&gt; workspaceRoot - skip workspace cleanup&quot;);
+    printlnt("Slave &apos;$slave.nodeName&apos; has a &lt;null&gt; workspaceRoot - skip workspace cleanup");
     continue;
   }
   
   // List workspace content and perform cleanup
-  println(&quot;Slave &apos;$slave.nodeName&apos; is online - perform workspace cleanup:&quot;);
+  println("Slave &apos;$slave.nodeName&apos; is online - perform workspace cleanup:");
   
   def subdirs = wsRoot.list();
   
   if( subdirs.size() == 0 ) {
-    println(&quot;  (workspace is empty)&quot;);
+    println("  (workspace is empty)");
     continue;
   }
   
   for(d in subdirs) {
     
     // Remove any suffixes from the dir name
-    def dirName = d.name.split(&quot;@&quot;)[0];
+    def dirName = d.name.split("@")[0];
     
     // Find matching job
     def jobMatch = jobNames.find { it==dirName };
       
     if ( jobMatch != null ) {
-      println(&quot;  KEEP: $d --&gt; job:$jobMatch&quot;);
+      println("  KEEP: $d --&gt; job:$jobMatch");
     }
     else {
       if( dryRun == true ) {
-      	println(&quot; DELETE: $d (dryRun)&quot;);
+      	println(" DELETE: $d (dryRun)");
       }
       else {
-        println(&quot;  DELETE: $d&quot;);
+        println("  DELETE: $d");
         mode = d.mode()
-        println(&quot;  MODE: $mode&quot;);
+        println("  MODE: $mode");
       	d.deleteRecursive();
       }
     }
@@ -107,7 +108,7 @@ for (slave in jenkins.slaves)
 </command>
       </scriptSource>
       <bindings>dryRun = false</bindings>
-      <classpath></classpath>
+      <classpath/>
     </hudson.plugins.groovy.SystemGroovy>
   </builders>
   <publishers>

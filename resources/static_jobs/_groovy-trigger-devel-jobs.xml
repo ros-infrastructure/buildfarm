@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
   <actions/>
-  <description>Trigger devel jobs for Groovy.&#13;
-&#13;
+  <description>Trigger devel jobs for Groovy.&#xd;
+&#xd;
 Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator>
     <daysToKeep>180</daysToKeep>
@@ -31,7 +32,7 @@ import java.util.regex.Pattern
 import hudson.model.AbstractProject
 import hudson.model.Result
 
-pattern = Pattern.compile(&quot;devel-groovy-.+&quot;)
+pattern = Pattern.compile("devel-groovy-.+")
 for (p in hudson.model.Hudson.instance.getAllItems(AbstractProject)) {
 	if (!pattern.matcher(p.name).matches()) continue
 	if (p.isBuilding() || p.isInQueue()) continue
@@ -39,8 +40,8 @@ for (p in hudson.model.Hudson.instance.getAllItems(AbstractProject)) {
 	p.scheduleBuild()
 }</command>
       </scriptSource>
-      <bindings></bindings>
-      <classpath></classpath>
+      <bindings/>
+      <classpath/>
     </hudson.plugins.groovy.SystemGroovy>
   </builders>
   <publishers>

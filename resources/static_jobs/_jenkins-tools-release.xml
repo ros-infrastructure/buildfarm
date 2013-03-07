@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
   <actions/>
-  <description>Release jenkins-tools package.&#13;
-&#13;
+  <description>Release jenkins-tools package.&#xd;
+&#xd;
 Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator>
     <daysToKeep>180</daysToKeep>
@@ -19,8 +20,8 @@ Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in 
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <name></name>
-        <refspec></refspec>
+        <name/>
+        <refspec/>
         <url>https://github.com/ros-infrastructure/jenkins_tools.git</url>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
@@ -42,15 +43,15 @@ Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in 
     <buildChooser class="hudson.plugins.git.util.DefaultBuildChooser"/>
     <gitTool>Default</gitTool>
     <submoduleCfg class="list"/>
-    <relativeTargetDir></relativeTargetDir>
-    <reference></reference>
-    <excludedRegions></excludedRegions>
-    <excludedUsers></excludedUsers>
-    <gitConfigName></gitConfigName>
-    <gitConfigEmail></gitConfigEmail>
+    <relativeTargetDir/>
+    <reference/>
+    <excludedRegions/>
+    <excludedUsers/>
+    <gitConfigName/>
+    <gitConfigEmail/>
     <skipTag>false</skipTag>
-    <includedRegions></includedRegions>
-    <scmName></scmName>
+    <includedRegions/>
+    <scmName/>
   </scm>
   <assignedNode>devel</assignedNode>
   <canRoam>false</canRoam>

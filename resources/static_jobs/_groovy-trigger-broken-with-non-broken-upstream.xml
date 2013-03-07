@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
   <actions/>
-  <description>Trigger broken jobs with non-broken upstream for Groovy.&#13;
-&#13;
+  <description>Trigger broken jobs with non-broken upstream for Groovy.&#xd;
+&#xd;
 Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator>
     <daysToKeep>180</daysToKeep>
@@ -34,11 +35,11 @@ import java.util.regex.Pattern
 import hudson.model.Cause
 import hudson.model.Result
 
-println &quot;Triggering builds for the following jobs:&quot;
+println "Triggering builds for the following jobs:"
 
-def prefix = &quot;ros-groovy-&quot;
-pattern_src = Pattern.compile(prefix + &quot;.+_sourcedeb&quot;)
-pattern_bin = Pattern.compile(prefix + &quot;.+_binarydeb_.+&quot;)
+def prefix = "ros-groovy-"
+pattern_src = Pattern.compile(prefix + ".+_sourcedeb")
+pattern_bin = Pattern.compile(prefix + ".+_binarydeb_.+")
 for (p in hudson.model.Hudson.instance.projects) {
   if (!pattern_src.matcher(p.name).matches() &amp;&amp; !pattern_bin.matcher(p.name).matches()) continue
   if (p.isDisabled()) continue
@@ -74,16 +75,16 @@ for (p in hudson.model.Hudson.instance.projects) {
   }
   if (any_upstream_broken) continue
 
-  println &quot;&lt;a href=\&quot;&quot; + p.getAbsoluteUrl() + &quot;\&quot;&gt;&quot; + p.name + &quot;&lt;/a&gt;&quot;
+  println "&lt;a href=\"" + p.getAbsoluteUrl() + "\"&gt;" + p.name + "&lt;/a&gt;"
 
   scheduled = p.scheduleBuild(new Cause.UserIdCause())
   if (!scheduled) {
-    println &quot;FAILED to schedule build&quot;
+    println "FAILED to schedule build"
   }
 }</command>
       </scriptSource>
-      <bindings></bindings>
-      <classpath></classpath>
+      <bindings/>
+      <classpath/>
     </hudson.plugins.groovy.SystemGroovy>
   </builders>
   <publishers>
