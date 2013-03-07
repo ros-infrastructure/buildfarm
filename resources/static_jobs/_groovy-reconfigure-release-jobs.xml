@@ -87,7 +87,7 @@ source ./setup.sh
       </threshold>
     </hudson.tasks.BuildTrigger>
     <hudson.tasks.Mailer>
-      <recipients>ros-buildfarm-status@googlegroups.com</recipients>
+      <recipients>ros-buildfarm-status@@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>

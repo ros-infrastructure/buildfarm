@@ -179,7 +179,7 @@ if (manager.logContains(".*W: Failed to fetch .* Hash Sum mismatch.*")) {
       </threshold>
     </hudson.tasks.BuildTrigger>
     <hudson.tasks.Mailer>
-      <recipients>ros-buildfarm-release@googlegroups.com @(NOTIFICATION_EMAIL)</recipients>
+      <recipients>ros-buildfarm-release@@googlegroups.com @(NOTIFICATION_EMAIL)</recipients>
       <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
