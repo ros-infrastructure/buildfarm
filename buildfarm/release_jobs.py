@@ -93,6 +93,24 @@ def compute_missing(distros, arches, fqdn, rosdistro, sourcedeb_only=False):
     return missing
 
 
+def check_for_circular_dependencies(dependencies):
+    deps = {k: set(v) for k, v in dependencies.iteritems()}
+    while len(deps) > 0:
+        # find all packages without further dependencies
+        leafs = []
+        for name, depends in deps.iteritems():
+            if not depends:
+                leafs.append(name)
+        if not leafs:
+            # still packages with dependencies but no leafs found
+            raise RuntimeError('The following packages contain a dependency cycle: %s' % ', '.join(deps.keys()))
+        # remove leafs from further processing
+        for leaf in leafs:
+            del deps[leaf]
+        for name, depends in deps.iteritems():
+            depends.difference_update(leafs)
+
+
 # dry dependencies
 def dry_get_stack_info(stackname, version):
     y = urllib.urlopen('https://code.ros.org/svn/release/download/stacks/%(stackname)s/%(stackname)s-%(version)s/%(stackname)s-%(version)s.yaml' % locals())

@@ -176,6 +176,8 @@ if __name__ == '__main__':
         dependencies = dependency_walker_fuerte.get_dependencies(args.rosdistro, stacks)
         packages = stacks
 
+    release_jobs.check_for_circular_dependencies(dependencies)
+
     # even for wet_only the dry packages need to be consider, else they are not added as downstream dependencies for the wet jobs
     stack_depends, dry_maintainers = release_jobs.dry_get_stack_dependencies(args.rosdistro)
     dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies, stack_depends)
