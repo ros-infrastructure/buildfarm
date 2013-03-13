@@ -109,8 +109,12 @@ def doit(rd, distros, arches, fqdn, jobs_graph, rosdistro, packages, dry_maintai
 
     if rosdistro == 'fuerte':
         packages_for_sync = 300
+    elif rosdistro == 'groovy':
+        packages_for_sync = 500
+    elif rosdistro == 'hydro':
+        packages_for_sync = 60
     else:
-        packages_for_sync = 485
+        packages_for_sync = 10000
 
     #dry stacks
     # dry dependencies
