@@ -24,7 +24,7 @@ def parse_options():
            default=[])
     parser.add_argument('--arches', nargs='+',
            help='A list of debian arches. Default: %(default)s',
-           default=['i386','amd64'])
+           default=['i386', 'amd64'])
     parser.add_argument('--sourcedeb-only', action='store_true', default=False,
            help='Only check sourcedeb jobs. Default: all')
     parser.add_argument('--commit', dest='commit',
@@ -32,15 +32,18 @@ def parse_options():
     return parser.parse_args()
 
 
-def trigger_if_necessary(da, pkg, rosdistro, jenkins_instance, missing_by_arch):
-    if da != 'source' and 'source' in missing_by_arch and pkg in missing_by_arch['source']:
+def trigger_if_necessary(da, pkg, rosdistro,
+                         jenkins_instance, missing_by_arch):
+    if da != 'source' and 'source' in missing_by_arch and \
+            pkg in missing_by_arch['source']:
         print ("  Skipping trigger of binarydeb job for package '%s' on arch '%s' as the sourcedeb job will trigger them automatically" % (pkg, da))
         return False
 
     if da == 'source':
         job_name = '%s_sourcedeb' % (debianize_package_name(rosdistro, pkg))
     else:
-        job_name = '%s_binarydeb_%s' % (debianize_package_name(rosdistro, pkg), da)
+        job_name = '%s_binarydeb_%s' % (debianize_package_name(rosdistro, pkg),
+                                        da)
     job_info = jenkins_instance.get_job_info(job_name)
 
     if 'color' in job_info and 'anime' in job_info['color']:
@@ -54,7 +57,8 @@ def trigger_if_necessary(da, pkg, rosdistro, jenkins_instance, missing_by_arch):
     if da != 'source' and 'upstreamProjects' in job_info:
         upstream = job_info['upstreamProjects']
         for p in missing_by_arch[da]:
-            p_name = '%s_binarydeb_%s' % (debianize_package_name(rosdistro, p), da)
+            p_name = '%s_binarydeb_%s' % (debianize_package_name(rosdistro, p),
+                                          da)
             for u in upstream:
                 if u['name'] == p_name:
                     print ("  Skipping trigger of job '%s' because the upstream job '%s' is also triggered" % (job_name, p_name))
