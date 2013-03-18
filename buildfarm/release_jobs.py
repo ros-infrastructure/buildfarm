@@ -80,10 +80,10 @@ def compute_missing(distros, arches, fqdn, rosdistro, sourcedeb_only=False):
         for s in dist.stacks:
             #print ("Analyzing DRY job [%s]" % s)
             expected_version = dry_get_stack_version(s, dist)
-
-            # sanitize undeclared versions for string substitution
+            # Don't report packages as missing if their version is None
             if not expected_version:
-                expected_version = ''
+                print("Skipping package %s with no version" % s)
+                continue
             missing[s] = []
             # for each distro arch check if the deb is present. If not trigger the build.
             for (d, a) in distro_arches:
