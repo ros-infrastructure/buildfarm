@@ -187,8 +187,8 @@ def create_chroot(distro, distro_name, os_platform, arch, repo_fqdn):
     deplist = ' '.join(basedeps+rosdeps)
 
     debootstrap_type = 'debootstrap' # use default
-    mirror = 'http://aptproxy.willowgarage.com/archive.ubuntu.com/ubuntu' # use wg mirror
-    updates_mirror = "deb http://aptproxy.willowgarage.com/us.archive.ubuntu.com/ubuntu/ %s-updates main restricted universe multiverse"%(os_platform)
+    mirror = 'http://us.archive.ubuntu.com/ubuntu'
+    updates_mirror = "deb http://us.archive.ubuntu.com/ubuntu/ %s-updates main restricted universe multiverse"%(os_platform)
     if arch == 'armel' or arch == 'armhf':
         debootstrap_type = 'qemu-debootstrap'
         mirror = 'http://ports.ubuntu.com/ubuntu-ports/'

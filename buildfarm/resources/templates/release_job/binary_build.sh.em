@@ -28,7 +28,7 @@ then
     mirror=http://ports.ubuntu.com/ubuntu-ports
     debootstrap_type='qemu-debootstrap'
 else
-    mirror=http://aptproxy.willowgarage.com/us.archive.ubuntu.com/ubuntu
+    mirror=http://us.archive.ubuntu.com/ubuntu
     debootstrap_type='debootstrap'
 fi
 
