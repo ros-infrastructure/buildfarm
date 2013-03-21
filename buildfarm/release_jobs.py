@@ -58,6 +58,12 @@ def compute_missing(distros, arches, fqdn, rosdistro, sourcedeb_only=False):
         deb_name = debianize_package_name(rosdistro, short_package_name)
         expected_version = rd.get_version(short_package_name, full_version=True)
 
+        # Don't report packages as missing if their version is None
+        if not expected_version:
+            print("Skipping package %s with no version" % short_package_name)
+            continue
+
+
         missing[short_package_name] = []
         for d in target_distros:
             if not repo.deb_in_repo(repo_url, deb_name, str(expected_version) + d, d, arch='na', source=True):
