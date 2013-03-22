@@ -101,6 +101,27 @@ def compute_missing(distros, arches, fqdn, rosdistro, sourcedeb_only=False):
 
 def check_for_circular_dependencies(dependencies):
     deps = {k: set(v) for k, v in dependencies.iteritems()}
+    try:
+        _remove_leafs_recursively(deps)
+    except RuntimeError:
+        # reduce set of packages as much as possible by removing leafs from the other end of the dependency graph
+        rev_deps = {}
+        # build reverse dependencies
+        for name, depends in deps.iteritems():
+            if depends:
+                for depend in depends:
+                    if depend not in rev_deps:
+                        rev_deps[depend] = set([])
+                    rev_deps[depend].add(name)
+        try:
+            # this should also raise but with fewer deps as before
+            _remove_leafs_recursively(rev_deps)
+            assert False
+        except RuntimeError:
+            raise
+
+
+def _remove_leafs_recursively(deps):
     while len(deps) > 0:
         # find all packages without further dependencies
         leafs = []
@@ -109,7 +130,7 @@ def check_for_circular_dependencies(dependencies):
                 leafs.append(name)
         if not leafs:
             # still packages with dependencies but no leafs found
-            raise RuntimeError('The following packages contain a dependency cycle: %s' % ', '.join(deps.keys()))
+            raise RuntimeError('The following packages contain a dependency cycle: %s' % ', '.join(sorted(deps.keys())))
         # remove leafs from further processing
         for leaf in leafs:
             del deps[leaf]
