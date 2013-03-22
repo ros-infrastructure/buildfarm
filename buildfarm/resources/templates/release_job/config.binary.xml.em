@@ -77,8 +77,6 @@ println ""
 println "Check for 'Hash Sum mismatch'"
 println ""
 
-build = Thread.currentThread().executable
-
 // search build output for hash sum mismatch
 r = build.getLogReader()
 br = new BufferedReader(r)
