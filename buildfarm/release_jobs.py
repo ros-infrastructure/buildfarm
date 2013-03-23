@@ -100,7 +100,9 @@ def compute_missing(distros, arches, fqdn, rosdistro, sourcedeb_only=False):
 
 
 def check_for_circular_dependencies(dependencies):
-    deps = {k: set(v) for k, v in dependencies.iteritems()}
+    deps = dict()
+    for k, v in dependencies.iteritems():
+      deps[k] = set(v)
     try:
         _remove_leafs_recursively(deps)
     except RuntimeError:
