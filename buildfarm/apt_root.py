@@ -74,7 +74,10 @@ def setup_apt_rootdir(rootdir,
                       additional_repos={}):
     setup_directories(rootdir)
     if not mirror:
-        repo = 'http://us.archive.ubuntu.com/ubuntu/'
+        if arch in ['amd64', 'i386']:
+            repo = 'http://us.archive.ubuntu.com/ubuntu/'
+        else:
+            repo = 'http://ports.ubuntu.com/ubuntu-ports/'
     else:
         repo = mirror
     set_default_sources(rootdir, distro, repo)

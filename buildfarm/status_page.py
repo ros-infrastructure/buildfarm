@@ -15,10 +15,6 @@ import buildfarm.apt_root
 import buildfarm.rosdistro
 from rospkg.distro import distro_uri
 
-ros_repos = {'ros': 'http://packages.ros.org/ros/ubuntu/',
-             'shadow-fixed': 'http://packages.ros.org/ros-shadow-fixed/ubuntu/',
-             'building': 'http://50.28.27.175/repos/building'}
-
 version_rx = re.compile(r'[0-9.-]+[0-9]')
 
 def get_repo_da_caches(rootdir, ros_repo_names, da_strs):
@@ -201,9 +197,18 @@ def get_pkgs_from_apt_cache(cache_dir, substring):
     cache.open()
     return [cache[name] for name in cache.keys() if name.startswith(substring)]
 
-def render_csv(rootdir, outfile, rosdistro):
-    arches = bin_arches + ['source']
-    da_strs = get_da_strs(get_distro_arches(arches, rosdistro))
+def render_csv(rootdir, outfile, rosdistro, distro_arches, ros_repos):
+    distros = {}
+    for (d, a) in distro_arches:
+        if not d in distros:
+            distros[d] = []
+        distros[d].append(a) 
+    da = []
+    for d in distros:
+        #da.append((d, 'source'))
+        for a in distros[d]:
+           da.append((d, a))
+    da_strs = get_da_strs(da)
     ros_repo_names = get_ros_repo_names(ros_repos)
     repo_da_caches = get_repo_da_caches(rootdir, ros_repo_names, da_strs)
     wet_names_versions = get_wet_names_versions(rosdistro)
@@ -233,11 +238,6 @@ def transform_csv_to_html(data_source, metadata_builder, rosdistro, start_time):
 
     header = rows[0]
     rows = rows[1:]
-
-    # move source columns before amd64/i386 columns for each distro
-    column_mapping = {3: 5, 4: 3, 5: 4, 6: 8, 7: 6, 8: 7, 9: 11, 10: 9, 11: 10}
-    header = [header[column_mapping[i] if column_mapping and i in column_mapping else i] for i in range(len(header))]
-    rows = [[row[column_mapping[i] if column_mapping and i in column_mapping else i] for i in range(len(header))] for row in rows]
 
     html_head = make_html_head(rosdistro, start_time)
 
@@ -279,8 +279,6 @@ def format_row(row, metadata_columns):
     metadata = [None] * 3 + [md for md in metadata_columns[3:]]
     if row[2] == 'unknown':
         metadata = [None for _ in range(len(metadata))]
-    if row[2] == 'False':  # dry
-        metadata[3] = metadata[6] = metadata[9] = None
     job_urls = [md['job_url'].format(pkg=row[0].replace('_', '-')) if md else None for md in metadata]
 
     type_ = get_wet_column(row)
@@ -290,7 +288,6 @@ def format_row(row, metadata_columns):
     row = row[:2] + [type_] + [format_versions_cell(row[i], latest_version, job_urls[i], public_changing_on_sync[i]) for i in range(3, len(row))]
     if has_diff_between_rosdistros:
         row[0] += ' <span class="hiddentext">diff</span>'
-    row[3] = row[6] = row[9] = ''
 
     return row
 
@@ -460,9 +457,6 @@ def make_html_head(rosdistro, start_time):
             ],
             "bUseColVis": true
         } );
-        oTable.fnSetColumnVis(3, false);
-        oTable.fnSetColumnVis(6, false);
-        oTable.fnSetColumnVis(9, false);
 
         new FixedHeader(oTable);
 
