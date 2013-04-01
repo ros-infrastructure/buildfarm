@@ -44,12 +44,13 @@ def get_distro_arches(arches, rosdistro):
     distros = buildfarm.rosdistro.get_target_distros(rosdistro)
     return [(d, a) for d in distros for a in arches]
 
-def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_names, rosdistro):
+def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, das, repo_names, rosdistro):
     '''
     Returns an in-memory table with all the information that will be displayed:
     ros package names and versions followed by debian versions for each
     distro/arch.
     '''
+    da_strs = get_da_strs(das)
     left_columns = [('name', object), ('version', object), ('wet', object)]
     right_columns = [(da_str, object) for da_str in da_strs]
     columns = left_columns + right_columns
@@ -62,12 +63,24 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_name
 
     table = np.empty(len(ros_pkgs_table) + len(non_ros_pkg_names), dtype=columns)
 
+    # pick an alternate dist/arch string for retrieving source versions
+    #  since 
+    alt_da_strs = {}
+    for da in das:
+        if not da[0] in alt_da_strs:
+            if da[1] != 'source':
+                alt_da_strs[da[0]] = get_dist_arch_str(da[0], da[1])
+
+    for da in alt_da_strs:
+        print("Alternate dist/arch for %s is %s"%(da, alt_da_strs[da]))
+
     for i, (name, version, wet) in enumerate(ros_pkgs_table):
         table['name'][i] = name
         table['version'][i] = version
         table['wet'][i] = wet
-        for da_str in da_strs:
-            table[da_str][i] = add_version_cell(table, name, repo_name_da_to_pkgs, da_str, repo_names, rosdistro)
+        for da in das:
+            da_str = get_dist_arch_str(da[0], da[1])
+            table[da_str][i] = add_version_cell(table, name, repo_name_da_to_pkgs, da_str, alt_da_strs[da[0]], repo_names, rosdistro)
 
     i = len(ros_pkgs_table)
     for pkg_name in non_ros_pkg_names:
@@ -75,16 +88,17 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs, repo_name
         table['name'][i] = undebianized_pkg_name
         table['version'][i] = ''
         table['wet'][i] = 'unknown'
-        for da_str in da_strs:
-            table[da_str][i] = add_version_cell(table, undebianized_pkg_name, repo_name_da_to_pkgs, da_str, repo_names, rosdistro)
+        for da in das:
+            da_str = get_dist_arch_str(da[0], da[1])
+            table[da_str][i] = add_version_cell(table, undebianized_pkg_name, repo_name_da_to_pkgs, da_str, alt_da_strs[da[0]], repo_names, rosdistro)
         i += 1
 
     return table
 
-def add_version_cell(table, pkg_name, repo_name_da_to_pkgs, da_str, repo_names, rosdistro):
+def add_version_cell(table, pkg_name, repo_name_da_to_pkgs, da_str, alt_da_str, repo_names, rosdistro):
     versions = []
     for repo_name in repo_names:
-        v = get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, pkg_name, rosdistro)
+        v = get_pkg_version(da_str, alt_da_str, repo_name_da_to_pkgs, repo_name, pkg_name, rosdistro)
         v = str(v)
         v = strip_version_suffix(v)
         versions.append(v)
@@ -106,12 +120,12 @@ def strip_version_suffix(version):
     match = version_rx.search(version)
     return match.group(0) if match else version
 
-def get_pkg_version(da_str, repo_name_da_to_pkgs, repo_name, name, rosdistro):
+def get_pkg_version(da_str, alt_da_str, repo_name_da_to_pkgs, repo_name, name, rosdistro):
     deb_name = buildfarm.rosdistro.debianize_package_name(rosdistro, name)
     if da_str.endswith('source'):
         # Get the source version from the corresponding amd64 package.
-        amd64_da_str = da_str.replace('source', 'amd64')
-        p = get_matching_pkg(repo_name_da_to_pkgs, deb_name, repo_name, amd64_da_str)
+        #alt_da_str = da_str.replace('source', 'amd64')
+        p = get_matching_pkg(repo_name_da_to_pkgs, deb_name, repo_name, alt_da_str)
         return getattr(getattr(p, 'candidate', None), 'source_version', None)
     else:
         p = get_matching_pkg(repo_name_da_to_pkgs, deb_name, repo_name, da_str)
@@ -203,12 +217,12 @@ def render_csv(rootdir, outfile, rosdistro, distro_arches, ros_repos):
         if not d in distros:
             distros[d] = []
         distros[d].append(a) 
-    da = []
+    das = []
     for d in distros:
-        #da.append((d, 'source'))
+        das.append((d, 'source'))
         for a in distros[d]:
-           da.append((d, a))
-    da_strs = get_da_strs(da)
+           das.append((d, a))
+    da_strs = get_da_strs(das)
     ros_repo_names = get_ros_repo_names(ros_repos)
     repo_da_caches = get_repo_da_caches(rootdir, ros_repo_names, da_strs)
     wet_names_versions = get_wet_names_versions(rosdistro)
@@ -220,7 +234,7 @@ def render_csv(rootdir, outfile, rosdistro, distro_arches, ros_repos):
                                 for repo_name, da_str, cache in repo_da_caches)
 
     # Make an in-memory table showing the latest deb version for each package.
-    t = make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, da_strs,
+    t = make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, das,
                             ros_repos.keys(), rosdistro)
 
     with open(outfile , 'w') as fh:
