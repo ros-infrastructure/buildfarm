@@ -13,15 +13,18 @@ import buildfarm.status_page
 
 
 def parse_options(args=sys.argv[1:]):
-    p = argparse.ArgumentParser(description='Generate the HTML page showing the package build status.')
+    p = argparse.ArgumentParser(description='Generate the HTML page'
+                                ' showing the package build status.')
     p.add_argument('--basedir', default='/tmp/build_status_page',
-                   help='Root directory containing ROS apt caches. This should be created using the build_caches command.')
+                   help='Root directory containing ROS apt caches.'
+                   ' This should be created using the build_caches command.')
     p.add_argument('--skip-fetch', action='store_true',
                    help='Skip fetching the apt data.')
     p.add_argument('--skip-csv', action='store_true',
                    help='Skip generating .csv file.')
     p.add_argument('rosdistro', default='groovy',
-                   help='The ROS distro to generate the status page for (i.e. groovy).')
+                   help='The ROS distro to generate the status page'
+                   ' for (i.e. groovy).')
     p.add_argument('--build-repo',
           default='http://50.28.27.175/repos/building',
           help='Repository URL for the build farm repository.')
@@ -91,10 +94,10 @@ if __name__ == '__main__':
             column_label = '{rosdistro_short}src{distro_short}'
             view_name = '{rosdistro_short}src'
         else:
-            data['arch_short'] = {  'amd64': '64',
-                                    'i386': '32',
-                                    'armel': 'armel',
-                                    'armhf': 'armhf'}[jobtype]
+            data['arch_short'] = {'amd64': '64',
+                                  'i386': '32',
+                                  'armel': 'armel',
+                                  'armhf': 'armhf'}[jobtype]
             column_label = '{rosdistro_short}bin{distro_short}{arch_short}'
             view_name = '{rosdistro_short}bin{distro_short}{arch_short}'
         data['column_label'] = column_label.format(**data)
