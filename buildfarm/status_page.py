@@ -71,15 +71,15 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, das,
     table = np.empty(len(ros_pkgs_table) + len(non_ros_pkg_names), dtype=columns)
 
     # pick an alternate dist/arch string for retrieving source versions
-    #  since
+    #  since python-apt associates source versions with the binary for querying
     alt_da_strs = {}
-    for da in das:
-        if not da[0] in alt_da_strs:
-            if da[1] != 'source':
-                alt_da_strs[da[0]] = get_dist_arch_str(da[0], da[1])
+    for (distro, arch) in das:
+        if not distro in alt_da_strs:
+            if arch != 'source':
+                alt_da_strs[distro] = get_dist_arch_str(distro, arch)
 
-    for da in alt_da_strs:
-        print("Alternate dist/arch for %s is %s" % (da, alt_da_strs[da]))
+    for distro, distarch in alt_da_strs.items():
+        print("Alternate dist/arch for %s is %s" % (distro, distarch))
 
     for i, (name, version, wet) in enumerate(ros_pkgs_table):
         table['name'][i] = name
@@ -87,7 +87,7 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, das,
         table['wet'][i] = wet
         for da in das:
             da_str = get_dist_arch_str(da[0], da[1])
-            table[da_str][i] = add_version_cell(table, name,
+            table[da_str][i] = add_version_cell(name,
                                                 repo_name_da_to_pkgs,
                                                 da_str, alt_da_strs[da[0]],
                                                 repo_names, rosdistro)
@@ -100,7 +100,7 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, das,
         table['wet'][i] = 'unknown'
         for da in das:
             da_str = get_dist_arch_str(da[0], da[1])
-            table[da_str][i] = add_version_cell(table, undebianized_pkg_name,
+            table[da_str][i] = add_version_cell(undebianized_pkg_name,
                                                 repo_name_da_to_pkgs, da_str,
                                                 alt_da_strs[da[0]], repo_names,
                                                 rosdistro)
@@ -109,7 +109,7 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, das,
     return table
 
 
-def add_version_cell(table, pkg_name, repo_name_da_to_pkgs,
+def add_version_cell(pkg_name, repo_name_da_to_pkgs,
                      da_str, alt_da_str, repo_names, rosdistro):
     versions = []
     for repo_name in repo_names:
@@ -142,8 +142,7 @@ def get_pkg_version(da_str, alt_da_str, repo_name_da_to_pkgs, repo_name,
                     name, rosdistro):
     deb_name = buildfarm.rosdistro.debianize_package_name(rosdistro, name)
     if da_str.endswith('source'):
-        # Get the source version from the corresponding amd64 package.
-        #alt_da_str = da_str.replace('source', 'amd64')
+        # Get the source version from the corresponding binary package
         p = get_matching_pkg(repo_name_da_to_pkgs, deb_name,
                              repo_name, alt_da_str)
         return getattr(getattr(p, 'candidate', None), 'source_version', None)
