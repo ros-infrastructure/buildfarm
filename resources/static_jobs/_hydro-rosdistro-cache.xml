@@ -39,7 +39,28 @@ scp -o StrictHostKeyChecking=no -qr `pwd`/hydro-dependencies.yaml rosbuild@wgs32
 
 # upload tar of cache
 tar cvjf hydro-dependencies.tar.gz hydro-dependencies.yaml
-scp -o StrictHostKeyChecking=no -qr hydro-dependencies.tar.gz rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/</command>
+scp -o StrictHostKeyChecking=no -qr hydro-dependencies.tar.gz rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
+
+###
+
+if [ -e $WORKSPACE/rosdistro-rep137 ]
+then
+  rm -rf $WORKSPACE/rosdistro-rep137
+fi
+git clone git@github.com:ros/rosdistro.git $WORKSPACE/rosdistro-rep137 -b rep137
+cd $WORKSPACE/rosdistro-rep137/releases
+
+rosdistro_convert
+rosdistro_build_cache file://`pwd`/index.yaml
+
+scp -o StrictHostKeyChecking=no -qr `pwd`/groovy-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
+scp -o StrictHostKeyChecking=no -qr `pwd`/hydro-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
+
+GIT_DIFF=`git diff`
+if [ "$GIT_DIFF" != "" ]; then
+  git commit -m "update generated rep137 rosdistro files" -a
+  git push
+fi</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
