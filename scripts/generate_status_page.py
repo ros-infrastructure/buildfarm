@@ -7,9 +7,8 @@ import os
 import sys
 import time
 
-from buildfarm.status_page import build_repo_caches, \
+from buildfarm.status_page import build_version_cache,\
     get_distro_arches, render_csv, transform_csv_to_html
-import buildfarm.status_page
 
 
 def parse_options(args=sys.argv[1:]):
@@ -38,7 +37,7 @@ def parse_options(args=sys.argv[1:]):
           nargs='+',
           help='Distributions to query')
     p.add_argument('--arches',
-          default=buildfarm.status_page.bin_arches,
+          default=['i386', 'amd64'],
           nargs='+',
           help='Architectures to query')
     p.add_argument('--da',
@@ -64,16 +63,15 @@ if __name__ == '__main__':
     else:
         distro_arches = get_distro_arches(args.arches, args.rosdistro)
 
-    if not args.skip_fetch:
-        print('Fetching apt data (this will take some time)...')
-        build_repo_caches(args.basedir, ros_repos, distro_arches)
-    else:
-        print('Skip fetching apt data')
+    version_cache = build_version_cache(args.basedir, args.rosdistro,
+                                        distro_arches, ros_repos,
+                                        update=not args.skip_fetch)
+
 
     csv_file = os.path.join(args.basedir, '%s.csv' % args.rosdistro)
     if not args.skip_csv:
         print('Generating .csv file...')
-        render_csv(args.basedir, csv_file, args.rosdistro,
+        render_csv(version_cache, args.basedir, csv_file, args.rosdistro,
                    distro_arches, ros_repos)
     elif not os.path.exists(csv_file):
         print('.csv file "%s" is missing. Call script without "--skip-csv".' %\
@@ -82,22 +80,26 @@ if __name__ == '__main__':
         print('Skip generating .csv file')
 
     def metadata_builder(column_data):
-        distro, jobtype = column_data.split('_', 1)
+        build_argstring = column_data.split('_')
+        is_source = len(build_argstring) == 3
+        distro = build_argstring[0]
+        arch = build_argstring[1]
         data = {
             'rosdistro': args.rosdistro,
             'rosdistro_short': args.rosdistro[0].upper(),
             'distro': distro,
             'distro_short': distro[0].upper()
         }
-        is_source = jobtype == 'source'
+
+        data['arch_short'] = {'amd64': '64',
+                              'i386': '32',
+                              'armel': 'armel',
+                              'armhf': 'armhf'}[arch]
+
         if is_source:
-            column_label = '{rosdistro_short}src{distro_short}'
+            column_label = '{rosdistro_short}src{distro_short}{arch_short}'
             view_name = '{rosdistro_short}src'
         else:
-            data['arch_short'] = {'amd64': '64',
-                                  'i386': '32',
-                                  'armel': 'armel',
-                                  'armhf': 'armhf'}[jobtype]
             column_label = '{rosdistro_short}bin{distro_short}{arch_short}'
             view_name = '{rosdistro_short}bin{distro_short}{arch_short}'
         data['column_label'] = column_label.format(**data)
@@ -107,7 +109,7 @@ if __name__ == '__main__':
         if is_source:
             job_name = 'ros-{rosdistro}-{{pkg}}_sourcedeb'
         else:
-            data['arch'] = jobtype
+            data['arch'] = arch
             job_name = 'ros-{rosdistro}-{{pkg}}_binarydeb_{distro}_{arch}'
         data['job_url'] = ('{view_url}job/%s/' % job_name).format(**data)
 
