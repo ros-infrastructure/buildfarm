@@ -12,7 +12,7 @@ import apt
 import numpy as np
 
 import buildfarm.apt_root
-import buildfarm.rosdistro
+import buildfarm.ros_distro
 from rospkg.distro import distro_uri
 
 version_rx = re.compile(r'[0-9.-]+[0-9]')
@@ -46,7 +46,7 @@ bin_arches = ['amd64', 'i386']
 
 
 def get_distro_arches(arches, rosdistro):
-    distros = buildfarm.rosdistro.get_target_distros(rosdistro)
+    distros = buildfarm.ros_distro.get_target_distros(rosdistro)
     return [(d, a) for d in distros for a in arches]
 
 
@@ -63,7 +63,7 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, das,
     columns = left_columns + right_columns
 
     non_ros_pkg_names = set([])
-    ros_pkg_names = set([buildfarm.rosdistro.debianize_package_name(rosdistro, pkg[0]) for pkg in ros_pkgs_table])
+    ros_pkg_names = set([buildfarm.ros_distro.debianize_package_name(rosdistro, pkg[0]) for pkg in ros_pkgs_table])
     for pkgs in repo_name_da_to_pkgs.values():
         pkg_names = set([pkg.name for pkg in pkgs])
         non_ros_pkg_names |= pkg_names - ros_pkg_names
@@ -94,7 +94,7 @@ def make_versions_table(ros_pkgs_table, repo_name_da_to_pkgs, das,
 
     i = len(ros_pkgs_table)
     for pkg_name in non_ros_pkg_names:
-        undebianized_pkg_name = buildfarm.rosdistro.undebianize_package_name(rosdistro, pkg_name)
+        undebianized_pkg_name = buildfarm.ros_distro.undebianize_package_name(rosdistro, pkg_name)
         table['name'][i] = undebianized_pkg_name
         table['version'][i] = ''
         table['wet'][i] = 'unknown'
@@ -140,7 +140,7 @@ def strip_version_suffix(version):
 
 def get_pkg_version(da_str, alt_da_str, repo_name_da_to_pkgs, repo_name,
                     name, rosdistro):
-    deb_name = buildfarm.rosdistro.debianize_package_name(rosdistro, name)
+    deb_name = buildfarm.ros_distro.debianize_package_name(rosdistro, name)
     if da_str.endswith('source'):
         # Get the source version from the corresponding binary package
         p = get_matching_pkg(repo_name_da_to_pkgs, deb_name,
@@ -208,7 +208,7 @@ def build_repo_cache(dir, ros_repo_name, ros_repo_url, distro, arch):
 
 
 def get_wet_names_versions(rosdistro):
-    rd = buildfarm.rosdistro.Rosdistro(rosdistro)
+    rd = buildfarm.ros_distro.Rosdistro(rosdistro)
     return sorted([(name, rd.get_version(name, full_version=True)) for name in rd.get_package_list()],
                   key=lambda (name, version): name)
 
