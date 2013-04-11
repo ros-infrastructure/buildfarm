@@ -7,7 +7,7 @@ import jenkins
 import pprint
 
 from buildfarm import jenkins_support, release_jobs
-from buildfarm.rosdistro import debianize_package_name
+from buildfarm.ros_distro import debianize_package_name
 
 
 def parse_options():

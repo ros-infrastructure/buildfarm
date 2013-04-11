@@ -8,11 +8,9 @@ import tempfile
 
 from buildfarm import jenkins_support, release_jobs
 
+from buildfarm.ros_distro import debianize_package_name
+
 import rospkg.distro
-
-from buildfarm.rosdistro import Rosdistro, debianize_package_name
-
-URL_PROTOTYPE = 'https://raw.github.com/ros/rosdistro/master/releases/%s.yaml'
 
 
 def parse_options():
@@ -20,16 +18,14 @@ def parse_options():
              description='Create a set of jenkins jobs '
              'for source debs and binary debs for a catkin package.')
     parser.add_argument('--fqdn', dest='fqdn',
-           help='The source repo to push to, fully qualified something...',
-           default='50.28.27.175')
+           help='The source repo to push to, fully qualified something. Default: taken from distro-build.yaml, for Fuerte: 50.28.27.175')
     parser.add_argument(dest='rosdistro',
            help='The ros distro. fuerte, groovy, hydro, ...')
     parser.add_argument('--distros', nargs='+',
            help='A list of debian distros. Default: %(default)s',
            default=[])
     parser.add_argument('--arches', nargs='+',
-           help='A list of debian architectures. Default: %(default)s',
-           default=['i386', 'amd64'])
+           help='A list of debian architectures. Default: taken from distro-build.yaml, for Fuerte: [amd64, i386]')
     parser.add_argument('--commit', dest='commit',
            help='Really?', action='store_true', default=False)
     parser.add_argument('--delete', dest='delete',
@@ -45,6 +41,13 @@ def parse_options():
     args = parser.parse_args()
     if args.repos and args.delete:
         parser.error('A set of repos to create can not be combined with the --delete option.')
+
+    if args.rosdistro == 'fuerte':
+        if args.fqdn is None:
+            args.fqdn = '50.28.27.175'
+        if args.arches is None:
+            args.arches = ['amd64', 'i386']
+
     return args
 
 
@@ -160,21 +163,25 @@ def doit(rd, distros, arches, fqdn, jobs_graph, rosdistro, packages, dry_maintai
 if __name__ == '__main__':
     args = parse_options()
 
-    repo = 'http://%s/repos/building' % args.fqdn
-
     print('Loading rosdistro %s' % args.rosdistro)
-
-    rd = Rosdistro(args.rosdistro)
 
     workspace = args.repo_workspace
     if not workspace:
         workspace = os.path.join(tempfile.gettempdir(), 'repo-workspace-%s' % args.rosdistro)
 
     if args.rosdistro != 'fuerte':
+        from buildfarm.ros_distro import Rosdistro
+        rd = Rosdistro(args.rosdistro)
         from buildfarm import dependency_walker
         packages = dependency_walker.get_packages(workspace, rd, skip_update=args.skip_update)
         dependencies = dependency_walker.get_jenkins_dependencies(args.rosdistro, packages)
+        if args.fqdn is None:
+            args.fqdn = rd._build_files[0].apt_target_repository
+        if args.arches is None:
+            args.arches = rd.get_arches()
     else:
+        from buildfarm.ros_distro_fuerte import Rosdistro
+        rd = Rosdistro(args.rosdistro)
         from buildfarm import dependency_walker_fuerte
         stacks = dependency_walker_fuerte.get_stacks(workspace, rd._repoinfo, args.rosdistro, skip_update=args.skip_update)
         dependencies = dependency_walker_fuerte.get_dependencies(args.rosdistro, stacks)
