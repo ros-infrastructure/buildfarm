@@ -4,39 +4,12 @@
 from __future__ import print_function
 
 import sys
-import yaml, urllib2
+import urllib2
+import yaml
+
+from ros_distro import debianize_package_name, RepoMetadata
 
 URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
-
-class RepoMetadata(object):
-    def __init__(self, name, url, version, packages = {}, status = None):
-        self.name = name
-        self.url = url
-        self.full_version = version
-        if version:
-            self.version = version.split('-')[0]
-        else:
-            self.version = None
-        self.status = status
-        self.packages = packages
-
-
-def sanitize_package_name(name):
-    return name.replace('_', '-')
-
-
-def debianize_package_name(rosdistro, name):
-    if rosdistro == 'backports':
-        return sanitize_package_name(name)
-    return sanitize_package_name("ros-%s-%s"%(rosdistro, name))
-
-
-def undebianize_package_name(rosdistro, name):
-    if rosdistro != 'backports':
-        prefix = 'ros-%s-' % rosdistro
-        assert(name.startswith(prefix))
-        name = name[len(prefix):]
-    return name.replace('-', '_')
 
 
 # todo raise not exit

@@ -9,7 +9,6 @@ import tempfile
 import time 
 import shutil
 
-from buildfarm import rosdistro
 
 def parse_options():
     import argparse
@@ -107,7 +106,11 @@ if __name__ == "__main__":
     args = parse_options()
     make_working(args.working)
 
-    rd = rosdistro.Rosdistro(args.rosdistro)
+    if args.rosdistro != 'fuerte':
+        from buildfarm.ros_distro import Rosdistro
+    else:
+        from buildfarm.ros_distro_fuerte import Rosdistro
+    rd = Rosdistro(args.rosdistro)
 
     package_version = rd.get_version(args.short_package_name, full_version=True)
     print ("package name", args.short_package_name, "version", package_version)

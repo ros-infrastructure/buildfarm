@@ -9,7 +9,7 @@ import shutil
 import tempfile
 import vcstools
 
-from rosdistro import sanitize_package_name, debianize_package_name
+from ros_distro import sanitize_package_name, debianize_package_name
 
 
 def get_stack_of_remote_repository(name, type_, url, workspace=None, version=None, skip_update=False):

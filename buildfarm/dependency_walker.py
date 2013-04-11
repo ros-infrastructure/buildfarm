@@ -1,6 +1,6 @@
 #!/bin/env python
 
-from rosdistro import debianize_package_name
+from ros_distro import debianize_package_name
 
 import os.path
 import copy
@@ -113,49 +113,14 @@ def _get_depends(packages, package, recursive=False, buildtime=False):
 
 def get_packages(workspace, rd_obj, skip_update=False):
     packages = {}
-
-    vcs_cache = VcsFileCache(workspace, skip_update=skip_update)
-
-    errors = []
-    urls_updated = set([])
     checkout_info = rd_obj.get_package_checkout_info()
     for pkg_name in sorted(checkout_info.keys()):
-        pkg_info = checkout_info[pkg_name]
-        url = pkg_info['url']
-        print("Get '%s' from '%s' from tag '%s'" % (pkg_name, url, pkg_info['full_version']))
-        url_updated_before = url in urls_updated
-        urls_updated.add(url)
-        vcs_cache._skip_update = skip_update or url_updated_before
+        pkg_string = rd_obj.get_package_xml(pkg_name)
         try:
-            try:
-                pkg_string = vcs_cache.get_file_contents('git',
-                                                         url,
-                                                         pkg_info['full_version'],
-                                                         'package.xml')
-            except VcsError as ex:
-                print("  trying tag '%s'" % pkg_info['version'])
-                pkg_string = vcs_cache.get_file_contents('git',
-                                                         url,
-                                                         pkg_info['version'],
-                                                         'package.xml')
-
-            try:
-                p = parse_package_string(pkg_string)
-                packages[p.name] = p
-            except InvalidPackage as ex:
-                print("package.xml for '%s' is invalid.  Error: %s" % (pkg_name, ex))
-                errors.append(pkg_name)
-        except VcsError as ex:
-            print("Failed to get package.xml for '%s'.  Error: %s" % (pkg_name, ex))
-            errors.append(pkg_name)
-
-        if not vcs_cache._skip_update:
-            print("Sleeping for github slowdown")
-            time.sleep(1)
-
-    if errors:
-        raise RuntimeError('Could not fetch stacks: %s' % ', '.join(errors))
-
+            p = parse_package_string(pkg_string)
+            packages[p.name] = p
+        except InvalidPackage as ex:
+            print("package.xml for '%s' is invalid.  Error: %s" % (pkg_name, ex))
     return packages
 
 
