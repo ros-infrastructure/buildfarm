@@ -3,7 +3,7 @@
   <actions/>
   <description>Reconfigure doc jobs for Fuerte.&#xd;
 &#xd;
-Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
+Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator>
     <daysToKeep>180</daysToKeep>
     <numToKeep>30</numToKeep>

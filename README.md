@@ -1,7 +1,7 @@
 server.yaml
 ===========
 
-To use this it will look for server.yaml in $ROS_HOME/catkin-debs for credentials.  Put your Jenkins login in this file.
+To use this it will look for server.yaml in $ROS_HOME/buildfarm for credentials.  Put your Jenkins login in this file.
 
  * url: http://jenkins.willowgarage.com:8080
  * username: USERNAME

@@ -34,28 +34,28 @@ else
 fi
 
 
-if [ -e $WORKSPACE/catkin-debs ]
+if [ -e $WORKSPACE/buildfarm ]
 then
-  rm -rf $WORKSPACE/catkin-debs
+  rm -rf $WORKSPACE/buildfarm
 fi
 
-git clone git://github.com/willowgarage/catkin-debs.git $WORKSPACE/catkin-debs -b master --depth 1
+git clone git://github.com/ros-infrastructure/buildfarm.git $WORKSPACE/buildfarm -b master --depth 1
 
 
-cd $WORKSPACE/catkin-debs
+cd $WORKSPACE/buildfarm
 . setup.sh
 
 #setup the cross platform apt environment
 # using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary. 
 # And you can't chown it even with sudo and recursive 
-sudo PYTHONPATH=$PYTHONPATH $WORKSPACE/catkin-debs/scripts/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE --mirror $mirror --repo "ros@@$APT_TARGET_REPOSITORY"
+sudo PYTHONPATH=$PYTHONPATH $WORKSPACE/buildfarm/scripts/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE --mirror $mirror --repo "ros@@$APT_TARGET_REPOSITORY"
 
 # update apt update
 sudo apt-get update -c $aptconffile -o Apt::Architecture=$arch @(ARCH == 'armel' ? "-o Apt::Architectures::=armel") @(ARCH == 'armhf' ? "-o Apt::Architectures::=armhf")
 
 # check precondition that all dependents exist, don't check if no dependencies
 @[if DEPENDENTS]
-sudo $WORKSPACE/catkin-debs/scripts/assert_package_dependencies_present.py $rootdir $aptconffile  $PACKAGE
+sudo $WORKSPACE/buildfarm/scripts/assert_package_dependencies_present.py $rootdir $aptconffile  $PACKAGE
 @[end if]
 
 sudo rm -rf $output_dir
@@ -130,4 +130,4 @@ ssh rosbuild@@$ROS_REPO_FQDN -- PYTHONPATH=/home/rosbuild/reprepro_updater/src p
 sudo apt-get update -c $aptconffile -o Apt::Architecture=$arch @(ARCH == 'armel' ? "-o Apt::Architectures::=armel") @(ARCH == 'armhf' ? "-o Apt::Architectures::=armhf")
 
 # check that the uploaded successfully
-sudo $WORKSPACE/catkin-debs/scripts/assert_package_present.py $rootdir $aptconffile  $PACKAGE
+sudo $WORKSPACE/buildfarm/scripts/assert_package_present.py $rootdir $aptconffile  $PACKAGE

@@ -3,7 +3,7 @@
   <actions/>
   <description>Trigger sourcedeb jobs with missing Debian packages for Groovy.&#xd;
 &#xd;
-Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
+Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator>
     <daysToKeep>180</daysToKeep>
     <numToKeep>100</numToKeep>
@@ -22,7 +22,7 @@ Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in 
       <hudson.plugins.git.UserRemoteConfig>
         <name/>
         <refspec/>
-        <url>https://github.com/willowgarage/catkin-debs.git</url>
+        <url>https://github.com/ros-infrastructure/buildfarm.git</url>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>

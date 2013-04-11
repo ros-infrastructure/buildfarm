@@ -4,7 +4,7 @@
   <description>Delete subdirectories on each connected slave which is not associated with an active job.&#xd;
 See this thread for more info: http://jenkins.361315.n4.nabble.com/Workspace-cleanup-after-job-removal-td4628469.html&#xd;
 &#xd;
-Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
+Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.queueSorter.PrioritySorterJobProperty plugin="PrioritySorter@1.3">

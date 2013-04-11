@@ -3,7 +3,7 @@
   <actions/>
   <description>Generate status page for Fuerte.&#xd;
 &#xd;
-Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
+Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator>
     <daysToKeep>180</daysToKeep>
     <numToKeep>100</numToKeep>
@@ -35,11 +35,11 @@ Generated from catkin-debs/resources/static_jobs. Do not edit on Jenkins but in 
 #stop on error
 set -o errexit
 
-rm -rf catkin-debs
-git clone git://github.com/willowgarage/catkin-debs.git -b master
+rm -rf buildfarm
+git clone git://github.com/ros-infrastructure/buildfarm.git -b master
 
-export PYTHONPATH=$WORKSPACE/catkin-debs
-$WORKSPACE/catkin-debs/scripts/generate_status_page.py fuerte --basedir $WORKSPACE/fuerte_apt_cache
+export PYTHONPATH=$WORKSPACE/buildfarm
+$WORKSPACE/buildfarm/scripts/generate_status_page.py fuerte --basedir $WORKSPACE/fuerte_apt_cache
 
 scp -o StrictHostKeyChecking=no $WORKSPACE/fuerte_apt_cache/fuerte.* wgs32:/var/www/www.ros.org/html/debbuild/</command>
     </hudson.tasks.Shell>

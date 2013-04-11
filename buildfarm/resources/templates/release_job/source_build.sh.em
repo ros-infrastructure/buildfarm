@@ -7,16 +7,16 @@ SHORT_PACKAGE_NAME=@(SHORT_PACKAGE_NAME)
 
 sudo apt-get install -y git-buildpackage dput debhelper
 
-if [ -e $WORKSPACE/catkin-debs ]
+if [ -e $WORKSPACE/buildfarm ]
 then
-  rm -rf $WORKSPACE/catkin-debs
+  rm -rf $WORKSPACE/buildfarm
 fi
 
-git clone git://github.com/willowgarage/catkin-debs.git $WORKSPACE/catkin-debs -b master --depth 1
+git clone git://github.com/ros-infrastructure/buildfarm.git $WORKSPACE/buildfarm -b master --depth 1
 
 
 
-cd $WORKSPACE/catkin-debs 
+cd $WORKSPACE/buildfarm 
 . setup.sh
 
 
@@ -24,4 +24,4 @@ cd $WORKSPACE/catkin-debs
 rm -rf $WORKSPACE/output
 rm -rf $WORKSPACE/workspace
 
-$WORKSPACE/catkin-debs/scripts/generate_sourcedeb $RELEASE_URI $PACKAGE $ROSDISTRO $SHORT_PACKAGE_NAME --working $WORKSPACE/workspace --output $WORKSPACE/output --repo-fqdn $FQDN 
+$WORKSPACE/buildfarm/scripts/generate_sourcedeb $RELEASE_URI $PACKAGE $ROSDISTRO $SHORT_PACKAGE_NAME --working $WORKSPACE/workspace --output $WORKSPACE/output --repo-fqdn $FQDN 

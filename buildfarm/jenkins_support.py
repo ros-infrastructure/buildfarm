@@ -60,7 +60,7 @@ def JenkinsConfig_to_handle(server_config):
 
 def get_default_catkin_debs_config():
     import rospkg.environment
-    return os.path.join(rospkg.environment.get_ros_home(), 'catkin-debs', 'server.yaml')
+    return os.path.join(rospkg.environment.get_ros_home(), 'buildfarm', 'server.yaml')
 
     
 def load_server_config_file(server_config_file):
