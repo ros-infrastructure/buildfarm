@@ -63,13 +63,12 @@ if __name__ == '__main__':
     else:
         distro_arches = get_distro_arches(args.arches, args.rosdistro)
 
-    version_cache = build_version_cache(args.basedir, args.rosdistro,
-                                        distro_arches, ros_repos,
-                                        update=not args.skip_fetch)
-
     csv_file = os.path.join(args.basedir, '%s.csv' % args.rosdistro)
     if not args.skip_csv:
         print('Generating .csv file...')
+        version_cache = build_version_cache(args.basedir, args.rosdistro,
+                                            distro_arches, ros_repos,
+                                            update=not args.skip_fetch)
         render_csv(version_cache, args.basedir, csv_file, args.rosdistro,
                    distro_arches, ros_repos)
     elif not os.path.exists(csv_file):
