@@ -65,10 +65,11 @@ if __name__ == '__main__':
 
     csv_file = os.path.join(args.basedir, '%s.csv' % args.rosdistro)
     if not args.skip_csv:
-        print('Generating .csv file...')
+        print('Assembling apt version cache')
         version_cache = build_version_cache(args.basedir, args.rosdistro,
                                             distro_arches, ros_repos,
                                             update=not args.skip_fetch)
+        print('Generating .csv file...')
         render_csv(version_cache, args.basedir, csv_file, args.rosdistro,
                    distro_arches, ros_repos)
     elif not os.path.exists(csv_file):
