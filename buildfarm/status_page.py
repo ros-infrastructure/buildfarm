@@ -51,6 +51,7 @@ class VersionCache(object):
         self._cache = {}
         self._rosdistro = rosdistro
         self._bootstrap_from_rosdistro(rosdistro)
+        self._primary_arch = None  # fill with the first used arch
 
     def add(self, name, repo, distro_arch, version_string):
         if name not in self._cache:
@@ -96,11 +97,15 @@ class VersionCache(object):
             name = variant.keys()[0]
             self.add(name, 'rosdistro', 'variant', '1.0.0')
 
-    def fill_debian_versions(self, rootdir, repo, distro_arch):
+    def fill_debian_versions(self, rootdir, repo, distro, arch):
         """
         Call this after populating the rosdistro names, and it will
         try to fill in the debian versions.
         """
+        distro_arch = "%s_%s" % (distro, arch)
+        if not self._primary_arch:
+            self._primary_arch = arch
+
         logging.debug("building Cache")
         aptcache = get_apt_cache(get_repo_cache_dir_name(rootdir,
                                                          repo,
@@ -112,8 +117,10 @@ class VersionCache(object):
                 version_obj = getattr(apt_p, 'candidate', None)
                 version = getattr(version_obj, 'version', None)
                 self.add(p._name, repo, distro_arch, version)
-                self.add(p._name, repo, distro_arch + "_source",
-                         detect_source_version(version_obj))
+                # only detect source for one arch
+                if self._primary_arch == arch:
+                    self.add(p._name, repo, distro + "_source",
+                             detect_source_version(version_obj))
 
     def get_distro_versions(self):
         """
@@ -158,8 +165,9 @@ def get_ros_repo_names(ros_repos):
 
 
 def get_da_strs(distro_arches):
+    distros = set([d for d, a in distro_arches])
     return [get_dist_arch_str(d, a) for d, a in distro_arches] +\
-        [get_dist_arch_str(d, a) + '_source' for d, a in distro_arches]
+        [d + '_source' for d in distros]
 
 
 def get_distro_arches(arches, rosdistro):
@@ -305,7 +313,7 @@ def build_version_cache(rootdir, rosdistro, distro_arches,
                              ros_repos[repo],
                              d, a, update)
             logging.debug("Filling debian version for %s %s", repo, da_str)
-            version_cache.fill_debian_versions(rootdir, repo, da_str)
+            version_cache.fill_debian_versions(rootdir, repo, d, a)
 
     return version_cache
 
