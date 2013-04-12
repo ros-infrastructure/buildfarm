@@ -313,7 +313,7 @@ def build_version_cache(rootdir, rosdistro, distro_arches,
         for (d, a) in distro_arches:
             da_str = "%s_%s" % (d, a)
             build_repo_cache(get_repo_cache_dir_name(rootdir,
-                                                     d, a),
+                                                     repo, da_str),
                              repo,
                              ros_repos[repo],
                              d, a, update)
