@@ -37,6 +37,7 @@ from rosdep2.catkin_support import get_catkin_view, get_installer, resolve_for_o
 from rosdep2.platforms.debian import APT_INSTALLER
 #NOTE: this code is very similar to code in catkin-generate-distribution and rosrelease
 
+
 def resolve_rosdeps(rosdep_keys, rosdistro_name, os_name, os_platform):
     """
     :raises: :exc:`rosdep2.catkin_support.ValidationFailed`

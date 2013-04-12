@@ -3,7 +3,6 @@
 from __future__ import print_function
 import argparse
 import os
-import sys
 import tempfile
 
 from buildfarm import jenkins_support, release_jobs
@@ -63,7 +62,7 @@ def doit(rd, distros, arches, fqdn, jobs_graph, rosdistro, packages, dry_maintai
     else:
         default_distros = rd.get_target_distros()
 
-    # TODO: pull raches from rosdistro
+    # TODO: pull arches from rosdistro
     target_arches = arches
 
     # We take the intersection of repo-specific targets with default

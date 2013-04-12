@@ -36,7 +36,9 @@ import yaml
 
 # TODO Push this up to python-jenkins
 
-class InvalidJenkinsConfig(Exception): pass
+
+class InvalidJenkinsConfig(Exception):
+    pass
 
 
 class JenkinsConfig(object):
@@ -48,11 +50,12 @@ class JenkinsConfig(object):
         self.url = url
         self.username = username
         self.password = password
-        
+
         if username is None:
             raise InvalidJenkinsConfig("no jenkins username configured; cannot create CI jobs")
         if password is None:
             raise InvalidJenkinsConfig("no jenkins password configured; cannot create CI jobs")
+
 
 def JenkinsConfig_to_handle(server_config):
     return jenkins.Jenkins(server_config.url, server_config.username, server_config.password)
@@ -62,19 +65,19 @@ def get_default_catkin_debs_config():
     import rospkg.environment
     return os.path.join(rospkg.environment.get_ros_home(), 'buildfarm', 'server.yaml')
 
-    
+
 def load_server_config_file(server_config_file):
     """
     :raises: :exc:`InvalidJenkinsConfig`
     :returns: :class:`JenkinsConfig` instance
     """
-    #TODO: typed exception
+    # TODO: typed exception
     if not os.path.isfile(server_config_file):
-        raise RuntimeError("server config file [%s] does not exist"%(server_config_file))
+        raise RuntimeError("server config file [%s] does not exist" % server_config_file)
 
     with open(server_config_file) as f:
         server = yaml.load(f.read())
     server_keys = server.keys()
     if not ('url' in server_keys and 'username' in server_keys and 'password' in server_keys):
-        raise InvalidJenkinsConfig("Server config file does not contains 'url', 'username' and 'password'  all of which are required. %s"%server_config_file)
+        raise InvalidJenkinsConfig("Server config file does not contains 'url', 'username' and 'password'  all of which are required. %s" % server_config_file)
     return JenkinsConfig(server['url'], server['username'], server['password'])

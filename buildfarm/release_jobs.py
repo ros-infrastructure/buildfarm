@@ -67,7 +67,6 @@ def compute_missing(distros, arches, fqdn, rosdistro, sourcedeb_only=False):
             print("Skipping package %s with no version" % short_package_name)
             continue
 
-
         missing[short_package_name] = []
         for d in target_distros:
             if not repo.deb_in_repo(repo_url, deb_name, str(expected_version) + d, d, arch='na', source=True):
@@ -106,7 +105,7 @@ def compute_missing(distros, arches, fqdn, rosdistro, sourcedeb_only=False):
 def check_for_circular_dependencies(dependencies):
     deps = dict()
     for k, v in dependencies.iteritems():
-      deps[k] = set(v)
+        deps[k] = set(v)
     try:
         _remove_leafs_recursively(deps)
     except RuntimeError:

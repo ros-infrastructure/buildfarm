@@ -5,7 +5,6 @@ from ros_distro import debianize_package_name
 import os.path
 import copy
 import shutil
-import time
 import logging
 import sys
 

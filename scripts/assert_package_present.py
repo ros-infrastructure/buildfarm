@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 
 import apt
-import os
 import argparse
 import sys
-import subprocess
-import shutil
-import tempfile
-import yaml
+
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Return 0 if all packages are found in the repository, else print missing packages and return 1.")
@@ -28,13 +24,12 @@ if __name__ == "__main__":
     if args.update:
         c.update()
 
-    c.open() # required to recall open after updating or you will query the old data
-
+    c.open()  # required to recall open after updating or you will query the old data
 
     for p in args.packages:
         failure = False
-        if not c.has_key(p):
-            print "Package %s missing in repo." %p
+        if p not in c:
+            print "Package %s missing in repo." % p
             failure = True
 
     if failure:

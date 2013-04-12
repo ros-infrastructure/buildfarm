@@ -39,16 +39,20 @@ Utilities for reading state from a debian repo
 import urllib
 import urllib2
 import re
-import os 
+import os
 import tempfile
 import shutil
 import gzip
 
 #from .core import debianize_name
 
-class BadRepo(Exception): pass
+
+class BadRepo(Exception):
+    pass
 
 _Packages_cache = {}
+
+
 def get_Packages(repo_url, os_platform, arch, cache=None):
     """
     Retrieve the package list from the shadow repo. This routine
@@ -64,18 +68,19 @@ def get_Packages(repo_url, os_platform, arch, cache=None):
     # without potentially breaking a lot. Using an if statement to get
     # it to work.
     if 'packages.ros.org/ros' in repo_url or 'shadow' in repo_url:
-        packages_url = repo_url + '/ubuntu/dists/%(os_platform)s/main/binary-%(arch)s/Packages'%locals()
+        packages_url = repo_url + '/ubuntu/dists/%(os_platform)s/main/binary-%(arch)s/Packages' % locals()
     else:
-        packages_url = repo_url + '/dists/%(os_platform)s/main/binary-%(arch)s/Packages'%locals()
+        packages_url = repo_url + '/dists/%(os_platform)s/main/binary-%(arch)s/Packages' % locals()
     if packages_url in cache:
         return cache[packages_url]
     else:
         try:
             cache[packages_url] = retval = urllib2.urlopen(packages_url).read()
         except urllib2.HTTPError:
-            raise BadRepo("[%s]: %s"%(repo_url, packages_url))
+            raise BadRepo("[%s]: %s" % (repo_url, packages_url))
     return retval
-    
+
+
 def get_source_Packages(repo_url, os_platform, cache=None):
     """
     Retrieve the package list from the shadow repo. This routine
@@ -91,19 +96,19 @@ def get_source_Packages(repo_url, os_platform, cache=None):
     # without potentially breaking a lot. Using an if statement to get
     # it to work.
     if 'packages.ros.org/ros' in repo_url or 'shadow' in repo_url:
-        packages_url = repo_url + '/ubuntu/dists/%(os_platform)s/main/source/Sources.gz'%locals()
+        packages_url = repo_url + '/ubuntu/dists/%(os_platform)s/main/source/Sources.gz' % locals()
     else:
-        packages_url = repo_url + '/dists/%(os_platform)s/main/source/Sources.gz'%locals()
+        packages_url = repo_url + '/dists/%(os_platform)s/main/source/Sources.gz' % locals()
     if packages_url in cache:
         return cache[packages_url]
     else:
         d = tempfile.mkdtemp()
         try:
             tar_f = urllib.urlretrieve(packages_url, os.path.join(d, 'Source.gz'))
-            tar_h = gzip.open(tar_f[0],'r:gz')
+            tar_h = gzip.open(tar_f[0], 'r:gz')
             cache[packages_url] = retval = tar_h.read()
         except urllib2.HTTPError:
-            raise BadRepo("[%s]: %s"%(repo_url, packages_url))
+            raise BadRepo("[%s]: %s" % (repo_url, packages_url))
         finally:
             if os.path.isdir(d):
                 shutil.rmtree(d)
@@ -131,7 +136,8 @@ def parse_Packages(packagelist):
             package_deps.append((package, version, deps, distro))
             package = version = deps = distro = None
     return package_deps
-    
+
+
 def load_Packages(repo_url, os_platform, arch, cache=None, source=False):
     """
     Download and parse debian Packages list into (package, version, depends) tuples
@@ -140,12 +146,13 @@ def load_Packages(repo_url, os_platform, arch, cache=None, source=False):
         return parse_Packages(get_source_Packages(repo_url, os_platform, cache))
     return parse_Packages(get_Packages(repo_url, os_platform, arch, cache))
 
+
 def get_repo_version(repo_url, distro, os_platform, arch, source=False):
     """
     Return the greatest build-stamp for any deb in the repository
     """
     packagelist = load_Packages(repo_url, os_platform, arch, source)
-    return max(['0'] + [x[1][x[1].find('-')+1:x[1].find('~')] for x in packagelist if x[3] == distro.release_name])
+    return max(['0'] + [x[1][x[1].find('-') + 1:x[1].find('~')] for x in packagelist if x[3] == distro.release_name])
 
 
 def count_packages(repo_url, rosdistro, os_platform, arch, cache=None):
@@ -153,34 +160,35 @@ def count_packages(repo_url, rosdistro, os_platform, arch, cache=None):
     M = re.findall('^Package: ros-%s-.*$' % (rosdistro), packagelist, re.MULTILINE)
     return len(M)
 
+
 def deb_in_repo(repo_url, deb_name, deb_version, os_platform, arch, use_regex=True, cache=None, source=False):
     """
     @param cache: dictionary to store Packages list for caching
     """
     if source:
         packagelist = get_source_Packages(repo_url, os_platform, cache)
-        search_string = '^Package: %s\nFormat: .*\nBinary: .*\nArchitecture: .*\nVersion: %s'%(deb_name, deb_version)
+        search_string = '^Package: %s\nFormat: .*\nBinary: .*\nArchitecture: .*\nVersion: %s' % (deb_name, deb_version)
         M = re.search(search_string, packagelist, re.MULTILINE)
         return M is not None
     else:
         packagelist = get_Packages(repo_url, os_platform, arch, cache)
     if not use_regex:
-        s = 'Package: %s\nVersion: %s'%(deb_name, deb_version)
+        s = 'Package: %s\nVersion: %s' % (deb_name, deb_version)
         return s in packagelist
     else:
-        M = re.search('^Package: %s\nVersion: %s$'%(deb_name, deb_version), packagelist, re.MULTILINE)
+        M = re.search('^Package: %s\nVersion: %s$' % (deb_name, deb_version), packagelist, re.MULTILINE)
         return M is not None
+
 
 def get_depends(repo_url, deb_name, os_platform, arch):
     """
     Get all debian package dependencies by scraping the Packages
-    list. We mainly use this for invalidation logic. 
+    list. We mainly use this for invalidation logic.
     """
     # There is probably something much simpler we could do, but this
     # more robust to any bad state we may have caused to the shadow
     # repo.
     package_deps = load_Packages(repo_url, os_platform, arch)
-    done = False
     queue = [deb_name]
     depends = set()
     # This is not particularly efficient, but it does not need to
@@ -188,12 +196,12 @@ def get_depends(repo_url, deb_name, os_platform, arch):
     # package, then find all the packages that depends on those,
     # etc...
     while queue:
-        next  = queue[0]
+        next_ = queue[0]
         queue = queue[1:]
         for package, _, deps, _ in package_deps:
             #strip of version specifications from deps
             deps = [d.split()[0] for d in deps]
-            if package not in depends and next in deps:
+            if package not in depends and next_ in deps:
                 queue.append(package)
                 depends.add(package)
     return list(depends)
@@ -208,4 +216,3 @@ def get_depends(repo_url, deb_name, os_platform, arch):
 #        return match[0].split('-')[0]
 #    else:
 #        return None
-

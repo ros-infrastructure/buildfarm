@@ -9,6 +9,7 @@ import shutil
 import tempfile
 import yaml
 
+
 def parse_options():
     parser = argparse.ArgumentParser(description="Return 0 if all packages are found in the repository, else print missing packages and return 1.")
     parser.add_argument(dest="rootdir",
@@ -31,25 +32,23 @@ if __name__ == "__main__":
     if args.update:
         c.update()
 
-    c.open() # required to recall open after updating or you will query the old data
-
+    c.open()  # required to recall open after updating or you will query the old data
 
     missing = []
     for p in args.packages:
         tdir = tempfile.mkdtemp()
         try:
-            cmd = 'apt-get source %s -c %s'%(p, args.aptconffile)
+            cmd = 'apt-get source %s -c %s' % (p, args.aptconffile)
             subprocess.check_call(cmd.split(), cwd=tdir)
-            dir_list =  os.listdir(tdir)
+            dir_list = os.listdir(tdir)
             dsc_file = None
             for entry in dir_list:
                 if '.dsc' in entry:
                     dsc_file = os.path.join(tdir, entry)
-                pass
 
             if not dsc_file:
                 missing.append(p)
-                print "No DSC file fetched for package %p"%p
+                print "No DSC file fetched for package %s" % p
 
             with open(dsc_file, 'r') as dsc:
                 y = yaml.load(dsc.read())
@@ -57,19 +56,18 @@ if __name__ == "__main__":
 
                 for dep in [dep.strip() for dep in build_depends]:
                     dep_name_only = dep.split()[0]
-                    if not c.has_key(dep_name_only):
-                        print "package %s does not have dependency [%s]"%(p, dep_name_only)
+                    if dep_name_only not in c:
+                        print "package %s does not have dependency [%s]" % (p, dep_name_only)
                         missing.append(dep_name_only)
 
-        except Exception, ex:
-            print "Exception processing package %s: %s"%(p, ex)
+        except Exception as ex:
+            print "Exception processing package %s: %s" % (p, ex)
             missing.append(p)
         finally:
             shutil.rmtree(tdir)
 
-
     if missing:
-        print "Dependencies not satisfied for packages: %s"%missing
+        print "Dependencies not satisfied for packages: %s" % missing
         sys.exit(1)
     else:
         sys.exit(0)

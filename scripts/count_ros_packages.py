@@ -4,6 +4,7 @@ import argparse
 import buildfarm.repo
 import sys
 
+
 def parse_options():
     parser = argparse.ArgumentParser(description="List all packages available in the repos for each arch.  Filter on substring if provided")
     parser.add_argument("rosdistro",
@@ -20,14 +21,11 @@ def parse_options():
 
     args = parser.parse_args()
 
-
     return args
 
 
 if __name__ == "__main__":
     args = parse_options()
-
-
 
     count = buildfarm.repo.count_packages(args.repo_url, args.rosdistro, args.distro, args.arch)
     print "Found %d packages matching: %s" % (count, args)
