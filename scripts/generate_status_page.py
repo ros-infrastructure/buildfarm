@@ -79,9 +79,9 @@ if __name__ == '__main__':
 
     def metadata_builder(column_data):
         build_argstring = column_data.split('_')
-        is_source = len(build_argstring) == 3
         distro = build_argstring[0]
         arch = build_argstring[1]
+        is_source = arch == 'source'
         data = {
             'rosdistro': args.rosdistro,
             'rosdistro_short': args.rosdistro[0].upper(),
@@ -92,10 +92,11 @@ if __name__ == '__main__':
         data['arch_short'] = {'amd64': '64',
                               'i386': '32',
                               'armel': 'armel',
-                              'armhf': 'armhf'}[arch]
+                              'armhf': 'armhf',
+                              'source': 'src'}[arch]
 
         if is_source:
-            column_label = '{rosdistro_short}src{distro_short}{arch_short}'
+            column_label = '{rosdistro_short}src{distro_short}'
             view_name = '{rosdistro_short}src'
         else:
             column_label = '{rosdistro_short}bin{distro_short}{arch_short}'
@@ -126,6 +127,6 @@ if __name__ == '__main__':
     if not os.path.exists(dst):
         src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
                            'resources', 'jquery')
-        os.symlink(src, dst)
+        os.symlink(os.abspath(src), dst)
 
     print('Generated .html file "%s"' % html_file)

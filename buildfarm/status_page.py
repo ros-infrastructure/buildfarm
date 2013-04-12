@@ -165,9 +165,14 @@ def get_ros_repo_names(ros_repos):
 
 
 def get_da_strs(distro_arches):
-    distros = set([d for d, a in distro_arches])
-    return [get_dist_arch_str(d, a) for d, a in distro_arches] +\
-        [d + '_source' for d in distros]
+    distros = set()
+    output = []
+    for d, a in distro_arches:
+        if d not in distros:
+            output.append(d + '_source')
+            distros.add(d)
+        output.append(get_dist_arch_str(d, a))
+    return output
 
 
 def get_distro_arches(arches, rosdistro):
@@ -579,7 +584,7 @@ def make_html_head(rosdistro, start_time):
             "aoColumns": [
                 { type: "text" },
                 { type: "text" },
-                { type: "select",  values: ['wet', 'dry', 'unknown'] },
+                { type: "select",  values: ['wet', 'dry', 'variant', 'unknown'] },
                 { type: "text" },
                 { type: "text" },
                 { type: "text" },
