@@ -579,7 +579,7 @@ def make_html_head(rosdistro, start_time):
             "aoColumns": [
                 { type: "text" },
                 { type: "text" },
-                { type: "select",  values: ['wet', 'dry', 'unknown'] },
+                { type: "select",  values: ['wet', 'dry', 'variant', 'unknown'] },
                 { type: "text" },
                 { type: "text" },
                 { type: "text" },
