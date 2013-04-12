@@ -165,9 +165,14 @@ def get_ros_repo_names(ros_repos):
 
 
 def get_da_strs(distro_arches):
-    distros = set([d for d, a in distro_arches])
-    return [d + '_source' for d in distros] +\
-        [get_dist_arch_str(d, a) for d, a in distro_arches]
+    distros = set()
+    output = []
+    for d, a in distro_arches:
+        if d not in distros:
+            output.append(d + '_source')
+            distros.add(d)
+        output.append(get_dist_arch_str(d, a))
+    return output
 
 
 def get_distro_arches(arches, rosdistro):
