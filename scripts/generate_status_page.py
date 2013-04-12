@@ -67,7 +67,6 @@ if __name__ == '__main__':
                                         distro_arches, ros_repos,
                                         update=not args.skip_fetch)
 
-
     csv_file = os.path.join(args.basedir, '%s.csv' % args.rosdistro)
     if not args.skip_csv:
         print('Generating .csv file...')

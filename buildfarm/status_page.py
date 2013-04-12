@@ -79,7 +79,7 @@ class VersionCache(object):
             from buildfarm.ros_distro import Rosdistro
         rd = Rosdistro(rosdistro)
         for name in rd.get_package_list():
-            self.add(name, 'rosdistro', 'wet', 
+            self.add(name, 'rosdistro', 'wet',
                      rd.get_version(name, full_version=True))
         if rosdistro not in ['fuerte', 'groovy', 'hydro', 'indigo']:
             return
@@ -105,7 +105,7 @@ class VersionCache(object):
         aptcache = get_apt_cache(get_repo_cache_dir_name(rootdir,
                                                          repo,
                                                          distro_arch))
-        logging.debug("iterating cache length %s" % len(self._cache))
+        logging.debug("iterating cache length %d" % len(self._cache))
         for p in self._cache.values():
             if p.debian_name in aptcache:
                 apt_p = aptcache[p.debian_name]
@@ -272,19 +272,20 @@ def get_repo_cache_dir_name(rootdir, ros_repo_name, dist_arch):
     return os.path.join(rootdir, ros_repo_name, dist_arch)
 
 
-def build_repo_cache(dir, ros_repo_name, ros_repo_url,
+def build_repo_cache(dir_, ros_repo_name, ros_repo_url,
                      distro, arch, update=True):
-    logging.debug('Setting up an apt directory at %s', dir)
+    logging.debug('Setting up an apt directory at %s', dir_)
     repo_dict = {ros_repo_name: ros_repo_url}
-    buildfarm.apt_root.setup_apt_rootdir(dir, distro, arch,
+    buildfarm.apt_root.setup_apt_rootdir(dir_, distro, arch,
                                          additional_repos=repo_dict)
     logging.info('Getting a list of packages for %s-%s', distro, arch)
-    cache = apt.Cache(rootdir=dir)
+    cache = apt.Cache(rootdir=dir_)
     cache.open()
     if update:
         cache.update()
         # Have to open the cache again after updating.
         cache.open()
+
 
 def get_pkgs_from_apt_cache(cache_dir, substring):
     cache = apt.Cache(rootdir=cache_dir)
@@ -303,7 +304,7 @@ def build_version_cache(rootdir, rosdistro, distro_arches,
                              repo,
                              ros_repos[repo],
                              d, a, update)
-            logging.debug("Filling debian version for %s %s" % (repo, da_str))
+            logging.debug("Filling debian version for %s %s", repo, da_str)
             version_cache.fill_debian_versions(rootdir, repo, da_str)
 
     return version_cache
