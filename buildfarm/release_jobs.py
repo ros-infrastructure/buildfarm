@@ -18,7 +18,7 @@ import yaml
 import datetime
 from rospkg.distro import load_distro, distro_uri
 
-from ros_distro import debianize_package_name, Rosdistro
+from ros_distro import debianize_package_name
 
 from . import repo, jenkins_support
 
@@ -45,6 +45,10 @@ def compute_missing(distros, arches, fqdn, rosdistro, sourcedeb_only=False):
 
     repo_url = 'http://%s/repos/building' % fqdn
 
+    if rosdistro != 'fuerte':
+        from ros_distro import Rosdistro
+    else:
+        from ros_distro_fuerte import Rosdistro
     rd = Rosdistro(rosdistro)
     # We take the intersection of repo-specific targets with default
     # targets.
