@@ -417,11 +417,14 @@ def format_row(row, metadata_columns):
         metadata = [None for _ in range(len(metadata))]
     job_urls = [md['job_url'].format(pkg=row[0].replace('_', '-')) \
                     if md else None for md in metadata]
-
+    # Flag if this is dry or a variant so as not to show sourcedebs as red
+    no_source = row[2] in ['variant', 'dry']
+    # only pass no_source if this is a sourcedeb entry
     row = row[:3] + [format_versions_cell(row[i],
                                           latest_version,
                                           job_urls[i],
-                                          public_changing_on_sync[i]) \
+                                          public_changing_on_sync[i],
+                                          no_source and i % 3 == 0) \
                          for i in range(3, len(row))]
     if has_diff_between_rosdistros:
         row[0] += ' <span class="hiddentext">diff</span>'
@@ -439,10 +442,14 @@ def get_cell_versions(cell):
 
 
 def format_versions_cell(cell, latest_version, url=None,
-                         public_changing_on_sync=False):
+                         public_changing_on_sync=False,
+                         no_source=False):
     versions = get_cell_versions(cell)
     repos = ['building', 'shadow-fixed', 'ros/public']
     search_suffixes = ['1', '2', '3']
+    # set the latest_version to None if no package expected
+    if no_source:
+        latest_version = None
     cell = ''.join([format_version(v,
                                    latest_version,
                                    r,
