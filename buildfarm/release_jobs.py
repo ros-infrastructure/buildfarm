@@ -270,7 +270,7 @@ def create_dry_binarydeb_config(d):
 def create_sync_binarydeb_config(d):
     d['COMMAND'] = escape(expand(Templates.command_sync_binarydeb, d))
     d['TIMESTAMP'] = datetime.datetime.now()
-    return expand(Templates.config_dry_binarydeb, d)
+    return expand(Templates.config_sync_binarydeb, d)
 
 
 def binarydeb_job_name(packagename, distro, arch):
