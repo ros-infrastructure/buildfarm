@@ -406,22 +406,28 @@ def format_row(row, metadata_columns):
     latest_version = row[1]
     public_changing_on_sync = [False] * 3 + \
         [is_public_changing_on_sync(c) for c in row[3:]]
-    # as long as the status page is generated on lucid it does not
-    # handle source repos correctly which therefore need to be skipped
-    row_without_sources = [c for i, c in enumerate(row) if i > 2 and i % 3]
-    has_diff_between_rosdistros = len(set(row_without_sources)) > 1
+    # Flag if this is dry or a variant so as not to show sourcedebs as red
+    no_source = row[2] in ['variant', 'dry']
+    # ignore source columns for dry/variant when deciding of columns are homogeneous
+    diff_columns = [c for i, c in enumerate(row) if i > 2 and (not no_source or i % 3)]
+    has_diff_between_rosdistros = len(set(diff_columns)) > 1
 
     # urls for each building repository column
     metadata = [None] * 3 + [md for md in metadata_columns[3:]]
-    if row[2] == 'variant':
+    if row[2] == 'dry':
+        # disable links for dry source columns
+        metadata = [(c if i < 3 or i % 3 else None) for i, c in enumerate(metadata)]
+    elif row[2] in ['unknown', 'variant']:
+        # disable all links for unknown and variant rows
         metadata = [None for _ in range(len(metadata))]
     job_urls = [md['job_url'].format(pkg=row[0].replace('_', '-')) \
                     if md else None for md in metadata]
-
+    # only pass no_source if this is a sourcedeb entry
     row = row[:3] + [format_versions_cell(row[i],
                                           latest_version,
                                           job_urls[i],
-                                          public_changing_on_sync[i]) \
+                                          public_changing_on_sync[i],
+                                          no_source and i % 3 == 0) \
                          for i in range(3, len(row))]
     if has_diff_between_rosdistros:
         row[0] += ' <span class="hiddentext">diff</span>'
@@ -439,10 +445,14 @@ def get_cell_versions(cell):
 
 
 def format_versions_cell(cell, latest_version, url=None,
-                         public_changing_on_sync=False):
+                         public_changing_on_sync=False,
+                         no_source=False):
     versions = get_cell_versions(cell)
     repos = ['building', 'shadow-fixed', 'ros/public']
     search_suffixes = ['1', '2', '3']
+    # set the latest_version to None if no package expected
+    if no_source:
+        latest_version = None
     cell = ''.join([format_version(v,
                                    latest_version,
                                    r,
