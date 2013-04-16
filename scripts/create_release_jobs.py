@@ -141,6 +141,9 @@ def doit(rd, distros, arches, fqdn, jobs_graph, rosdistro, packages, dry_maintai
     if not whitelist_repos or 'metapackages' in whitelist_repos:
         results[rd.debianize_package_name('metapackages')] = release_jobs.dry_doit('metapackages', [], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync)
 
+    if not whitelist_repos or 'sync' in whitelist_repos:
+        results[rd.debianize_package_name('sync')] = release_jobs.dry_doit('sync', [], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync)
+
     if delete_extra_jobs:
         assert(not whitelist_repos)
         # clean up extra jobs
@@ -208,6 +211,7 @@ if __name__ == '__main__':
 
     # setup a job triggered by all other debjobs
     combined_jobgraph[debianize_package_name(args.rosdistro, 'metapackages')] = combined_jobgraph.keys()
+    combined_jobgraph[debianize_package_name(args.rosdistro, 'sync')] = [debianize_package_name(args.rosdistro, 'metapackages')]
 
     results_map = doit(
         rd,
