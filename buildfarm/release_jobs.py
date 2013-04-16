@@ -10,10 +10,6 @@ from xml.sax.saxutils import escape
 import xml.etree.ElementTree as ET
 import urllib
 import urllib2
-try:
-    from urllib.parse import urlsplit
-except ImportError:
-    from urlparse import urlsplit
 import yaml
 import datetime
 from rospkg.distro import load_distro, distro_uri
@@ -321,11 +317,10 @@ def dry_binarydeb_jobs(stackname, dry_maintainers, rosdistro, distros, arches, f
 
 def binarydeb_jobs(package, maintainer_emails, distros, arches, fqdn, jobgraph):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
-    fqdn_parts = urlsplit(fqdn)
     d = dict(
         DISTROS=distros,
         APT_TARGET_REPOSITORY=fqdn,
-        FQDN=fqdn_parts.netloc,
+        FQDN=fqdn,
         PACKAGE=package,
         NOTIFICATION_EMAIL=' '.join(maintainer_emails),
         USERNAME=jenkins_config.username
@@ -346,11 +341,10 @@ def binarydeb_jobs(package, maintainer_emails, distros, arches, fqdn, jobgraph):
 
 def sourcedeb_job(package, maintainer_emails, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
-    fqdn_parts = urlsplit(fqdn)
     d = dict(
         RELEASE_URI=release_uri,
         RELEASE_BRANCH='master',
-        FQDN=fqdn_parts.netloc,
+        FQDN=fqdn,
         DISTROS=distros,
         CHILD_PROJECTS=child_projects,
         PACKAGE=package,
