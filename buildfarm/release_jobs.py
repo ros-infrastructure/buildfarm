@@ -28,7 +28,9 @@ class Templates(object):
     command_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/release_job/binary_build.sh.em')  # builds binary debs.
     config_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/release_job/config.binary.xml.em')  # A config.xml template for something that runs a shell script
     config_dry_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/dry_release/config.xml.em')  # A config.xml template for something that runs a shell script
+    config_sync_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/dry_release/sync_config.xml.em')  # A config.xml template for something that runs a shell script
     command_dry_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/dry_release/build.sh.em')  # A config.xml template for something that runs a shell script
+    command_sync_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/dry_release/sync.sh.em')  # A config.xml template for something that runs a shell script
 
 
 def expand(config_template, d):
@@ -265,6 +267,12 @@ def create_dry_binarydeb_config(d):
     return expand(Templates.config_dry_binarydeb, d)
 
 
+def create_sync_binarydeb_config(d):
+    d['COMMAND'] = escape(expand(Templates.command_sync_binarydeb, d))
+    d['TIMESTAMP'] = datetime.datetime.now()
+    return expand(Templates.config_dry_binarydeb, d)
+
+
 def binarydeb_job_name(packagename, distro, arch):
     return "%(packagename)s_binarydeb_%(distro)s_%(arch)s" % locals()
 
@@ -307,7 +315,11 @@ def dry_binarydeb_jobs(stackname, dry_maintainers, rosdistro, distros, arches, f
 
             d["CHILD_PROJECTS"] = calc_child_jobs(package, distro, arch, jobgraph)
             d["DEPENDENTS"] = "True"
-            config = create_dry_binarydeb_config(d)
+            if stackname == 'sync':
+                d["CHILD_PROJECTS"] = debianize_package_name(rosdistro, 'metapackage')
+                config = create_sync_binarydeb_config(d)
+            else:
+                config = create_dry_binarydeb_config(d)
             #print(config)
             job_name = binarydeb_job_name(package, distro, arch)
             jobs.append((job_name, config))
