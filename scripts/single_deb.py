@@ -669,7 +669,7 @@ def gen_metapkgs_setup(staging_dir_arg, distro, os_platform, arch, repo_fqdn):
     except StackBuildFailure, e:
         warning_message = "Warning Message:\n" + "=" * 80 + '\n' + str(e)
     except Exception as e:
-        failure_message = "Internal failure in the release system. Please notify ros-release@code.ros.org:\n%s\n\n%s" % (e, traceback.format_exc(e))
+        failure_message = "Internal failure in the release system generating metapackages. Please notify ros-release@code.ros.org:\n%s\n\n%s" % (e, traceback.format_exc(e))
     finally:
         if staging_dir is None:
             shutil.rmtree(staging_dir)
@@ -713,7 +713,7 @@ def single_deb_main():
             raise BuildFailure("[%s] is not a known rosdistro.\nValid rosdistros are: %s" % (distro_name, ' '.join(rosdeb.targets.os_platform.keys())))
         target_platforms = rosdeb.targets.os_platform[distro_name]
         if os_platform not in target_platforms:
-            raise BuildFailure("[%s] is not a known platformfor distro %s.\nSupported platforms are: %s" % (os_platform, distro_name, ' '.join(target_platforms)))
+            raise BuildFailure("[%s] is not a known platform or distro %s.\nSupported platforms are: %s" % (os_platform, distro_name, ' '.join(target_platforms)))
 
         if not os.path.exists(staging_dir):
             debug("creating staging dir: %s" % (staging_dir))
@@ -733,7 +733,7 @@ def single_deb_main():
     except BuildFailure, e:
         failure_message = "Failure Message:\n" + "=" * 80 + '\n' + str(e)
     except Exception, e:
-        failure_message = "Internal failure release system. Please notify ros-release@code.ros.org:\n%s\n\n%s" % (e, traceback.format_exc(e))
+        failure_message = "Internal failure release system setting up the staging dir. Please notify ros-release@code.ros.org:\n%s\n\n%s" % (e, traceback.format_exc(e))
     finally:
         # if we created our own staging dir, we are responsible for cleaning it up
         if options.staging_dir is None:
