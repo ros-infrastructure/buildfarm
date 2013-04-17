@@ -604,7 +604,14 @@ def gen_metapkgs(distro, os_platform, arch, staging_dir, repo_fqdn, force=False)
 
     # Retrieve the package list from the shadow repo
     packageurl = repo_url(repo_fqdn) + "/dists/%(os_platform)s/main/binary-%(arch)s/Packages" % locals()
-    packagetxt = urllib2.urlopen(packageurl).read()
+    try:
+        packagetxt = urllib2.urlopen(packageurl).read()
+    except urllib2.URLError as ex:
+        print "Failed to open url: %s with error %s" % (packageurl, ex)
+        raise ex
+    except: 
+        print "Failed to open url: %s" % (packageurl)
+        raise
     packagelist = parse_deb_packages(packagetxt)
 
     debs = []
