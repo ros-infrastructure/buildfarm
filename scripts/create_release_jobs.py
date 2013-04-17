@@ -55,7 +55,7 @@ def parse_options():
     return args
 
 
-def doit(rd, distros, arches, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit=False, delete_extra_jobs=False, whitelist_repos=None):
+def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit=False, delete_extra_jobs=False, whitelist_repos=None):
     jenkins_instance = None
     if args.commit or delete_extra_jobs:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
@@ -97,6 +97,7 @@ def doit(rd, distros, arches, fqdn, jobs_graph, rosdistro, packages, dry_maintai
                  packages[p],
                  target_distros,
                  target_arches,
+                 apt_target_repository,
                  fqdn,
                  jobs_graph,
                  rosdistro=rosdistro,
@@ -183,13 +184,14 @@ if __name__ == '__main__':
         packages = dependency_walker.get_packages(workspace, rd, skip_update=args.skip_update)
         dependencies = dependency_walker.get_jenkins_dependencies(args.rosdistro, packages)
 
-
+        apt_target_repository = rd._build_files[0].apt_target_repository
         if args.fqdn is None:
-            fqdn_parts = urlsplit(rd._build_files[0].apt_target_repository)
+            fqdn_parts = urlsplit(apt_target_repository)
             args.fqdn = fqdn_parts.netloc
         if args.arches is None:
             args.arches = rd.get_arches()
     else:
+        apt_target_repository = 'http://' + args.fqdn + '/repos/building'
         from buildfarm.ros_distro_fuerte import Rosdistro
         rd = Rosdistro(args.rosdistro)
         from buildfarm import dependency_walker_fuerte
@@ -217,6 +219,7 @@ if __name__ == '__main__':
         rd,
         args.distros,
         args.arches,
+        apt_target_repository,
         args.fqdn,
         combined_jobgraph,
         rosdistro=args.rosdistro,
