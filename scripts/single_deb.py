@@ -58,7 +58,7 @@ TARBALL_URL = "https://code.ros.org/svn/release/download/stacks/%(stack_name)s/%
 REPO_PATH = '/var/www/repos/building'
 REPO_USERNAME = 'rosbuild'
 
-TGZ_VERSION = 'dry_6'
+TGZ_VERSION = 'dry_7'
 
 import traceback
 
