@@ -761,7 +761,7 @@ def single_deb_main():
                     #subject = 'debian build [%s-%s-%s-%s] failed'%(distro_name, stack_name, os_platform, arch)
                     # send_email(options.smtp, EMAIL_FROM_ADDR, to_addr, subject, failure_message)
 
-        if stack_name != 'metapackages':
+        if stack_name == 'metapackages':
             debug("Not failing because build is a metapackage")
             return True
         return False
