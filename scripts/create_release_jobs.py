@@ -11,6 +11,11 @@ from buildfarm.ros_distro import debianize_package_name
 
 import rospkg.distro
 
+try:
+    from urllib.parse import urlsplit
+except ImportError:
+    from urlparse import urlsplit
+
 
 def parse_options():
     parser = argparse.ArgumentParser(
@@ -174,8 +179,11 @@ if __name__ == '__main__':
         from buildfarm import dependency_walker
         packages = dependency_walker.get_packages(workspace, rd, skip_update=args.skip_update)
         dependencies = dependency_walker.get_jenkins_dependencies(args.rosdistro, packages)
+
+
         if args.fqdn is None:
-            args.fqdn = rd._build_files[0].apt_target_repository
+            fqdn_parts = urlsplit(rd._build_files[0].apt_target_repository)
+            args.fqdn = fqdn_parts.netloc
         if args.arches is None:
             args.arches = rd.get_arches()
     else:
