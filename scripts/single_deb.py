@@ -763,7 +763,8 @@ def single_deb_main():
 
         if stack_name != 'metapackages':
             debug("Not failing because build is a metapackage")
-            return False
+            return True
+        return False
     return True
 
 if __name__ == '__main__':
