@@ -98,14 +98,20 @@ def download_files(stack_name, stack_version, staging_dir, files):
     import urllib
 
     dl_files = []
+    try:
+        for f_name in files:
+            dest = os.path.join(staging_dir, f_name)
+            url = TARBALL_URL % locals()
+            urllib.urlretrieve(url, dest)
+            dl_files.append(dest)
 
-    for f_name in files:
-        dest = os.path.join(staging_dir, f_name)
-        url = TARBALL_URL % locals()
-        urllib.urlretrieve(url, dest)
-        dl_files.append(dest)
-
-    return dl_files
+        return dl_files
+    except urllib.URLError as ex:
+        raise BuildFailure("Problem fetching file %s.  Due to URLError[%s]" %\
+                               (url, ex))
+    except:
+        raise BuildFailure("Problem fetching file %s.  [Reason Unknown]" %\
+                               (url))
 
 
 def load_info(stack_name, stack_version):
@@ -234,7 +240,7 @@ def do_deb_build(distro_name, stack_name, stack_version, os_platform, arch, stag
     dsc_name = '%s.dsc' % (deb_file)
     tar_gz_name = '%s.tar.gz' % (deb_file)
 
-    debug("Donwloading source %s and %s" % (dsc_name, tar_gz_name))
+    debug("Downloading source %s and %s" % (dsc_name, tar_gz_name))
     (dsc_file, _) = download_files(stack_name, stack_version, staging_dir, [dsc_name, tar_gz_name])
 
     debug("Setting up hooks")
