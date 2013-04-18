@@ -101,6 +101,10 @@ def download_files(stack_name, stack_version, staging_dir, files):
     for f_name in files:
         try:
             dest = os.path.join(staging_dir, f_name)
+        except:
+            raise BuildFailure("generating dest %s from %s and %s" %\
+                                   (dest, staging_dir, f_name))
+        try:
             url = TARBALL_URL % locals()
             urllib.urlretrieve(url, dest)
             dl_files.append(dest)
