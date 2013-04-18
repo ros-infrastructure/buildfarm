@@ -107,7 +107,7 @@ def download_files(stack_name, stack_version, staging_dir, files):
 
         except:
             raise BuildFailure("Problem fetching file %s.  [Reason Unknown]" %\
-                                   (url))
+                                   (f_name))
     return dl_files
 
 
