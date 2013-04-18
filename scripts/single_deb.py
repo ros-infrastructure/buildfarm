@@ -106,12 +106,17 @@ def download_files(stack_name, stack_version, staging_dir, files):
                                    (dest, staging_dir, f_name))
         try:
             url = TARBALL_URL % locals()
+        except:
+            raise BuildFailure("Failure generating tarball url from %s and %s" %\
+                                   (TARBALL_URL, locals()))
+        try:
             urllib.urlretrieve(url, dest)
-            dl_files.append(dest)
 
         except:
             raise BuildFailure("Problem fetching file %s.  [Reason Unknown]" %\
                                    (f_name))
+        dl_files.append(dest)
+
     return dl_files
 
 
