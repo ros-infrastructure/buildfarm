@@ -111,16 +111,19 @@ class VersionCache(object):
                                                          repo,
                                                          distro_arch))
         logging.debug("iterating cache length %d" % len(self._cache))
+
         for p in self._cache.values():
+            # only detect source for one arch
+            if self._primary_arch == arch:
+                self.add(p._name, repo, distro + "_source",
+                         detect_source_version(p.debian_name))
+
+            # look for binaries
             if p.debian_name in aptcache:
                 apt_p = aptcache[p.debian_name]
                 version_obj = getattr(apt_p, 'candidate', None)
                 version = getattr(version_obj, 'version', None)
                 self.add(p._name, repo, distro_arch, version)
-                # only detect source for one arch
-                if self._primary_arch == arch:
-                    self.add(p._name, repo, distro + "_source",
-                             detect_source_version(version_obj))
 
     def get_distro_versions(self):
         """
@@ -259,22 +262,20 @@ def strip_version_suffix(version):
     return match.group(0) if match else version
 
 
-def detect_source_version(version_obj):
+def detect_source_version(source_name):
     """
     Detect if the source package is available on the server and return
     the version, else None
     """
     src = apt_pkg.SourceRecords()
-    source_name = version_obj.source_name
-    source_version = version_obj._records.source_ver or \
-        version_obj.source_version
     source_lookup = src.lookup(source_name)
-
-    while source_lookup and src.version not in source_version:
-        source_lookup = src.lookup(source_name)
-    if source_lookup:
-        return src.version
-    return None
+    if not source_lookup:
+        #print("Missed %s" % source_name)
+        return None
+    else:
+        src_version = strip_version_suffix(src.version)
+        #print("Source %s %s" % (source_name, src_version))
+        return src_version
 
 
 def get_dist_arch_str(d, a):
