@@ -106,9 +106,6 @@ def download_files(stack_name, stack_version, staging_dir, files):
             dl_files.append(dest)
 
         return dl_files
-    except urllib.URLError as ex:
-        raise BuildFailure("Problem fetching file %s.  Due to URLError[%s]" %\
-                               (url, ex))
     except:
         raise BuildFailure("Problem fetching file %s.  [Reason Unknown]" %\
                                (url))
