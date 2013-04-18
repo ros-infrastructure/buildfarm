@@ -98,17 +98,17 @@ def download_files(stack_name, stack_version, staging_dir, files):
     import urllib
 
     dl_files = []
-    try:
-        for f_name in files:
+    for f_name in files:
+        try:
             dest = os.path.join(staging_dir, f_name)
             url = TARBALL_URL % locals()
             urllib.urlretrieve(url, dest)
             dl_files.append(dest)
 
-        return dl_files
-    except:
-        raise BuildFailure("Problem fetching file %s.  [Reason Unknown]" %\
-                               (url))
+        except:
+            raise BuildFailure("Problem fetching file %s.  [Reason Unknown]" %\
+                                   (url))
+    return dl_files
 
 
 def load_info(stack_name, stack_version):
