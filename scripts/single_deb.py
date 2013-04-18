@@ -97,6 +97,8 @@ class InternalBuildFailure(Exception):
 def download_files(stack_name, stack_version, staging_dir, files):
     import urllib
 
+    base_name = "%s-%s"%(stack_name, stack_version)
+
     dl_files = []
     for f_name in files:
         try:
