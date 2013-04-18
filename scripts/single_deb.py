@@ -215,7 +215,8 @@ def create_chroot(distro, distro_name, os_platform, arch, repo_fqdn):
 def do_deb_build(distro_name, stack_name, stack_version, os_platform, arch, staging_dir, noupload, interactive, repo_fqdn):
     debug("Actually trying to build %s-%s..." % (stack_name, stack_version))
 
-    distro_tgz = os.path.join('/var/cache/pbuilder', "%s-%s-%s.tgz" % (os_platform, arch, TGZ_VERSION))
+    distro_tgz = os.path.join('/var/cache/pbuilder', "%s-%s-%s.tgz" %\
+                                  (os_platform, arch, TGZ_VERSION))
 
     deb_name = "ros-%s-%s" % (distro_name, debianize_name(stack_name))
     deb_version = debianize_version(stack_version, '0', os_platform)
@@ -227,12 +228,16 @@ def do_deb_build(distro_name, stack_name, stack_version, os_platform, arch, stag
     # Make sure the distro chroot exists
     if not os.path.exists(distro_tgz):
         raise InternalBuildFailure("%s does not exist." % (distro_tgz))
+    debug("Using tarball %s" % distro_tgz)
 
     # Download deb and tar.gz files:
     dsc_name = '%s.dsc' % (deb_file)
     tar_gz_name = '%s.tar.gz' % (deb_file)
 
+    debug("Donwloading source %s and %s" % (dsc_name, tar_gz_name))
     (dsc_file, _) = download_files(stack_name, stack_version, staging_dir, [dsc_name, tar_gz_name])
+
+    debug("Setting up hooks")
 
     # Create hook and results directories
     hook_dir = os.path.join(staging_dir, 'hooks')
