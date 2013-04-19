@@ -41,7 +41,7 @@ scp -o StrictHostKeyChecking=no -qr `pwd`/hydro-dependencies.yaml rosbuild@wgs32
 tar cvjf hydro-dependencies.tar.gz hydro-dependencies.yaml
 scp -o StrictHostKeyChecking=no -qr hydro-dependencies.tar.gz rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
 
-###
+### generate the outdated version of the new rosdistro format
 
 if [ -e $WORKSPACE/rosdistro-rep137 ]
 then
@@ -53,12 +53,36 @@ cd $WORKSPACE/rosdistro-rep137/releases
 rosdistro_convert
 rosdistro_build_cache file://`pwd`/index.yaml
 
-scp -o StrictHostKeyChecking=no -qr `pwd`/groovy-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
-scp -o StrictHostKeyChecking=no -qr `pwd`/hydro-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
+scp -o StrictHostKeyChecking=no -qr `pwd`/groovy-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/groovy-cache-old.yaml
+scp -o StrictHostKeyChecking=no -qr `pwd`/hydro-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/hydro-cache-old.yaml
 
 GIT_DIFF=`git diff`
 if [ "$GIT_DIFF" != "" ]; then
-  git commit -m "update generated rep137 rosdistro files" -a
+  git commit -m "update generated rep137 rosdistro files (under release)" -a
+  git push
+fi
+
+### generate the latest version of the new rosdistro format
+
+if [ -e $WORKSPACE/rosdistro ]
+then
+  rm -rf $WORKSPACE/rosdistro
+fi
+git clone git@github.com:ros-infrastructure/rosdistro.git $WORKSPACE/rosdistro
+cd $WORKSPACE/rosdistro-rep137
+
+PATH=$WORKSPACE/rosdistro/scripts:$PATH
+export PYTHONPATH=$WORKSPACE/rosdistro/src:$PYTHONPATH
+
+rosdistro_convert
+rosdistro_build_cache file://`pwd`/index.yaml
+
+scp -o StrictHostKeyChecking=no -qr `pwd`/groovy/release-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/groovy-cache.yaml
+scp -o StrictHostKeyChecking=no -qr `pwd`/hydro/release-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/hydro-cache.yaml
+
+GIT_DIFF=`git diff`
+if [ "$GIT_DIFF" != "" ]; then
+  git commit -m "update generated rep137 rosdistro files (under root)" -a
   git push
 fi</command>
     </hudson.tasks.Shell>
