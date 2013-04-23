@@ -184,7 +184,8 @@ if __name__ == '__main__':
         packages = dependency_walker.get_packages(workspace, rd, skip_update=args.skip_update)
         dependencies = dependency_walker.get_jenkins_dependencies(args.rosdistro, packages)
 
-        apt_target_repository = rd._build_files[0].apt_target_repository
+        build_config = rd._build_files[0].get_target_configuration()
+        apt_target_repository = build_config['apt_target_repository']
         if args.fqdn is None:
             fqdn_parts = urlsplit(apt_target_repository)
             args.fqdn = fqdn_parts.netloc
