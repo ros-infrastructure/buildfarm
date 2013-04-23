@@ -34,10 +34,13 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
 sudo apt-get install -y python-rosdistro
 
 INDEX_URL=`python -c "import rosdistro; print(rosdistro.get_index_url())"`
-rosdistro_build_cache INDEX_URL
+rosdistro_build_cache $INDEX_URL
 
-scp -o StrictHostKeyChecking=no -qr `pwd`/groovy-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
-scp -o StrictHostKeyChecking=no -qr `pwd`/hydro-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/</command>
+ROS_DISTROS=`python -c "import rosdistro; print(' '.join(rosdistro.get_index(rosdistro.get_index_url()).distributions.keys()))"`
+for ROS_DISTRO in $ROS_DISTROS; do
+  #scp -o StrictHostKeyChecking=no -qr `pwd`/$ROS_DISTRO-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
+  scp -o StrictHostKeyChecking=no -qr `pwd`/$ROS_DISTRO-cache.yaml.gz rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
+done</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
