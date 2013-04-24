@@ -365,14 +365,14 @@ def render_csv(version_cache, rootdir, outfile, rosdistro,
 
 
 def transform_csv_to_html(data_source, metadata_builder,
-                          rosdistro, start_time):
+                          rosdistro, start_time, cached_release=None):
     reader = csv.reader(data_source, delimiter=',', quotechar='"')
     rows = [row for row in reader]
 
     header = rows[0]
     rows = rows[1:]
 
-    html_head = make_html_head(rosdistro, start_time)
+    html_head = make_html_head(rosdistro, start_time, cached_release is not None)
 
     metadata_columns = [None] * 3 + [metadata_builder(c) for c in header[3:]]
     header = [format_header_cell(header[i],
@@ -389,10 +389,48 @@ def transform_csv_to_html(data_source, metadata_builder,
                     counts[i][j] += 1
 
     rows = [format_row(r, metadata_columns) for r in rows]
+    if cached_release:
+        inject_status_and_maintainer(cached_release, header, counts, rows)
     body = make_html_legend()
     body += make_html_table(header, counts, rows)
 
     return make_html_doc(html_head, body)
+
+
+def inject_status_and_maintainer(cached_release, header, counts, rows):
+    from catkin_pkg.package import InvalidPackage, parse_package_string
+    header[3:3] = ['Status', 'Maintainer']
+    counts[3:3] = [[], []]
+    for row in rows:
+        status_cell = ''
+        maintainer_cell = ''
+        if row[2] == 'wet':
+            pkg_name = row[0].split(' ')[0]
+            pkg = cached_release.packages[pkg_name]
+            repo = cached_release.repositories[pkg.repository_name]
+            status = 'unknown'
+            if pkg.status is not None:
+                status = pkg.status
+            elif repo.status is not None:
+                status = repo.status
+            status_description = ''
+            if pkg.status_description is not None:
+                status_description = pkg.status_description
+            elif repo.status_description is not None:
+                status_description = repo.status_description
+            status_cell = '<div class="%s"%s>%s</div>' % (status, ' title="%s"' % status_description if status_description else '', status)
+            pkg_xml = cached_release.get_package_xml(pkg_name)
+            if pkg_xml is not None:
+                try:
+                    pkg = parse_package_string(pkg_xml)
+                    maintainer_cell = ',<br />'.join(['<a href="mailto:%s">%s</a>' % (m.email, m.name) for m in pkg.maintainers])
+                except InvalidPackage as e:
+                    maintainer_cell = 'invalid package.xml'
+            else:
+                maintainer_cell = '?'
+        else:
+            status_cell = '<div class="unknown">--</div>'
+        row[3:3] = [status_cell, maintainer_cell]
 
 
 def format_header_cell(cell, metadata):
@@ -499,7 +537,7 @@ def make_square_div(label, color, order_value):
         (color, label, order_value)
 
 
-def make_html_head(rosdistro, start_time):
+def make_html_head(rosdistro, start_time, has_status_and_maintainer=False):
     rosdistro = rosdistro[0].upper() + rosdistro[1:]
     # Some of the code here is taken from a datatables example.
     return '''
@@ -529,6 +567,12 @@ def make_html_head(rosdistro, start_time):
     .css_right { float: right; }
     #example_wrapper .fg-toolbar { font-size: 0.8em }
     #theme_links span { float: left; padding: 2px 10px; }
+
+    .developed { color: #a2d39c; }
+    .maintained { color: #a2d39c; }
+    .unmaintained { color: #f0f078; }
+    .end-of-life { color: #f07878; }
+    .unknown { color: #c8c8c8; }
 
     .square { border: 1px solid gray; display: inline-block; font-size: 0px; height: 15px; margin-right: 4px; width: 15px; }
     .square a { display: block; }
@@ -596,6 +640,7 @@ def make_html_head(rosdistro, start_time):
                 { type: "text" },
                 { type: "text" },
                 { type: "select",  values: ['wet', 'dry', 'variant', 'unknown'] },
+                %s
                 { type: "text" },
                 { type: "text" },
                 { type: "text" },
@@ -636,7 +681,7 @@ def make_html_head(rosdistro, start_time):
     } );
     /* ]]> */
 </script>
-''' % (rosdistro, time.strftime('%Y-%m-%d %H:%M:%S %Z', start_time))
+''' % (rosdistro, time.strftime('%Y-%m-%d %H:%M:%S %Z', start_time), '{ type: "select",  values: ["--", "developed", "maintained", "unmaintained", "end-of-life", "unknown"] }, { type: "text" },' if has_status_and_maintainer else '')
 
 
 def make_html_legend():
