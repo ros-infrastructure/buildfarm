@@ -112,11 +112,12 @@ class VersionCache(object):
                                                          distro_arch))
         logging.debug("iterating cache length %d" % len(self._cache))
 
+        source_records = apt_pkg.SourceRecords()
         for p in self._cache.values():
             # only detect source for one arch
             if self._primary_arch == arch:
                 self.add(p._name, repo, distro + "_source",
-                         detect_source_version(p.debian_name))
+                         detect_source_version(p.debian_name, source_records))
 
             # look for binaries
             if p.debian_name in aptcache:
@@ -154,7 +155,7 @@ def get_repo_da_caches(rootdir, ros_repo_names, da_strs):
     return [(ros_repo_name, da_str,
              get_repo_cache_dir_name(rootdir, ros_repo_name, da_str))
             for ros_repo_name in ros_repo_names
-            for da_str in da_strs]
+            for da_str in da_strs if not da_str.endswith('_source')]
 
 
 def get_apt_cache(dirname):
@@ -262,18 +263,18 @@ def strip_version_suffix(version):
     return match.group(0) if match else version
 
 
-def detect_source_version(source_name):
+def detect_source_version(source_name, source_records):
     """
     Detect if the source package is available on the server and return
     the version, else None
     """
-    src = apt_pkg.SourceRecords()
-    source_lookup = src.lookup(source_name)
+    source_records.restart()
+    source_lookup = source_records.lookup(source_name)
     if not source_lookup:
         #print("Missed %s" % source_name)
         return None
     else:
-        src_version = strip_version_suffix(src.version)
+        src_version = strip_version_suffix(source_records.version)
         #print("Source %s %s" % (source_name, src_version))
         return src_version
 
@@ -304,7 +305,7 @@ def build_repo_cache(dir_, ros_repo_name, ros_repo_url,
 def get_pkgs_from_apt_cache(cache_dir, substring):
     cache = apt.Cache(rootdir=cache_dir)
     cache.open()
-    return [cache[name] for name in cache.keys() if name.startswith(substring)]
+    return [cache[name] for name in sorted(cache.keys()) if name.startswith(substring)]
 
 
 def build_version_cache(rootdir, rosdistro, distro_arches,
@@ -343,10 +344,9 @@ def render_csv(version_cache, rootdir, outfile, rosdistro,
     ros_pkgs_table = version_cache.get_distro_versions()
 
     # Get the version of each Debian package in each ROS apt repository.
-    repo_name_da_to_pkgs = dict(((repo_name, da_str),
-                                 get_pkgs_from_apt_cache(cache, 'ros-%s-' % \
-                                                             rosdistro))
-                                for repo_name, da_str, cache in repo_da_caches)
+    repo_name_da_to_pkgs = {}
+    for repo_name, da_str, cache in repo_da_caches:
+        repo_name_da_to_pkgs[(repo_name, da_str)] = get_pkgs_from_apt_cache(cache, 'ros-%s-' % rosdistro)
 
     # Make an in-memory table showing the latest deb version for each package.
     t = make_versions_table(version_cache,
