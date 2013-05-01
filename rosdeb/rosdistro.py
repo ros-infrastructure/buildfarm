@@ -5,8 +5,11 @@
 
 from __future__ import print_function
 
+import socket
 import sys
-import yaml, urllib2
+import time
+import urllib2
+import yaml
 
 URL_PROTOTYPE="https://raw.github.com/ros/rosdistro/master/releases/%s.yaml"
 
@@ -33,6 +36,22 @@ def debianize_package_name(rosdistro, name):
     return sanitize_package_name("ros-%s-%s"%(rosdistro, name))
 
 
+def load_url(url, retry=2, retry_period=1, timeout=10):
+    try:
+        fh = urllib2.urlopen(url, timeout=timeout)
+    except urllib2.HTTPError as e:
+        if e.code == 503 and retry:
+            time.sleep(retry_period)
+            return load_url(url, retry=retry - 1, retry_period=retry_period, timeout=timeout)
+        raise
+    except urllib2.URLError as e:
+        if isinstance(e.reason, socket.timeout) and retry:
+            time.sleep(retry_period)
+            return load_url(url, retry=retry - 1, retry_period=retry_period, timeout=timeout)
+        raise urllib2.URLError(str(e) + ' (%s)' % url)
+    return fh.read()
+
+
 # todo raise not exit
 class Rosdistro:
     def __init__(self, rosdistro_name):
@@ -40,7 +59,7 @@ class Rosdistro:
         self._targets = None
         # avaliable for backwards compatability
         try:
-            self.repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE % rosdistro_name))
+            self.repo_map = yaml.load(load_url(URL_PROTOTYPE % rosdistro_name))
         except urllib2.HTTPError as ex:
             print ("Loading distro from '%s'failed with HTTPError %s" % (URL_PROTOTYPE % rosdistro_name, ex), file=sys.stderr)
             raise
@@ -152,7 +171,7 @@ class Rosdistro:
 
 def get_target_distros(rosdistro):
     print("Fetching " + URL_PROTOTYPE%'targets')
-    targets_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE%'targets'))
+    targets_map = yaml.load(load_url(URL_PROTOTYPE % 'targets'))
     my_targets = [x for x in targets_map if rosdistro in x]
     if len(my_targets) != 1:
         print("Must have exactly one entry for rosdistro %s in targets.yaml"%(rosdistro))
