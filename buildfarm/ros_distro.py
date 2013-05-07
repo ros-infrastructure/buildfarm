@@ -63,10 +63,11 @@ class Rosdistro:
 
     def get_arches(self):
         arches = []
-        for arches_per_distro in self._build_files[0].targets.values():
-            for arch in arches_per_distro:
-                if arch not in arches:
-                    arches.append(arch)
+        for os_name in self._build_files[0].get_target_os_names():
+            for os_code_name in self._build_files[0].get_target_os_code_names(os_name):
+                for arch in self._build_files[0].get_target_arches(os_name, os_code_name):
+                    if arch not in arches:
+                        arches.append(arch)
         return arches
 
     def get_package_xml(self, pkg_name):
@@ -159,4 +160,4 @@ def get_target_distros(rosdistro):
     print("Fetching targets")
     index = get_index(get_index_url())
     rel_file = get_release_file(index, rosdistro)
-    return rel_file.platforms
+    return rel_file.platforms['ubuntu']

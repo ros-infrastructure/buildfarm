@@ -44,5 +44,14 @@
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
   </publishers>
-  <buildWrappers/>
+  <buildWrappers>
+@[if TIMEOUT]
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper>
+      <timeoutMinutes>@(TIMEOUT)</timeoutMinutes>
+      <failBuild>false</failBuild>
+      <writingDescription>true</writingDescription>
+      <timeoutType>absolute</timeoutType>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+@[end if]
+  </buildWrappers>
 </project>

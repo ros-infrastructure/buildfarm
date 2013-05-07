@@ -55,7 +55,7 @@ def parse_options():
     return args
 
 
-def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit=False, delete_extra_jobs=False, whitelist_repos=None):
+def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit=False, delete_extra_jobs=False, whitelist_repos=None, sourcedeb_timeout=None, binarydeb_timeout=None):
     jenkins_instance = None
     if args.commit or delete_extra_jobs:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
@@ -103,7 +103,8 @@ def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro
                  rosdistro=rosdistro,
                  short_package_name=p,
                  commit=commit,
-                 jenkins_instance=jenkins_instance)
+                 jenkins_instance=jenkins_instance,
+                 sourcedeb_timeout=sourcedeb_timeout, binarydeb_timeout=binarydeb_timeout)
             #time.sleep(1)
             #print ('individual results', results[pkg_name])
 
@@ -184,12 +185,18 @@ if __name__ == '__main__':
         packages = dependency_walker.get_packages(workspace, rd, skip_update=args.skip_update)
         dependencies = dependency_walker.get_jenkins_dependencies(args.rosdistro, packages)
 
-        apt_target_repository = rd._build_files[0].apt_target_repository
+        # TODO does only work with one build file
+        build_config = rd._build_files[0].get_target_configuration()
+        apt_target_repository = build_config['apt_target_repository']
         if args.fqdn is None:
             fqdn_parts = urlsplit(apt_target_repository)
             args.fqdn = fqdn_parts.netloc
         if args.arches is None:
             args.arches = rd.get_arches()
+
+        # TODO does only work with one build file
+        sourcedeb_timeout = rd._build_files[0].jenkins_sourcedeb_job_timeout
+        binarydeb_timeout = rd._build_files[0].jenkins_binarydeb_job_timeout
     else:
         apt_target_repository = 'http://' + args.fqdn + '/repos/building'
         from buildfarm.ros_distro_fuerte import Rosdistro
@@ -198,6 +205,8 @@ if __name__ == '__main__':
         stacks = dependency_walker_fuerte.get_stacks(workspace, rd._repoinfo, args.rosdistro, skip_update=args.skip_update)
         dependencies = dependency_walker_fuerte.get_dependencies(args.rosdistro, stacks)
         packages = stacks
+        sourcedeb_timeout = None
+        binarydeb_timeout = None
 
     release_jobs.check_for_circular_dependencies(dependencies)
 
@@ -227,7 +236,8 @@ if __name__ == '__main__':
         dry_maintainers=dry_maintainers,
         commit=args.commit,
         delete_extra_jobs=args.delete,
-        whitelist_repos=args.repos)
+        whitelist_repos=args.repos,
+        sourcedeb_timeout=sourcedeb_timeout, binarydeb_timeout=binarydeb_timeout)
 
     if not args.commit:
         print('This was not pushed to the server.  If you want to do so use "--commit" to do it for real.')

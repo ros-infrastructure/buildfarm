@@ -48,7 +48,7 @@ import time
 
 from rospkg.distro import distro_uri, load_distro
 import rosdeb
-from rosdeb import debianize_name, debianize_version, rosdistro, targets, list_missing
+from rosdeb import debianize_name, debianize_version, targets, list_missing
 from rosdeb.rosutil import send_email
 from rosdeb.source_deb import download_control
 
@@ -644,7 +644,11 @@ def gen_metapkgs(distro, os_platform, arch, staging_dir, repo_fqdn, force=False)
     # if (metapkg missing) or (metapkg missing deps), then create
     # modify create to version-lock deps
 
-    wet_distro = rosdistro.Rosdistro(distro_name)
+    if distro_name != 'fuerte':
+        from buildfarm.ros_distro import Rosdistro
+    else:
+        from buildfarm.ros_distro_fuerte import Rosdistro
+    wet_distro = Rosdistro(distro_name)
 
     # Build the new meta packages
     for (v, d) in distro.variants.iteritems():

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>Generate the rosdistro cache for groovy and make it available.&#xd;
+  <description>Generate the rosdistro cache and make it available.&#xd;
 &#xd;
 Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator>
@@ -32,14 +32,15 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
     <hudson.tasks.Shell>
       <command>sudo apt-get update
 sudo apt-get install -y python-rosdistro
-rosdistro_generate_cache groovy --cache `pwd`
 
-# upload plain cache
-scp -o StrictHostKeyChecking=no -qr `pwd`/groovy-dependencies.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
+INDEX_URL=`python -c "import rosdistro; print(rosdistro.get_index_url())"`
+rosdistro_build_cache $INDEX_URL
 
-# upload tar of cache
-tar cvjf groovy-dependencies.tar.gz groovy-dependencies.yaml
-scp -o StrictHostKeyChecking=no -qr groovy-dependencies.tar.gz rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/</command>
+ROS_DISTROS=`python -c "import rosdistro; print(' '.join(rosdistro.get_index(rosdistro.get_index_url()).distributions.keys()))"`
+for ROS_DISTRO in $ROS_DISTROS; do
+  #scp -o StrictHostKeyChecking=no -qr `pwd`/$ROS_DISTRO-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
+  scp -o StrictHostKeyChecking=no -qr `pwd`/$ROS_DISTRO-cache.yaml.gz rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
+done</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
