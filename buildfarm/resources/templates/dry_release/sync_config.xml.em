@@ -38,7 +38,7 @@
     <buildChooser class="hudson.plugins.git.util.DefaultBuildChooser"/>
     <gitTool>Default</gitTool>
     <submoduleCfg class="list"/>
-    <relativeTargetDir/>
+    <relativeTargetDir>buildfarm</relativeTargetDir>
     <reference/>
     <excludedRegions/>
     <excludedUsers/>
