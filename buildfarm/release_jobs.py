@@ -226,7 +226,10 @@ def compare_configs(a, b):
 
 def create_jenkins_job(jobname, config, jenkins_instance):
     try:
-        jobs = jenkins_instance.get_jobs()
+        try:
+            jobs = jenkins_instance.get_jobs()
+        except urllib2.URLError as e:
+            raise urllib2.URLError(str(e) + ' (%s)' % jenkins_instance.server)
         print("working on job", jobname)
         if jobname in [job['name'] for job in jobs]:
             remote_config = jenkins_instance.get_job_config(jobname)
