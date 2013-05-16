@@ -53,7 +53,7 @@
     <excludedCommitMessages></excludedCommitMessages>
     <workspaceUpdater class="hudson.scm.subversion.UpdateUpdater"/>
   </scm>
-  <assignedNode>sourcedeb</assignedNode>
+  <assignedNode>lucid</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
@@ -71,7 +71,7 @@ cat &gt; $WORKSPACE/build.bash &lt;&lt; DELIM
 source /opt/ros/cturtle/setup.sh
 export ROS_PACKAGE_PATH=$WORKSPACE/ros_release:$WORKSPACE/release:$ROS_PACKAGE_PATH
 
-rosrun rosdeb create_source_deb.py $DISTRO_NAME $STACK_NAME $STACK_VERSION $OS_PLATFORM --hudson --smtp pub1.willowgarage.com
+rosrun rosdeb create_source_deb.py $DISTRO_NAME $STACK_NAME $STACK_VERSION $OS_PLATFORM --hudson
 DELIM
 
 bash $WORKSPACE/build.bash</command>
