@@ -4,7 +4,7 @@
   <description>Trigger jobs with missing Debian packages for Fuerte.&#xd;
 &#xd;
 Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
-  <logRotator>
+  <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>180</daysToKeep>
     <numToKeep>30</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
@@ -16,7 +16,7 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
       <priority>142</priority>
     </hudson.queueSorter.PrioritySorterJobProperty>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@1.1.25">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@1.3.0">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
@@ -73,7 +73,7 @@ source ./setup.sh
     </hudson.tasks.Shell>
   </builders>
   <publishers>
-    <hudson.tasks.Mailer>
+    <hudson.tasks.Mailer plugin="mailer@1.4">
       <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>

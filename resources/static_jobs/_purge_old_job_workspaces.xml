@@ -20,7 +20,7 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   <triggers class="vector"/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.12">
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.13">
       <scriptSource class="hudson.plugins.groovy.StringScriptSource">
         <command>import hudson.FilePath;
 
@@ -112,7 +112,7 @@ for (slave in jenkins.slaves)
     </hudson.plugins.groovy.SystemGroovy>
   </builders>
   <publishers>
-    <hudson.tasks.Mailer>
+    <hudson.tasks.Mailer plugin="mailer@1.4">
       <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>

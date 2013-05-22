@@ -4,7 +4,7 @@
   <description>Generate the rosdistro cache and make it available.&#xd;
 &#xd;
 Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
-  <logRotator>
+  <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>180</daysToKeep>
     <numToKeep>100</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
@@ -34,7 +34,7 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
 sudo apt-get install -y python-rosdistro
 
 INDEX_URL=`python -c "import rosdistro; print(rosdistro.get_index_url())"`
-rosdistro_build_cache $INDEX_URL
+rosdistro_build_cache $INDEX_URL --debug
 
 ROS_DISTROS=`python -c "import rosdistro; print(' '.join(rosdistro.get_index(rosdistro.get_index_url()).distributions.keys()))"`
 for ROS_DISTRO in $ROS_DISTROS; do
@@ -44,7 +44,7 @@ done</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
-    <hudson.tasks.Mailer>
+    <hudson.tasks.Mailer plugin="mailer@1.4">
       <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>

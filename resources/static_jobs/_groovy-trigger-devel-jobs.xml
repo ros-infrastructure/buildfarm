@@ -4,7 +4,7 @@
   <description>Trigger devel jobs for Groovy.&#xd;
 &#xd;
 Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
-  <logRotator>
+  <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>180</daysToKeep>
     <numToKeep>30</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
@@ -25,7 +25,7 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   <triggers class="vector"/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.12">
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.13">
       <scriptSource class="hudson.plugins.groovy.StringScriptSource">
         <command>import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -45,7 +45,7 @@ for (p in hudson.model.Hudson.instance.getAllItems(AbstractProject)) {
     </hudson.plugins.groovy.SystemGroovy>
   </builders>
   <publishers>
-    <hudson.tasks.Mailer>
+    <hudson.tasks.Mailer plugin="mailer@1.4">
       <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
