@@ -11,7 +11,7 @@
   <keepDependencies>false</keepDependencies>
   <properties>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@1.1.25">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@@1.1.25">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
