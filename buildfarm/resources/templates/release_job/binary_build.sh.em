@@ -45,6 +45,10 @@ git clone git://github.com/ros-infrastructure/buildfarm.git $WORKSPACE/buildfarm
 cd $WORKSPACE/buildfarm
 . setup.sh
 
+# monitor all subprocess and enforce termination, sleep to give python time to startup
+sudo python subprocess_reaper.py $$ &
+sleep 1
+
 #setup the cross platform apt environment
 # using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary. 
 # And you can't chown it even with sudo and recursive 
