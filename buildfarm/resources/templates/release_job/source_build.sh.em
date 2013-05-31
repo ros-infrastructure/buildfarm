@@ -5,8 +5,6 @@ PACKAGE=@(PACKAGE)
 ROSDISTRO=@(ROSDISTRO)
 SHORT_PACKAGE_NAME=@(SHORT_PACKAGE_NAME)
 
-sudo apt-get install -y git-buildpackage dput debhelper
-
 if [ -e $WORKSPACE/buildfarm ]
 then
   rm -rf $WORKSPACE/buildfarm
