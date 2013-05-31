@@ -35,10 +35,7 @@ def main(argv=None):
     print('Monitoring PID %i...' % args.pid)
     children = []
     while proc.is_running():
-        try:
-            children = proc.get_children(recursive=True)
-        except psutil.NoSuchProcess:
-            break
+        children = get_recursive_children(proc)
         time.sleep(0.25)
 
     # remove myself from list of children
@@ -85,6 +82,22 @@ def main(argv=None):
 
     print('All processes have been terminated.')
     return 0
+
+
+def get_recursive_children(proc):
+    children = []
+    recurse = [proc]
+    while recurse:
+        parent = recurse.pop()
+        try:
+            # recursive=True is only supported with psutil 0.5
+            # which is not available on Ubuntu Precise
+            direct_children = parent.get_children()
+        except psutil.NoSuchProcess:
+            continue
+        children.extend(direct_children)
+        recurse.extend(direct_children)
+    return children
 
 
 def wait_for_processes(processes, timeout=1):
