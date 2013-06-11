@@ -1,0 +1,169 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.queueSorter.PrioritySorterJobProperty plugin="PrioritySorter@1.3">
+      <priority>200</priority>
+    </hudson.queueSorter.PrioritySorterJobProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>0 */6 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.13">
+      <scriptSource class="hudson.plugins.groovy.StringScriptSource">
+        <command>import hudson.model.Result
+import jenkins.model.Jenkins
+
+view_stats = [:]
+for (v in Jenkins.instance.views) {
+  success = 0
+  unstable = 0
+  failure = 0
+  aborted = 0
+  not_built = 0
+  for (p in v.items) {
+    def lb = p.lastBuild
+    if (lb) {
+      def r = lb.result
+      if (!r) {
+        def pb = lb.previousBuild
+        if (pb) {
+          r = pb.result
+        } else {
+          // no finished build yet
+          not_built++
+          continue
+        }
+      }
+      if (r) {
+        if (r == Result.SUCCESS) {
+          success++
+        } else if (r == Result.UNSTABLE) {
+          unstable++
+        } else if (r == Result.FAILURE) {
+          failure++
+        } else if (r == Result.ABORTED) {
+          aborted++
+        } else if (r == Result.NOT_BUILT) {
+          // this should never happen for the result of a build
+          assert false
+        } else {
+          // unknown result value
+          println("View " + v.viewName + " job " + p.name + " has unknown result: " + r)
+          assert false
+        }
+      } else {
+        // if only one build of each job is ongoing at the same time
+        println("View " + v.viewName + " job " + p.name + " has no result")
+        assert false
+      }
+    } else {
+      // job has never been built
+      not_built++
+    }
+  }
+  view_stat = ["count": v.items.size, "success": success, "unstable": unstable, "failure": failure, "aborted": aborted, "not_built": not_built]
+  //println(v.viewName + ": " + view_stat)
+  if (v.items.size != success + unstable + failure + aborted + not_built) {
+    assert false
+  }
+  view_stats[v.viewName] = view_stat
+}
+
+view_max_length = 0
+max_count = 0
+for (v in view_stats) {
+  // determine maximum length of view name
+  view_max_length = Math.max(view_max_length, v.key.length())
+  // compute percentages
+  count = v.value["count"]
+  max_count = Math.max(max_count, count)
+  // get fixed array of keys, which does not update when we add more keys
+  columns = v.value.keySet().toArray()
+  for (c in columns) {
+    if (c == "count") continue
+    percent = v.value[c] * 100
+    if (count != 0) percent /= count
+    percent = Math.floor(percent * 100) / 100
+    v.value[c + "_percent"] = String.format("%.2f", percent)
+  }
+}
+max_count_length = String.format("%d", max_count).length()
+//println("view length: " + view_max_length)
+//println("max count length: " + max_count_length)
+//println("Stats: " + view_stats)
+
+count_label = "count"
+max_count_length = Math.max(max_count_length, count_label.length())
+
+// output ascii table
+
+// table header
+println("")
+columns = ["success", "unstable", "failure", "aborted", "not_built"]
+// first columns is: view_max_length + 2 whitespaces
+print(" " * view_max_length + "  ")
+// second columns is: 2 whitespaces + max_count_length + 2 whitespaces
+print("|  " + count_label + " " * (max_count_length - count_label.length()) + "  ")
+for (c in columns) {
+  // other columns are: 2 whitespaces + max_count_length + whitespace + parenthesis open + percentage (xxx.xx) + whitespace + percent sign + parenthesis close + 2 whitespace = max_count_length + 15
+  padding = max_count_length + 11 - c.length()
+  print("|  " + " " * Math.floor(padding / 2) + c + " " * Math.ceil(padding / 2) + "  ")
+}
+println("")
+// table separator line
+print("-" * (view_max_length + 2))
+print("+" + "-" * (max_count_length + 4))
+for (c in columns) {
+  print("+" + "-" * (max_count_length + 15))
+}
+println("")
+
+// table rows
+for (v in view_stats) {
+  // first column
+  print(v.key + " " * (view_max_length - v.key.length() + 2))
+  // second column
+  print("|" + "  ")
+  value = v.value["count"]
+  print(" " * (max_count_length - ("" + value).length()) + value)
+  print("  ")
+  // other columns
+  for (c in columns) {
+    print("|" + "  ")
+    value = v.value[c]
+    print(" " * (max_count_length - ("" + value).length()) + value)
+    if (c != "count") {
+      print(" ")
+      percent = v.value[c + "_percent"]
+      print(" " * (6 - percent.length()))
+      print("(")
+      print(percent)
+      print(" %)")
+    } else {
+      print(" " * 11)
+    }
+    print("  ")
+  }
+  println()
+}</command>
+      </scriptSource>
+      <bindings></bindings>
+      <classpath></classpath>
+    </hudson.plugins.groovy.SystemGroovy>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
