@@ -27,7 +27,7 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>**</name>
+        <name>master</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <disableSubmodules>false</disableSubmodules>
@@ -63,7 +63,7 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   <builders>
     <hudson.tasks.Shell>
       <command>sudo apt-get update
-sudo apt-get install -y python-stdeb
+sudo apt-get install -y python-stdeb python-mock
 sudo apt-file update
 make clean || true
 make test
