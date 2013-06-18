@@ -602,7 +602,7 @@ Architecture: %(arch)s
 Maintainer: The ROS community <ros-user@lists.sourceforge.net>
 Installed-Size:
 Depends: %(ros_depends_str)s
-Section: unknown
+Section: misc
 Priority: optional
 WG-rosdistro: %(distro_name)s
 Description: Meta package for %(metapackage)s variant of ROS.
