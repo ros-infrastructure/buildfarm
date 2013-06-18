@@ -701,7 +701,7 @@ def gen_metapkgs_setup(staging_dir_arg, distro, os_platform, arch, repo_fqdn):
     except Exception as e:
         failure_message = "Internal failure in the release system generating metapackages. Please notify ros-release@code.ros.org:\n%s\n\n%s" % (e, traceback.format_exc(e))
     finally:
-        if staging_dir is None:
+        if staging_dir_arg is None:
             shutil.rmtree(staging_dir)
 
     return warning_message, failure_message
