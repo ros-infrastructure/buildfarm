@@ -33,7 +33,8 @@ cd $WORKSPACE/buildfarm
 
 
 staging_dir=$WORKSPACE/staging_dir
-
+rm -rf $staging_dir
+mkdir -p $staging_dir
 
 # Building package
 single_deb.py $DISTRO_NAME $STACK_NAME $OS_PLATFORM $ARCH --fqdn $ROS_REPO_FQDN -d $staging_dir --noupload
