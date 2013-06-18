@@ -226,7 +226,7 @@ def control_file(metadata, distro_name, platform_name):
         raise Exception("stack [%s] does not have rosdeps for release [%s]"%(metadata['stack'], platform_name))
     
     return """Source: %(package)s
-Section: unknown
+Section: misc
 Priority: %(priority)s
 Maintainer: %(maintainer)s
 Build-Depends: debhelper (>= 5), chrpath, %(all-depends)s
