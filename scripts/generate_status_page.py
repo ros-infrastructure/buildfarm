@@ -128,7 +128,7 @@ if __name__ == '__main__':
                                      args.rosdistro, start_time, cached_release)
     html_file = os.path.join(args.basedir, '%s.html' % args.rosdistro)
     with open(html_file, 'w') as f:
-        f.write(html)
+        f.write(html.encode('utf8'))
 
     print('Symlinking jQuery resources...')
     dst = os.path.join(args.basedir, 'jquery')
