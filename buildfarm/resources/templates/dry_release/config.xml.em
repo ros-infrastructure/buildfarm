@@ -11,24 +11,7 @@
   <keepDependencies>false</keepDependencies>
   <properties>
   </properties>
-  <scm class="hudson.scm.SubversionSCM">
-    <locations>
-      <hudson.scm.SubversionSCM_-ModuleLocation>
-        <remote>https://code.ros.org/svn/release/trunk</remote>
-        <local>release</local>
-      </hudson.scm.SubversionSCM_-ModuleLocation>
-      <hudson.scm.SubversionSCM_-ModuleLocation>
-        <remote>https://code.ros.org/svn/ros/stacks/ros_release/trunk</remote>
-        <local>ros_release</local>
-      </hudson.scm.SubversionSCM_-ModuleLocation>
-    </locations>
-    <excludedRegions></excludedRegions>
-    <includedRegions></includedRegions>
-    <excludedUsers></excludedUsers>
-    <excludedRevprop></excludedRevprop>
-    <excludedCommitMessages></excludedCommitMessages>
-    <workspaceUpdater class="hudson.scm.subversion.UpdateUpdater"/>
-  </scm>
+  <scm class="hudson.scm.NullSCM"/>
   <assignedNode>debbuild</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
