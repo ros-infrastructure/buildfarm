@@ -5,16 +5,8 @@ PACKAGE=@(PACKAGE)
 ROSDISTRO=@(ROSDISTRO)
 SHORT_PACKAGE_NAME=@(SHORT_PACKAGE_NAME)
 
-if [ -e $WORKSPACE/buildfarm ]
-then
-  rm -rf $WORKSPACE/buildfarm
-fi
 
-git clone git://github.com/ros-infrastructure/buildfarm.git $WORKSPACE/buildfarm -b master --depth 1
-
-
-
-cd $WORKSPACE/buildfarm 
+cd $WORKSPACE/monitored_vcs
 . setup.sh
 
 
@@ -22,4 +14,4 @@ cd $WORKSPACE/buildfarm
 rm -rf $WORKSPACE/output
 rm -rf $WORKSPACE/workspace
 
-$WORKSPACE/buildfarm/scripts/generate_sourcedeb $RELEASE_URI $PACKAGE $ROSDISTRO $SHORT_PACKAGE_NAME --working $WORKSPACE/workspace --output $WORKSPACE/output --repo-fqdn $FQDN 
+$WORKSPACE/monitored_vcs/scripts/generate_sourcedeb $RELEASE_URI $PACKAGE $ROSDISTRO $SHORT_PACKAGE_NAME --working $WORKSPACE/workspace --output $WORKSPACE/output --repo-fqdn $FQDN 

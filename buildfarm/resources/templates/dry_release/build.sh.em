@@ -20,15 +20,7 @@ echo $ARCH
 
 
 
-# Get latest buildfarm repo
-if [ -e $WORKSPACE/buildfarm ]
-then
-  rm -rf $WORKSPACE/buildfarm
-fi
-
-git clone git://github.com/ros-infrastructure/buildfarm.git $WORKSPACE/buildfarm -b master --depth 1
-
-cd $WORKSPACE/buildfarm
+cd $WORKSPACE/monitored_vcs
 . setup.sh
 
 
