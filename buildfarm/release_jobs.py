@@ -14,7 +14,7 @@ import yaml
 import datetime
 from rospkg.distro import load_distro, distro_uri
 
-from ros_distro import debianize_package_name
+from ros_distro import debianize_package_name, get_index_url
 
 from . import repo, jenkins_support
 
@@ -335,6 +335,7 @@ def dry_binarydeb_jobs(stackname, dry_maintainers, rosdistro, distros, arches, f
 def binarydeb_jobs(package, maintainer_emails, distros, arches, apt_target_repository, fqdn, jobgraph, timeout=None):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
     d = dict(
+        ROSDISTRO_INDEX_URL=get_index_url(),
         DISTROS=distros,
         APT_TARGET_REPOSITORY=apt_target_repository,
         FQDN=fqdn,
@@ -360,6 +361,7 @@ def binarydeb_jobs(package, maintainer_emails, distros, arches, apt_target_repos
 def sourcedeb_job(package, maintainer_emails, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name, timeout=None):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
     d = dict(
+        ROSDISTRO_INDEX_URL=get_index_url(),
         RELEASE_URI=release_uri,
         RELEASE_BRANCH='master',
         FQDN=fqdn,
