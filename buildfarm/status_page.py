@@ -3,169 +3,14 @@
 from __future__ import print_function
 
 import csv
-import os
-import logging
 import re
 import time
-import urllib2
-import yaml
 
-import apt
-import apt_pkg
 import numpy as np
 
-import buildfarm.apt_root
-from buildfarm.ros_distro import debianize_package_name,\
-    undebianize_package_name
-from rospkg.distro import distro_uri
+from buildfarm.ros_distro import debianize_package_name
 
 version_rx = re.compile(r'[0-9.-]+[0-9]')
-
-
-class PackageVersion(object):
-    """
-    A class to store package versions.
-    """
-    def __init__(self, name, rosdistro):
-        self._name = name
-        self.debian_name = debianize_package_name(rosdistro, name)
-        self._versions = {}
-
-    def add_version(self, repo, distro_arch, version_string):
-        self._versions[(repo, distro_arch)] = version_string
-
-    def get_version(self, repo, distro_arch):
-        if (repo, distro_arch) in self._versions:
-            return self._versions[(repo, distro_arch)]
-        else:
-            return None
-
-    def _pp_struct_(self):
-        return {'name': self._name,
-                'debian_name': self.debian_name,
-                'versions': self._versions}
-
-
-class VersionCache(object):
-    def __init__(self, rosdistro):
-        self._cache = {}
-        self._rosdistro = rosdistro
-        self._bootstrap_from_rosdistro(rosdistro)
-        self._primary_arch = None  # fill with the first used arch
-
-    def add(self, name, repo, distro_arch, version_string):
-        if name not in self._cache:
-            self._cache[name] = PackageVersion(name, self._rosdistro)
-        self._cache[name].add_version(repo, distro_arch, version_string)
-
-    def get_version(self, name, repo, distro_arch):
-        if not name in self._cache:
-            return None
-        return self._cache[name].get_version(repo, distro_arch)
-
-    def list_debian_names(self):
-        return [p.debian_name for p in self._cache.values()]
-
-    def pprint(self):
-        import pprint
-        pp = pprint.PrettyPrinter()
-        for k, v in self._cache.items():
-            print("%s:" % (k))
-            pp.pprint(v._pp_struct_())
-
-    def _bootstrap_from_rosdistro(self, rosdistro):
-        if rosdistro == 'fuerte':
-            from buildfarm.ros_distro_fuerte import Rosdistro
-        else:
-            from buildfarm.ros_distro import Rosdistro
-        rd = Rosdistro(rosdistro)
-        for name in rd.get_package_list():
-            self.add(name, 'rosdistro', 'wet',
-                     rd.get_version(name, full_version=True))
-        if rosdistro not in ['fuerte', 'groovy', 'hydro', 'indigo']:
-            return
-        dry_yaml = yaml.load(urllib2.urlopen(distro_uri(rosdistro)))
-        for name, d in dry_yaml['stacks'].items():
-            if name == '_rules':
-                continue
-            self.add(name, 'rosdistro', 'dry', d.get('version'))
-        for variant in dry_yaml['variants']:
-            if len(variant) != 1:
-                logging.warn("Not length 1 dict in variant %s: skipping" % \
-                                 variant)
-                continue
-            name = variant.keys()[0]
-            self.add(name, 'rosdistro', 'variant', '1.0.0')
-
-    def fill_debian_versions(self, rootdir, repo, distro, arch):
-        """
-        Call this after populating the rosdistro names, and it will
-        try to fill in the debian versions.
-        """
-        distro_arch = "%s_%s" % (distro, arch)
-        if not self._primary_arch:
-            self._primary_arch = arch
-
-        logging.debug("building Cache")
-        aptcache = get_apt_cache(get_repo_cache_dir_name(rootdir,
-                                                         repo,
-                                                         distro_arch))
-        logging.debug("iterating cache length %d" % len(self._cache))
-
-        source_records = apt_pkg.SourceRecords()
-        for p in self._cache.values():
-            # only detect source for one arch
-            if self._primary_arch == arch:
-                self.add(p._name, repo, distro + "_source",
-                         detect_source_version(p.debian_name, source_records))
-
-            # look for binaries
-            if p.debian_name in aptcache:
-                apt_p = aptcache[p.debian_name]
-                version_obj = getattr(apt_p, 'candidate', None)
-                version = getattr(version_obj, 'version', None)
-                self.add(p._name, repo, distro_arch, version)
-
-    def get_distro_versions(self):
-        """
-        Return the list of rosdistro versions and distro type (dry, wet)
-        return np.array( ( name, version, wet == True), ... ])
-        """
-        output = []
-        for p in self._cache.values():
-            version = p.get_version('rosdistro', 'wet')
-            if version:
-                output.append((p._name, version, 'wet'))
-            version = p.get_version('rosdistro', 'variant')
-            if version:
-                output.append((p._name, version, 'variant'))
-            version = p.get_version('rosdistro', 'dry')
-            if version:
-                output.append((p._name, version, 'dry'))
-        return np.array(output)
-
-
-def get_repo_da_caches(rootdir, ros_repo_names, da_strs):
-    '''
-    Returns [(repo_name, da_str, cache_dir), ...]
-
-    For example, get_repo_da_caches('/tmp/ros_apt_caches', \
-                   ['ros', 'shadow-fixed'], ['quantal_i386'])
-    '''
-    return [(ros_repo_name, da_str,
-             get_repo_cache_dir_name(rootdir, ros_repo_name, da_str))
-            for ros_repo_name in ros_repo_names
-            for da_str in da_strs if not da_str.endswith('_source')]
-
-
-def get_apt_cache(dirname):
-    c = apt.Cache(rootdir=dirname)
-    c.open()
-    return c
-
-
-def get_ros_repo_names(ros_repos):
-    return ros_repos.keys()
 
 
 def get_da_strs(distro_arches):
@@ -189,7 +34,7 @@ def get_distro_arches(arches, rosdistro):
     return [(d, a) for d in distros for a in arches]
 
 
-def make_versions_table(version_cache, ros_pkgs_table, repo_name_da_to_pkgs,
+def make_versions_table(rd_data, apt_data,
                         da_strs, repo_names, rosdistro):
     '''
     Returns an in-memory table with all the information that will be displayed:
@@ -200,49 +45,82 @@ def make_versions_table(version_cache, ros_pkgs_table, repo_name_da_to_pkgs,
     right_columns = [(da_str, object) for da_str in da_strs]
     columns = left_columns + right_columns
 
-    debian_names = version_cache.list_debian_names()
+    distro_debian_names = [debianize_package_name(rosdistro, pkg.name) for pkg in  rd_data.packages.values()]
 
-    non_ros_pkg_names = set([])
-    ros_pkg_names = set(debian_names)
-    for pkgs in repo_name_da_to_pkgs.values():
-        pkg_names = set([pkg.name for pkg in pkgs])
-        non_ros_pkg_names |= pkg_names - ros_pkg_names
+    # prefixes of other ros distros
+    prefixes = ['ros-electric-', 'ros-fuerte-', 'ros-unstable-']
+    for distribution in rd_data.rosdistro_index.distributions:
+        prefixes.append('ros-%s-' % distribution)
+    rosdistro_prefix = 'ros-%s-' % rosdistro
+    if rosdistro_prefix in prefixes:
+        prefixes.remove(rosdistro_prefix)
 
-    table = np.empty(len(ros_pkgs_table) + len(non_ros_pkg_names),
+    non_distro_debian_names = []
+    for debian_name in apt_data.debian_packages:
+        skip = False
+        # skip packages from other ros distros
+        for prefix in prefixes:
+            if debian_name.startswith(prefix):
+                skip = True
+        if skip:
+            continue
+        # skip packages which are in the rosdistro
+        if debian_name in distro_debian_names:
+            continue
+        # skip packages without prefix of this ros distro
+        if not debian_name.startswith(rosdistro_prefix):
+            continue
+        non_distro_debian_names.append(debian_name)
+
+    table = np.empty(len(rd_data.packages) + len(non_distro_debian_names),
                      dtype=columns)
 
-    for i, (name, version, wet) in enumerate(ros_pkgs_table):
-        table['name'][i] = name
-        table['version'][i] = version
-        table['wet'][i] = wet
+    # add all packages coming from the distro (wet, dry, variant)
+    for i, pkg_data in enumerate(rd_data.packages.values()):
+        table['name'][i] = pkg_data.name
+        table['version'][i] = pkg_data.version
+        table['wet'][i] = pkg_data.type
         for da_str in da_strs:
-            table[da_str][i] = add_version_cell(version_cache,
-                                                name,
-                                                repo_names,
-                                                da_str)
+            debian_name = debianize_package_name(rosdistro, pkg_data.name)
+            versions = get_versions(apt_data, debian_name,
+                                    repo_names, da_str)
+            table[da_str][i] = add_version_cell(versions)
 
-    i = len(ros_pkgs_table)
-    for pkg_name in non_ros_pkg_names:
-        undebianized_pkg_name = undebianize_package_name(rosdistro, pkg_name)
-        table['name'][i] = undebianized_pkg_name
+    i = len(rd_data.packages)
+    for debian_name in non_distro_debian_names:
+        #undebianized_pkg_name = undebianize_package_name(rosdistro, pkg_name)
+        pkg_name = debian_name
+        if pkg_name.startswith(rosdistro_prefix):
+            pkg_name = pkg_name[len(rosdistro_prefix):]
+        table['name'][i] = pkg_name
         table['version'][i] = ''
         table['wet'][i] = 'unknown'
+        all_versions = []
         for da_str in da_strs:
-            table[da_str][i] = add_version_cell(version_cache,
-                                                undebianized_pkg_name,
-                                                repo_names, da_str)
+            versions = get_versions(apt_data, debian_name,
+                                    repo_names, da_str)
+            table[da_str][i] = add_version_cell(versions)
+            all_versions.extend(versions)
+        # if all version values are the same (or None) lets assume that is the expected version
+        unique_versions = set([v for v in all_versions if v != 'None'])
+        if len(unique_versions) == 1:
+            table['version'][i] = unique_versions.pop()
         i += 1
 
     return table
 
 
-def add_version_cell(version_cache, pkg_name, repo_names, da_str):
+def get_versions(apt_data, pkg_name, repo_names, da_str):
     versions = []
     for repo_name in repo_names:
-        v = version_cache.get_version(pkg_name, repo_name, da_str)
+        v = apt_data.get_version(pkg_name, repo_name, da_str)
         v = str(v)
         v = strip_version_suffix(v)
         versions.append(v)
+    return versions
+
+
+def add_version_cell(versions):
     return '|'.join(versions)
 
 
@@ -283,49 +161,7 @@ def get_dist_arch_str(d, a):
     return "%s_%s" % (d, a)
 
 
-def get_repo_cache_dir_name(rootdir, ros_repo_name, dist_arch):
-    return os.path.join(rootdir, ros_repo_name, dist_arch)
-
-
-def build_repo_cache(dir_, ros_repo_name, ros_repo_url,
-                     distro, arch, update=True):
-    logging.debug('Setting up an apt directory at %s', dir_)
-    repo_dict = {ros_repo_name: ros_repo_url}
-    buildfarm.apt_root.setup_apt_rootdir(dir_, distro, arch,
-                                         additional_repos=repo_dict)
-    logging.info('Getting a list of packages for %s-%s', distro, arch)
-    cache = apt.Cache(rootdir=dir_)
-    cache.open()
-    if update:
-        cache.update()
-        # Have to open the cache again after updating.
-        cache.open()
-
-
-def get_pkgs_from_apt_cache(cache_dir, substring):
-    cache = apt.Cache(rootdir=cache_dir)
-    cache.open()
-    return [cache[name] for name in sorted(cache.keys()) if name.startswith(substring)]
-
-
-def build_version_cache(rootdir, rosdistro, distro_arches,
-                        ros_repos, update=True):
-    version_cache = VersionCache(rosdistro)
-    for repo in ros_repos:
-        for (d, a) in distro_arches:
-            da_str = "%s_%s" % (d, a)
-            build_repo_cache(get_repo_cache_dir_name(rootdir,
-                                                     repo, da_str),
-                             repo,
-                             ros_repos[repo],
-                             d, a, update)
-            logging.debug("Filling debian version for %s %s", repo, da_str)
-            version_cache.fill_debian_versions(rootdir, repo, d, a)
-
-    return version_cache
-
-
-def render_csv(version_cache, rootdir, outfile, rosdistro,
+def render_csv(rd_data, apt_data, outfile, rosdistro,
                distro_arches, ros_repos):
     distros = {}
 
@@ -338,20 +174,10 @@ def render_csv(version_cache, rootdir, outfile, rosdistro,
         for a in distros[d]:
             das.append((d, a))
     da_strs = get_da_strs(das)
-    ros_repo_names = get_ros_repo_names(ros_repos)
-    repo_da_caches = get_repo_da_caches(rootdir, ros_repo_names, da_strs)
-
-    ros_pkgs_table = version_cache.get_distro_versions()
-
-    # Get the version of each Debian package in each ROS apt repository.
-    repo_name_da_to_pkgs = {}
-    for repo_name, da_str, cache in repo_da_caches:
-        repo_name_da_to_pkgs[(repo_name, da_str)] = get_pkgs_from_apt_cache(cache, 'ros-%s-' % rosdistro)
 
     # Make an in-memory table showing the latest deb version for each package.
-    t = make_versions_table(version_cache,
-                            ros_pkgs_table,
-                            repo_name_da_to_pkgs,
+    t = make_versions_table(rd_data,
+                            apt_data,
                             da_strs,
                             ros_repos.keys(),
                             rosdistro)
@@ -442,7 +268,6 @@ def format_header_cell(cell, metadata):
 
 
 def format_row(row, metadata_columns):
-    latest_version = row[1]
     public_changing_on_sync = [False] * 3 + \
         [is_public_changing_on_sync(c) for c in row[3:]]
     # Flag if this is dry or a variant so as not to show sourcedebs as red
@@ -461,6 +286,8 @@ def format_row(row, metadata_columns):
         metadata = [None for _ in range(len(metadata))]
     job_urls = [md['job_url'].format(pkg=row[0].replace('_', '-')) \
                     if md else None for md in metadata]
+    # for unknown packages the latest version number is only a guess so don't mark missing cells
+    latest_version = row[1] if row[2] != 'unknown' else None
     # only pass no_source if this is a sourcedeb entry
     row = row[:3] + [format_versions_cell(row[i],
                                           latest_version,

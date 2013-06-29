@@ -7,8 +7,8 @@ import os
 import sys
 import time
 
-from buildfarm.status_page import build_version_cache,\
-    get_distro_arches, render_csv, transform_csv_to_html
+from buildfarm.apt_data import get_version_data
+from buildfarm.status_page import get_distro_arches, render_csv, transform_csv_to_html
 from rosdistro import get_cached_release, get_index, get_index_url
 
 
@@ -67,11 +67,11 @@ if __name__ == '__main__':
     csv_file = os.path.join(args.basedir, '%s.csv' % args.rosdistro)
     if not args.skip_csv:
         print('Assembling apt version cache')
-        version_cache = build_version_cache(args.basedir, args.rosdistro,
-                                            distro_arches, ros_repos,
-                                            update=not args.skip_fetch)
+        rd_data, apt_data = get_version_data(args.basedir, args.rosdistro,
+                                             ros_repos, distro_arches,
+                                             apt_update=not args.skip_fetch)
         print('Generating .csv file...')
-        render_csv(version_cache, args.basedir, csv_file, args.rosdistro,
+        render_csv(rd_data, apt_data, csv_file, args.rosdistro,
                    distro_arches, ros_repos)
     elif not os.path.exists(csv_file):
         print('.csv file "%s" is missing. Call script without "--skip-csv".' %\
