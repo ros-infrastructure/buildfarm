@@ -47,7 +47,8 @@ class RosdistroData(object):
     def __init__(self, rosdistro_name):
         self.packages = {}
         from buildfarm.ros_distro import Rosdistro
-        rd = Rosdistro(rosdistro_name)
+        # for fuerte we still fetch the new groovy rosdistro to get a list of distros
+        rd = Rosdistro(rosdistro_name if rosdistro_name != 'fuerte' else 'groovy')
         self.rosdistro_index = rd._index
 
         # load wet rosdistro packages
