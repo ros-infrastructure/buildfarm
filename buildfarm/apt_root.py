@@ -36,13 +36,9 @@ def setup_directories(rootdir):
     # create empty files needed
     files = ["var/lib/dpkg/status"]
     for f in files:
-        try:
-            open(os.path.join(rootdir, f), 'w').close()
-        except OSError, ex:
-            if ex.errno == 17:
-                continue
-            raise ex
-
+        fullname = os.path.join(rootdir, f)
+        if not os.path.exists(fullname):
+            open(fullname, 'w').close()
 
 
 def setup_conf(rootdir, target_dir, arch):
