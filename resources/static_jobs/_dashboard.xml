@@ -33,7 +33,12 @@ for (v in Jenkins.instance.views) {
   failure = 0
   aborted = 0
   not_built = 0
+  disabled = 0
   for (p in v.items) {
+    if (p.isDisabled()) {
+      disabled++
+      continue
+    }
     def lb = p.lastBuild
     if (lb) {
       def r = lb.result
@@ -74,9 +79,8 @@ for (v in Jenkins.instance.views) {
       not_built++
     }
   }
-  view_stat = ["count": v.items.size, "success": success, "unstable": unstable, "failure": failure, "aborted": aborted, "not_built": not_built]
-  //println(v.viewName + ": " + view_stat)
-  if (v.items.size != success + unstable + failure + aborted + not_built) {
+  view_stat = ["count": v.items.size, "success": success, "unstable": unstable, "failure": failure, "aborted": aborted, "not_built": not_built, "disabled": disabled]
+  if (v.items.size != success + unstable + failure + aborted + not_built + disabled) {
     assert false
   }
   view_stats[v.viewName] = view_stat
@@ -112,7 +116,7 @@ max_count_length = Math.max(max_count_length, count_label.length())
 
 // table header
 println("")
-columns = ["success", "unstable", "failure", "aborted", "not_built"]
+columns = ["success", "unstable", "failure", "aborted", "not_built", "disabled"]
 // first columns is: view_max_length + 2 whitespaces
 print(" " * view_max_length + "  ")
 // second columns is: 2 whitespaces + max_count_length + 2 whitespaces
