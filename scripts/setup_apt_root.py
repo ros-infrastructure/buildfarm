@@ -41,7 +41,7 @@ def doit():
 
     buildfarm.apt_root.setup_apt_rootdir(args.rootdir, args.distro, args.architecture, mirror=args.mirror, additional_repos=ros_repos)
     if args.local_conf:
-        buildfarm.apt_root.setup_conf(args.rootdir, args.local_conf)
+        buildfarm.apt_root.setup_conf(args.rootdir, args.local_conf, arch=args.architecture)
 
 
 if __name__ == "__main__":

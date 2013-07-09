@@ -33,12 +33,20 @@ def setup_directories(rootdir):
                 continue
             raise ex
 
+    # create empty files needed
+    files = ["var/lib/dpkg/status"]
+    for f in files:
+        fullname = os.path.join(rootdir, f)
+        if not os.path.exists(fullname):
+            open(fullname, 'w').close()
 
-def setup_conf(rootdir, target_dir):
+
+def setup_conf(rootdir, target_dir, arch):
     """ Set the apt.conf config settings for the specific
     architecture. """
 
-    d = {'rootdir': rootdir}
+    d = {'rootdir': rootdir,
+         'arch': arch}
     with open(os.path.join(target_dir, "apt.conf"), 'w') as apt_conf:
         template = resource_string('buildfarm',
                                    'resources/templates/apt.conf.em')
