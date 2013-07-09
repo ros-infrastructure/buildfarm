@@ -40,48 +40,46 @@ for (v in Jenkins.instance.views) {
       continue
     }
     def lb = p.lastBuild
-    if (lb) {
-      def r = lb.result
-      if (!r) {
-        def pb = lb.previousBuild
-        if (pb) {
-          r = pb.result
-        } else {
-          // no finished build yet
-          not_built++
-          continue
-        }
-      }
-      if (r) {
-        if (r == Result.SUCCESS) {
-          success++
-        } else if (r == Result.UNSTABLE) {
-          unstable++
-        } else if (r == Result.FAILURE) {
-          failure++
-        } else if (r == Result.ABORTED) {
-          aborted++
-        } else if (r == Result.NOT_BUILT) {
-          // this should never happen for the result of a build
-          assert false
-        } else {
-          // unknown result value
-          println("View " + v.viewName + " job " + p.name + " has unknown result: " + r)
-          assert false
-        }
-      } else {
-        // if only one build of each job is ongoing at the same time
-        println("View " + v.viewName + " job " + p.name + " has no result")
-        assert false
-      }
-    } else {
+    if (!lb) {
       // job has never been built
       not_built++
+      continue
+    }
+    def r = lb.result
+    if (!r) {
+      def pb = lb.previousBuild
+      if (!pb) {
+        // no finished build yet
+        not_built++
+        continue
+      }
+      r = pb.result
+    }
+    if (!r) {
+      // if only one build of each job is ongoing at the same time
+      println("View " + v.viewName + " job " + p.name + " has no result")
+      assert false
+    }
+    if (r == Result.SUCCESS) {
+      success++
+    } else if (r == Result.UNSTABLE) {
+      unstable++
+    } else if (r == Result.FAILURE) {
+      failure++
+    } else if (r == Result.ABORTED) {
+      aborted++
+    } else if (r == Result.NOT_BUILT) {
+      // this should never happen for the result of a build
+      assert false
+    } else {
+      // unknown result value
+      println("View '" + v.viewName + "'' job '" + p.name + "'' has unknown result: " + r)
+      assert false
     }
   }
   view_stat = ["count": v.items.size, "success": success, "unstable": unstable, "failure": failure, "aborted": aborted, "not_built": not_built, "disabled": disabled]
   if (v.items.size != success + unstable + failure + aborted + not_built + disabled) {
-    assert false
+    assert false, "View '" + v.viewName + "' has inconsistent stats: " + v.items.size + " != " + success + " + " + unstable + " + " + failure + " + " + aborted + " + " + not_built + " + " + disabled
   }
   view_stats[v.viewName] = view_stat
 }
