@@ -33,6 +33,17 @@ def setup_directories(rootdir):
                 continue
             raise ex
 
+    # create empty files needed
+    files = ["var/lib/dpkg/status"]
+    for f in files:
+        try:
+            open(os.path.join(rootdir, f), 'w').close()
+        except OSError, ex:
+            if ex.errno == 17:
+                continue
+            raise ex
+
+
 
 def setup_conf(rootdir, target_dir):
     """ Set the apt.conf config settings for the specific
