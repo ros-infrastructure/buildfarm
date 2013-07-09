@@ -45,11 +45,12 @@ def setup_directories(rootdir):
 
 
 
-def setup_conf(rootdir, target_dir):
+def setup_conf(rootdir, target_dir, arch):
     """ Set the apt.conf config settings for the specific
     architecture. """
 
-    d = {'rootdir': rootdir}
+    d = {'rootdir': rootdir,
+         'arch': arch}
     with open(os.path.join(target_dir, "apt.conf"), 'w') as apt_conf:
         template = resource_string('buildfarm',
                                    'resources/templates/apt.conf.em')
