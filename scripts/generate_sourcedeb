@@ -77,12 +77,6 @@ def build_source_deb(repo_path, tag, output):
     call(repo_path, ['ls', output])
 
 
-def remove_upstream_source(distro, repo_fqdn, repo_path, package):
-    # clear existing debs if they exits
-    cmd = ['ssh', 'rosbuild@%(repo_fqdn)s' %locals(), '--',"( flock 200; /usr/bin/reprepro -b %(repo_path)s --ignore=emptyfilenamepart -V -T dsc removefilter %(distro)s \"Package (== %(package)s ) \" ) 200>%(repo_path)s/lock" %locals()]
-    call('/tmp/', cmd)
-
-
 def upload_source_deb(distro, repo_fqdn, repo_path, upload_source, packagename):
     upload_dir = "/tmp/upload/%s_%s" % (packagename, distro)
     # clear the upload directory to make sure that there are not old files lying around 
@@ -150,9 +144,6 @@ if __name__ == "__main__":
                 continue
 
             print(os.listdir(output_dir))
-
-            # remove upstream so it doesn't error if we're downgrading
-            #remove_upstream_source(d, args.repo_fqdn, args.repo_path, args.package_name)
 
             upload_source_deb(d, args.repo_fqdn, args.repo_path,
                               output_dir,
