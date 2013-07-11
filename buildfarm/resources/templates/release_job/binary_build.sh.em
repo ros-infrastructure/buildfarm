@@ -41,7 +41,7 @@ cd $CHECKOUT_DIR
 . setup.sh
 
 # monitor all subprocess and enforce termination, sleep to give python time to startup
-sudo python subprocess_reaper.py $$ &
+sudo python $CHECKOUT_DIR/scripts/subprocess_reaper.py $$ &
 sleep 1
 
 #setup the cross platform apt environment
