@@ -671,11 +671,11 @@ def gen_metapkgs(distro, os_platform, arch, staging_dir, repo_fqdn, force=False)
             missing.append(v)
 
     # We should always need to build the special "all" metapackage
-    mp = create_meta_pkg(packagelist, distro, distro_name, "all", set(distro.released_stacks.keys()) - missing_ok, os_platform, arch, staging_dir, wet_distro)
-    if mp:
-        debs.append(mp)
-    else:
-        missing.append('all')
+    #mp = create_meta_pkg(packagelist, distro, distro_name, "all", set(distro.released_stacks.keys()) - missing_ok, os_platform, arch, staging_dir, wet_distro)
+    #if mp:
+    #    debs.append(mp)
+    #else:
+    #    missing.append('all')
 
     upload_binary_debs(debs, distro_name, os_platform, arch, repo_fqdn)
 
