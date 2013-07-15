@@ -79,7 +79,7 @@ source ./setup.sh
   </builders>
   <publishers>
     <hudson.tasks.BuildTrigger>
-      <childProjects>_hydro-trigger-missing-all</childProjects>
+      <childProjects>_hydro-trigger-missing-all,_hydro-trigger-broken-with-non-broken-upstream</childProjects>
       <threshold>
         <name>SUCCESS</name>
         <ordinal>0</ordinal>

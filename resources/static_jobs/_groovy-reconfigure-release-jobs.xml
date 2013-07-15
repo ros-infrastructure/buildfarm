@@ -79,7 +79,7 @@ source ./setup.sh
   </builders>
   <publishers>
     <hudson.tasks.BuildTrigger>
-      <childProjects>_disable_non_precise_groovy_debbuilds,_groovy-trigger-missing-all</childProjects>
+      <childProjects>_groovy-trigger-missing-all,_groovy-trigger-broken-with-non-broken-upstream</childProjects>
       <threshold>
         <name>SUCCESS</name>
         <ordinal>0</ordinal>
