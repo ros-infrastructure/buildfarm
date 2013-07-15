@@ -159,14 +159,19 @@ println ""
 // CHECK FOR VARIOUS REASONS TO RETRIGGER JOB
 // also triggered when a build step has failed
 import hudson.model.Cause
+import org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildAction
 
 def reschedule_build(msg) {
 	pb = manager.build.getPreviousBuild()
 	if (pb) {
-		pba = pb.getBadgeActions()
-		if (pba.size() > 0) {
-			manager.addInfoBadge("Log contains '" + msg + "' - skip rescheduling new build since this was already a rescheduled build")
-			return
+		ba = pb.getBadgeActions()
+		for (b in ba) {
+			if (b instanceof GroovyPostbuildAction) {
+				if (b.getText().contains(msg)) {
+					manager.addInfoBadge("Log contains '" + msg + "' - skip rescheduling new build since previous build contains the same badge")
+					return
+				}
+			}
 		}
 	}
 	manager.addInfoBadge("Log contains '" + msg + "' - scheduled new build...")
