@@ -36,7 +36,7 @@ def main(argv=None):
     children = []
     while proc.is_running():
         children = get_recursive_children(proc)
-        time.sleep(0.25)
+        time.sleep(10)
 
     # remove myself from list of children
     children = [c for c in children if c.pid != mypid]
@@ -54,7 +54,7 @@ def main(argv=None):
             except psutil.NoSuchProcess:
                 print('- %i (already terminated)' % c.pid)
 
-        # wait until all process are no longer running or until timeout has elapsed
+        # wait until all processes are no longer running or until timeout has elapsed
         # giving the processes time to handle the TERM signal
         children = wait_for_processes(children, 30.0)
 
