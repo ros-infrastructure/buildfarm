@@ -96,6 +96,8 @@ if (manager.logContains(".*W: Failed to fetch .* Hash Sum mismatch.*")) {
 	reschedule_build("cannot download default sources list")
 } else if (manager.logContains(".*ERROR: Not all sources were able to be updated.*")) {
 	reschedule_build("Not all sources were able to be updated")
+} else if (manager.logContains(".*hudson.plugins.git.GitException: Could not clone.*")) {
+  reschedule_build("Could not clone")
 }
 </groovyScript>
       <behavior>0</behavior>

@@ -61,6 +61,36 @@
     </hudson.tasks.Shell>
   </builders>
   <publishers>
+    <org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder plugin="groovy-postbuild@@1.8">
+      <groovyScript>
+// CHECK FOR VARIOUS REASONS TO RETRIGGER JOB
+// also triggered when a build step has failed
+import hudson.model.Cause
+import org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildAction
+
+def reschedule_build(msg) {
+  pb = manager.build.getPreviousBuild()
+  if (pb) {
+    ba = pb.getBadgeActions()
+    for (b in ba) {
+      if (b instanceof GroovyPostbuildAction) {
+        if (b.getText().contains(msg)) {
+          manager.addInfoBadge("Log contains '" + msg + "' - skip rescheduling new build since previous build contains the same badge")
+          return
+        }
+      }
+    }
+  }
+  manager.addInfoBadge("Log contains '" + msg + "' - scheduled new build...")
+  manager.build.project.scheduleBuild(new Cause.UserIdCause())
+}
+
+if (manager.logContains(".*hudson.plugins.git.GitException: Could not clone.*")) {
+  reschedule_build("Could not clone")
+}
+</groovyScript>
+      <behavior>0</behavior>
+    </org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder>
     <hudson.tasks.BuildTrigger>
       <childProjects>@(','.join(CHILD_PROJECTS))</childProjects>
       <threshold>
