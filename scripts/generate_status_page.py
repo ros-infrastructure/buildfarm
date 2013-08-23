@@ -11,6 +11,8 @@ from buildfarm.apt_data import get_version_data
 from buildfarm.status_page import get_distro_arches, render_csv, transform_csv_to_html
 from rosdistro import get_cached_release, get_index, get_index_url
 
+JENKINS_HOST='http://jenkins.ros.org'
+
 
 def parse_options(args=sys.argv[1:]):
     p = argparse.ArgumentParser(description='Generate the HTML page'
@@ -104,7 +106,7 @@ if __name__ == '__main__':
             column_label = '{rosdistro_short}bin{distro_short}{arch_short}'
             view_name = '{rosdistro_short}bin{distro_short}{arch_short}'
         data['column_label'] = column_label.format(**data)
-        data['view_url'] = 'http://jenkins.willowgarage.com:8080/view/%s/' % \
+        data['view_url'] = JENKINS_HOST + '/view/%s/' % \
             view_name.format(**data)
 
         if is_source:
