@@ -174,7 +174,7 @@ def compute_missing_depends(stack_name, distro, os_platform, arch, repo=SHADOW_R
 def get_missing(distro, os_platform, arch, repo=SHADOW_REPO, lock_version=True):
     distro_name = distro.release_name
     # Load the list of exclusions
-    excludes_uri = "https://code.ros.org/svn/release/trunk/distros/%s.excludes"%(distro_name)
+    excludes_uri = "http://ros-dry-releases.googlecode.com/svn/trunk/distros/%s.excludes"%(distro_name)
     excludes = ExclusionList(excludes_uri, distro_name, os_platform, arch)
 
     # Find all the deps in the distro for this stack

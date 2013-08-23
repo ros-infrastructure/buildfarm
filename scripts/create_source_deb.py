@@ -49,7 +49,7 @@ import rosdeb.targets
 from rosdeb.rosutil import checkout_svn_to_tmp, send_email
 
 NAME = 'create_source_deb.py' 
-TARBALL_URL = "https://code.ros.org/svn/release/download/stacks/%(stack_name)s/%(base_name)s/%(f_name)s"
+TARBALL_URL = "https://ros-dry-releases.googlecode.com/svn/download/stacks/%(stack_name)s/%(base_name)s/%(f_name)s"
 
 def download_tarball(stack_name, stack_version, staging_dir):
     import urllib
