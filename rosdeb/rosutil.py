@@ -33,6 +33,28 @@
 # Revision $Id: rosutil.py 16945 2012-08-31 16:45:33Z tfoote $
 # $Author: tfoote $
 
+import os
+import subprocess
+import tempfile
+
+
+def checkout_svn_to_tmp(name, uri):
+    """
+    Checkout an SVN tree to the tmp dir.
+
+    Utility routine -- need to replace with vcs
+
+    @return: temporary directory that contains checkout of SVN tree in
+    directory 'name'. temporary directory will be a subdirectory of
+    OS-provided temporary space.
+    @rtype: str
+    """
+    tmp_dir = tempfile.mkdtemp()
+    dest = os.path.join(tmp_dir, name)
+    print 'Checking out a fresh copy of %s from %s to %s...'%(name, uri, dest)
+    subprocess.check_call(['svn', 'co', uri, dest])
+    return tmp_dir
+
 def send_email(smtp_server, from_addr, to_addrs, subject, text):
     import smtplib
     from email.mime.text import MIMEText

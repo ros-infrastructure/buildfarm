@@ -47,8 +47,8 @@
         <ignoreExternalsOption>false</ignoreExternalsOption>
       </hudson.scm.SubversionSCM_-ModuleLocation>
       <hudson.scm.SubversionSCM_-ModuleLocation>
-        <remote>https://code.ros.org/svn/ros/stacks/ros_release/trunk</remote>
-        <local>ros_release</local>
+        <remote>https://github.com/ros-infrastructure/buildfarm</remote>
+        <local>buildfarm</local>
         <depthOption>infinity</depthOption>
         <ignoreExternalsOption>false</ignoreExternalsOption>
       </hudson.scm.SubversionSCM_-ModuleLocation>
@@ -76,15 +76,9 @@
 echo $STACK_NAME
 echo $STACK_VERSION
 
-sudo apt-get install -y fakeroot debhelper
-cat &gt; $WORKSPACE/build.bash &lt;&lt; DELIM
-source /opt/ros/cturtle/setup.sh
-export ROS_PACKAGE_PATH=$WORKSPACE/ros_release:$WORKSPACE/release:$ROS_PACKAGE_PATH
+export PYTHONPATH=$WORKSPACE/buildfarm
 
-rosrun rosdeb create_source_deb.py $DISTRO_NAME $STACK_NAME $STACK_VERSION $OS_PLATFORM --hudson
-DELIM
-
-bash $WORKSPACE/build.bash</command>
+export PYTHONPATH=$WORKSPACE/buildfarm/scripts/create_source_deb.py $DISTRO_NAME $STACK_NAME $STACK_VERSION $OS_PLATFORM --hudson</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
