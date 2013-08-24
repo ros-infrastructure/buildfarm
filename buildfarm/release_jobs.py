@@ -147,7 +147,7 @@ def _remove_leafs_recursively(deps):
 
 # dry dependencies
 def dry_get_stack_info(stackname, version):
-    y = urllib.urlopen('https://code.ros.org/svn/release/download/stacks/%(stackname)s/%(stackname)s-%(version)s/%(stackname)s-%(version)s.yaml' % locals())
+    y = urllib.urlopen('http://ros-dry-releases.googlecode.com/svn/download/stacks/%(stackname)s/%(stackname)s-%(version)s/%(stackname)s-%(version)s.yaml' % locals())
     return yaml.load(y.read())
 
 
