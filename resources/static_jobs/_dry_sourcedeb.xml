@@ -78,7 +78,7 @@ echo $STACK_VERSION
 
 export PYTHONPATH=$WORKSPACE/buildfarm
 
-export PYTHONPATH=$WORKSPACE/buildfarm/scripts/create_source_deb.py $DISTRO_NAME $STACK_NAME $STACK_VERSION $OS_PLATFORM --hudson</command>
+export PYTHONPATH=$WORKSPACE/buildfarm/scripts/create_source_deb.py $DISTRO_NAME $STACK_NAME $STACK_VERSION $OS_PLATFORM</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
