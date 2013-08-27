@@ -63,7 +63,8 @@ class RosdistroData(object):
 
         # load dry rosdistro stacks
         dry_yaml = yaml.load(urllib2.urlopen(distro_uri(rosdistro_name)))
-        for stack_name, d in dry_yaml['stacks'].items():
+        stacks = dry_yaml['stacks'] or {}
+        for stack_name, d in stacks.items():
             if stack_name == '_rules':
                 continue
             version = d.get('version')
@@ -74,7 +75,8 @@ class RosdistroData(object):
                 self.packages[stack_name] = RosdistroVersion(stack_name, 'dry', version)
 
         # load variants
-        for variant in dry_yaml['variants']:
+        variants = dry_yaml['variants'] or {}
+        for variant in variants:
             if len(variant) != 1:
                 logging.warn("Not length 1 dict in variant '%s': skipping" % variant)
                 continue
