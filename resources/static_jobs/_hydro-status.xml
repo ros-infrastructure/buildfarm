@@ -74,7 +74,7 @@ set -o errexit
 export PYTHONPATH=$WORKSPACE/monitored_vcs
 $WORKSPACE/monitored_vcs/scripts/generate_status_page.py hydro --basedir $WORKSPACE/hydro_apt_cache
 
-scp -o StrictHostKeyChecking=no $WORKSPACE/hydro_apt_cache/hydro.* wgs32:/var/www/www.ros.org/html/debbuild/</command>
+scp -o StrictHostKeyChecking=no $WORKSPACE/hydro_apt_cache/hydro.* rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
