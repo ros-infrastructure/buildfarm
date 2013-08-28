@@ -38,8 +38,8 @@ rosdistro_build_cache $INDEX_URL --debug
 
 ROS_DISTROS=`python -c "import rosdistro; print(' '.join(rosdistro.get_index(rosdistro.get_index_url()).distributions.keys()))"`
 for ROS_DISTRO in $ROS_DISTROS; do
-  #scp -o StrictHostKeyChecking=no -qr `pwd`/$ROS_DISTRO-cache.yaml rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
-  scp -o StrictHostKeyChecking=no -qr `pwd`/$ROS_DISTRO-cache.yaml.gz rosbuild@wgs32:/var/www/www.ros.org/html/rosdistro/
+  #scp -o StrictHostKeyChecking=no -qr `pwd`/$ROS_DISTRO-cache.yaml rosbot@ros.osuosl.org:/var/www/www.ros.org/rosdistro/
+  scp -o StrictHostKeyChecking=no -qr `pwd`/$ROS_DISTRO-cache.yaml.gz rosbot@ros.osuosl.org:/var/www/www.ros.org/rosdistro/
 done</command>
     </hudson.tasks.Shell>
   </builders>
