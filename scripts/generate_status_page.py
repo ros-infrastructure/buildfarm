@@ -24,6 +24,8 @@ def parse_options(args=sys.argv[1:]):
                    help='Skip fetching the apt data.')
     p.add_argument('--skip-csv', action='store_true',
                    help='Skip generating .csv file.')
+    p.add_argument('--resources', default='.',
+                   help='Path to resources (e.g. css and js files).')
     p.add_argument('rosdistro', default='groovy',
                    help='The ROS distro to generate the status page'
                    ' for (i.e. groovy).')
@@ -126,8 +128,8 @@ if __name__ == '__main__':
 
     print('Transforming .csv into .html file...')
     with open(csv_file, 'r') as f:
-        html = transform_csv_to_html(f, metadata_builder,
-                                     args.rosdistro, start_time, cached_release)
+        html = transform_csv_to_html(f, metadata_builder, args.rosdistro,
+                                     start_time, args.resources, cached_release)
     html_file = os.path.join(args.basedir, '%s.html' % args.rosdistro)
     with open(html_file, 'w') as f:
         f.write(html.encode('utf8'))

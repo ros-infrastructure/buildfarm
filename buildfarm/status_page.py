@@ -191,14 +191,14 @@ def render_csv(rd_data, apt_data, outfile, rosdistro,
 
 
 def transform_csv_to_html(data_source, metadata_builder,
-                          rosdistro, start_time, cached_release=None):
+                          rosdistro, start_time, resource_path, cached_release=None):
     reader = csv.reader(data_source, delimiter=',', quotechar='"')
     rows = [row for row in reader]
 
     header = rows[0]
     rows = rows[1:]
 
-    html_head = make_html_head(rosdistro, start_time, cached_release is not None)
+    html_head = make_html_head(rosdistro, start_time, resource_path, cached_release is not None)
 
     metadata_columns = [None] * 3 + [metadata_builder(c) for c in header[3:]]
     header = [format_header_cell(header[i],
@@ -364,7 +364,7 @@ def make_square_div(label, color, order_value):
         (color, label, order_value)
 
 
-def make_html_head(rosdistro, start_time, has_status_and_maintainer=False):
+def make_html_head(rosdistro, start_time, resource_path, has_status_and_maintainer=False):
     rosdistro = rosdistro[0].upper() + rosdistro[1:]
     # Some of the code here is taken from a datatables example.
     return '''
@@ -372,9 +372,9 @@ def make_html_head(rosdistro, start_time, has_status_and_maintainer=False):
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 
 <style type="text/css" media="screen">
-    @import "jquery/jquery-ui-1.9.2.custom.min.css";
-    @import "jquery/jquery.dataTables_themeroller.css";
-    @import "jquery/TableTools_JUI.css";
+    @import "%s/jquery/jquery-ui-1.9.2.custom.min.css";
+    @import "%s/jquery/jquery.dataTables_themeroller.css";
+    @import "%s/jquery/TableTools_JUI.css";
 
     body, div, dl, dt, dd, input, th, td { margin:0; padding:0; }
     table { border-collapse:collapse; border-spacing:0; }
@@ -423,11 +423,11 @@ def make_html_head(rosdistro, start_time, has_status_and_maintainer=False):
     .tooltip p {  margin: 0; padding: 0; color: #fff; background-color: #222; padding: 2px 7px; }
 </style>
 
-<script type="text/javascript" src="jquery/jquery-1.8.3.min.js"></script>
-<script type="text/javascript" src="jquery/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="jquery/jquery.dataTables.columnFilter.js"></script>
-<script type="text/javascript" src="jquery/FixedHeader.min.js"></script>
-<script type="text/javascript" src="jquery/TableTools.min.js"></script>
+<script type="text/javascript" src="%s/jquery/jquery-1.8.3.min.js"></script>
+<script type="text/javascript" src="%s/jquery/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="%s/jquery/jquery.dataTables.columnFilter.js"></script>
+<script type="text/javascript" src="%s/jquery/FixedHeader.min.js"></script>
+<script type="text/javascript" src="%s/jquery/TableTools.min.js"></script>
 
 <script type="text/javascript" charset="utf-8">
     /* <![CDATA[ */
@@ -508,7 +508,9 @@ def make_html_head(rosdistro, start_time, has_status_and_maintainer=False):
     } );
     /* ]]> */
 </script>
-''' % (rosdistro, time.strftime('%Y-%m-%d %H:%M:%S %Z', start_time), '{ type: "select",  values: ["--", "developed", "maintained", "unmaintained", "end-of-life", "unknown"] }, { type: "text" },' if has_status_and_maintainer else '')
+''' % (rosdistro, time.strftime('%Y-%m-%d %H:%M:%S %Z', start_time),
+        resource_path, resource_path, resource_path, resource_path, resource_path, resource_path, resource_path, resource_path,
+        '{ type: "select",  values: ["--", "developed", "maintained", "unmaintained", "end-of-life", "unknown"] }, { type: "text" },' if has_status_and_maintainer else '')
 
 
 def make_html_legend():
