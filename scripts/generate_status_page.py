@@ -28,13 +28,13 @@ def parse_options(args=sys.argv[1:]):
                    help='The ROS distro to generate the status page'
                    ' for (i.e. groovy).')
     p.add_argument('--build-repo',
-          default='http://50.28.27.175/repos/building',
+          default='http://repos.ros.org/repos/building',
           help='Repository URL for the build farm repository.')
     p.add_argument('--shadow-repo',
-          default='http://packages.ros.org/ros-shadow-fixed/ubuntu/',
+          default='http://repos.ros.org/repos/ros-shadow-fixed/ubuntu/',
           help='Repository URL for the staging repository.')
     p.add_argument('--public-repo',
-          default='http://packages.ros.org/ros/ubuntu/',
+          default='http://repos.ros.org/repos/ros/ubuntu/',
           help='Repository URL for the public repository.')
     p.add_argument('--distros',
           nargs='+',
