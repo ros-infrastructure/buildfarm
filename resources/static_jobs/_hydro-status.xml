@@ -72,9 +72,12 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
 set -o errexit
 
 export PYTHONPATH=$WORKSPACE/monitored_vcs
-$WORKSPACE/monitored_vcs/scripts/generate_status_page.py hydro --basedir $WORKSPACE/hydro_apt_cache
 
-scp -o StrictHostKeyChecking=no $WORKSPACE/hydro_apt_cache/hydro.* rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/</command>
+$WORKSPACE/monitored_vcs/scripts/generate_status_page.py hydro --basedir $WORKSPACE/hydro_apt_cache
+scp -o StrictHostKeyChecking=no $WORKSPACE/hydro_apt_cache/hydro.* rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/
+
+$WORKSPACE/monitored_vcs/scripts/generate_status_page.py hydro --basedir $WORKSPACE/hydro_mirror_apt_cache --resources .. --shadow-repo http://packages.ros.org/ros-shadow-fixed/ubuntu/ --public-repo http://packages.ros.org/ros/ubuntu/
+scp -o StrictHostKeyChecking=no $WORKSPACE/hydro_mirror_apt_cache/hydro.* rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/mirror/</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
