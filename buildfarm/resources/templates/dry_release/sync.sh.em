@@ -31,4 +31,4 @@ ssh rosbuild@@repos.ros.org -- PYTHONPATH=/home/rosbuild/reprepro_updater/src py
 
 @[end if]
 
-ssh rosbuild@repos.ros.org -- bash /home/rosbuild/push_keys/push_fixed.bash
+ssh rosbuild@@repos.ros.org -- bash /home/rosbuild/push_keys/push_fixed.bash
