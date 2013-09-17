@@ -77,17 +77,24 @@ def build_source_deb(repo_path, tag, output):
     call(repo_path, ['ls', output])
 
 
-def upload_source_deb(distro, repo_fqdn, repo_path, upload_source, packagename):
-    upload_dir = "/tmp/upload/%s_%s" % (packagename, distro)
-    # clear the upload directory to make sure that there are not old files lying around 
-    cmd = ("ssh rosbuild@%s -- rm -rf %s" % (repo_fqdn, upload_dir)).split()
-    call('/tmp/', cmd)
-    cmd = ("ssh rosbuild@%s -- mkdir -p %s" % (repo_fqdn, upload_dir)).split()
-    call('/tmp/', cmd)
-    cmd = ("scp -r %s rosbuild@%s:%s" % (upload_source, repo_fqdn, upload_dir)).split()
-    call('/tmp/', cmd)
+def upload_source_deb(distros, repo_fqdn, repo_path, input_directory, packagename):
+    upload_root = "/tmp/upload/%s" % packagename
 
-    cmd = ("ssh rosbuild@%(repo_fqdn)s -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -d %(distro)s -a source -f %(upload_dir)s/%(distro)s -p %(packagename)s -c --delete --invalidate" % locals()).split()
+    # clear the upload directory to make sure that there are not old files lying around 
+    cmd = ("ssh rosbuild@%s -- rm -rf %s" % (repo_fqdn, upload_root)).split()
+    call('/tmp/', cmd)
+    cmd = ("ssh rosbuild@%s -- mkdir -p %s" % (repo_fqdn, upload_root)).split()
+    call('/tmp/', cmd)    
+
+    # Copy up the data
+    for distro in distros:
+        upload_source = os.path.join(input_directory, distro)
+        cmd = ("scp -r %s rosbuild@%s:%s" % (upload_source, repo_fqdn, upload_root)).split()
+        call('/tmp/', cmd)
+
+    # list all the folders where data is expected in one operation
+    folder_options = ' '.join(['-f %s' % os.path.join(upload_root, distro) for distro in distros])
+    cmd = ("ssh rosbuild@%(repo_fqdn)s -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -d %(distro)s -a source %(folder_options)s -p %(packagename)s -c --delete --invalidate" % locals()).split()
     call('/tmp/', cmd)
 
 
@@ -137,23 +144,19 @@ if __name__ == "__main__":
             report_failure = True
             continue
 
-        try:
+    try:
 
-            if args.noupload:
-                print("Noupload argument passed, skipping upload of %s" % output_dir)
-                continue
-
-            print(os.listdir(output_dir))
-
-            upload_source_deb(d, args.repo_fqdn, args.repo_path,
-                              output_dir,
+        if args.noupload:
+            print("Noupload argument passed, skipping upload of %s" % args.output)
+        else:
+            upload_source_deb(rd.get_target_distros(), args.repo_fqdn, args.repo_path,
+                              args.output,
                               args.package_name
                               )
             print("Succeeded uploading for distro %s." % (d))
-        except CalledProcessError, ex:
-            print("Failed uploading for distro %s: %s" % (d, ex))
-            report_failure = True
-            continue
+    except CalledProcessError, ex:
+        print("Failed uploading for distro %s: %s" % (d, ex))
+        report_failure = True
 
     if report_failure:
         print("Errors have occurred in the source build see above. ")
