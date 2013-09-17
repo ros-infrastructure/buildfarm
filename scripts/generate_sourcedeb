@@ -94,7 +94,7 @@ def upload_source_deb(distros, repo_fqdn, repo_path, input_directory, packagenam
 
     # list all the folders where data is expected in one operation
     folder_options = ' '.join(['-f %s' % os.path.join(upload_root, distro) for distro in distros])
-    cmd = ("ssh rosbuild@%(repo_fqdn)s -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -d %(distro)s -a source %(folder_options)s -p %(packagename)s -c --delete --invalidate" % locals()).split()
+    cmd = ("ssh rosbuild@%(repo_fqdn)s -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -a source %(folder_options)s -p %(packagename)s -c --delete --invalidate" % locals()).split()
     call('/tmp/', cmd)
 
 
