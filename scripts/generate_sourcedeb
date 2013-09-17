@@ -93,7 +93,7 @@ def upload_source_deb(distros, repo_fqdn, repo_path, input_directory, packagenam
         call('/tmp/', cmd)
 
     folder_options = ' '.join(['-f %s' % (upload_root % (packagename, distro)) for distro in distros])
-    cmd = ("ssh rogsbuild@%(repo_fqdn)s -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -d %(distro)s -a source %(folder_options)s -p %(packagename)s -c --delete --invalidate" % locals()).split()
+    cmd = ("ssh rosbuild@%(repo_fqdn)s -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -d %(distro)s -a source %(folder_options)s -p %(packagename)s -c --delete --invalidate" % locals()).split()
     call('/tmp/', cmd)
 
 
