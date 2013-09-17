@@ -79,20 +79,20 @@ def build_source_deb(repo_path, tag, output):
 
 def upload_source_deb(distros, repo_fqdn, repo_path, input_directory, packagename):
 
-    upload_root = "/tmp/upload/%s_%s"
+    upload_root = "/tmp/upload/%s" % packagename
+
+    # clear the upload directory to make sure that there are not old files lying around 
+    cmd = ("ssh rosbuild@%s -- rm -rf %s" % (repo_fqdn, upload_root)).split()
+    call('/tmp/', cmd)
+    cmd = ("ssh rosbuild@%s -- mkdir -p %s" % (repo_fqdn, upload_root)).split()
+    call('/tmp/', cmd)    
 
     for distro in distros:
-        upload_dir = upload_root % (packagename, distro)
         upload_source = os.path.join(input_directory, distro)
-        # clear the upload directory to make sure that there are not old files lying around 
-        cmd = ("ssh rosbuild@%s -- rm -rf %s" % (repo_fqdn, upload_dir)).split()
-        call('/tmp/', cmd)
-        cmd = ("ssh rosbuild@%s -- mkdir -p %s" % (repo_fqdn, upload_dir)).split()
-        call('/tmp/', cmd)
-        cmd = ("scp -r %s rosbuild@%s:%s" % (upload_source, repo_fqdn, upload_dir)).split()
+        cmd = ("scp -r %s rosbuild@%s:%s" % (upload_source, repo_fqdn, upload_root)).split()
         call('/tmp/', cmd)
 
-    folder_options = ' '.join(['-f %s' % (upload_root % (packagename, distro)) for distro in distros])
+    folder_options = ' '.join(['-f %s' % os.path.join(upload_root, distro) for distro in distros])
     cmd = ("ssh rosbuild@%(repo_fqdn)s -- PYTHONPATH=/home/rosbuild/reprepro_updater/src python /home/rosbuild/reprepro_updater/scripts/include_folder.py -d %(distro)s -a source %(folder_options)s -p %(packagename)s -c --delete --invalidate" % locals()).split()
     call('/tmp/', cmd)
 
