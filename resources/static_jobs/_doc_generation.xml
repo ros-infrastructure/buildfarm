@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Generate the documentation of distro independent ROS tools and REPs.&#xd;
+&#xd;
+Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>180</daysToKeep>
+    <numToKeep>100</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.queueSorter.PrioritySorterJobProperty plugin="PrioritySorter@1.3">
+      <priority>40</priority>
+    </hudson.queueSorter.PrioritySorterJobProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>debbuild</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>0 3 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>REPOS="https://github.com/ros-infrastructure/jenkins_tools.git
+https://github.com/ros-infrastructure/rep.git
+https://github.com/ros-infrastructure/rosdep.git
+https://github.com/ros-infrastructure/rosdistro.git
+https://github.com/ros-infrastructure/rospkg.git
+https://github.com/vcstools/rosinstall.git
+https://github.com/vcstools/vcstools.git"
+
+DOC_DIR="$WORKSPACE/documentation_gen"
+
+rm -rf $DOC_DIR
+mkdir $DOC_DIR
+cd $DOC_DIR
+
+for r in $REPOS
+do
+  git clone $r
+done
+
+DIRS="`find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \;`"
+export PYTHONPATH=""
+
+for d in $DIRS
+do
+  export PYTHONPATH=$DOC_DIR/$d/src:$PYTHONPATH
+done
+
+echo "PTYHON PATH IS: $PYTHONPATH"
+
+for d in $DIRS
+do
+  echo "DOCUMENTING $d"
+  cd $d/doc
+  make upload
+  cd ../../
+  echo "--------------------------------"
+done
+
+rm -rf $DOC_DIR</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@1.5">
+      <recipients>ros-buildfarm-status@googlegroups.com</recipients>
+      <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
+  <buildWrappers/>
+</project>
