@@ -214,6 +214,9 @@ def transform_csv_to_html(data_source, metadata_builder,
                 if versions[j] != 'None':
                     counts[i][j] += 1
 
+    def get_package_name_from_row(row):
+        return row[0]
+    rows = sorted(rows, key=get_package_name_from_row)
     rows = [format_row(r, metadata_columns) for r in rows]
     if cached_release:
         inject_status_and_maintainer(cached_release, header, counts, rows)
