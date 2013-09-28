@@ -505,6 +505,15 @@ def make_html_head(rosdistro, start_time, resource_path, has_status_and_maintain
                 search_wait++;
             }, search_wait_delay);
         });
+
+        // query via url
+        var url_vars = {};
+        window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
+            url_vars[key] = value;
+        });
+        if ('q' in url_vars) {
+            oTable.fnFilter(url_vars['q'])
+        }
     } );
     /* ]]> */
 </script>
