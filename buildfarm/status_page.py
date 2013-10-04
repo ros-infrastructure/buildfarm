@@ -299,8 +299,15 @@ def format_row(row, metadata_columns):
                                           no_source and i % 3 == 0) \
                          for i in range(3, len(row))]
     if has_diff_between_rosdistros:
-        row[0] += ' <span class="hiddentext">diff</span>'
+        row[0] += ' <span class="ht">diff</span>'
 
+    type_texts = {
+       'wet': 'wet',
+       'dry': 'dry',
+       'unknown': '?',
+       'variant': "var"
+    }
+    row[2] = type_texts[row[2]]
     return row
 
 
@@ -331,7 +338,7 @@ def format_versions_cell(cell, latest_version, url=None,
                         for v, r, s in zip(versions, repos, search_suffixes)])
 
     if public_changing_on_sync:
-        cell += '<span class="hiddentext">sync</span>'
+        cell += '<span class="ht">sync</span>'
 
     return cell
 
@@ -340,20 +347,22 @@ def format_version(version, latest, repo, search_suffix,
                    public_version, url=None):
     label = '%s: %s' % (repo, version)
     if latest:
-        color = {'None': 'pkgMissing',
-                 latest: 'pkgLatest'}.get(version, 'pkgOutdated')
+        color = {'None': 'm',
+                 latest: ''}.get(version, 'o')
         # use reasonable names (even if invisible) to be searchable
         order_value = {'None': '5&nbsp;red',
                        latest: '1&nbsp;green'}.get(version, '3&nbsp;blue')
     else:
-        color = {'None': 'pkgIgnore'}.get(version, 'pkgObsolete')
+        color = {'None': 'i'}.get(version, 'obs')
         # use reasonable names (even if invisible) to be searchable
         order_value = {'None': '2&nbsp;gray'}.get(version, '4&nbsp;yellow')
     order_value += search_suffix
     if repo != 'ros/public' and is_regression(version, public_version):
         order_value += '&nbsp;regression' + search_suffix
     if url:
-        order_value = '<a href="%s">%s</a>' % (url, order_value)
+        order_value = '<a href="%s"></a>' % (url) #, order_value)
+    else:
+        order_value = ''
     return make_square_div(label, color, order_value)
 
 
@@ -363,9 +372,10 @@ def is_regression(version, public_version):
 
 
 def make_square_div(label, color, order_value):
-    return '<div class="square %s" title="%s">%s</div>' % \
-        (color, label, order_value)
-
+    if color == '': 
+        return '<b title="%s">%s</b>' % (label, order_value)
+    else:
+        return '<b class="%s" title="%s">%s</b>' % (color, label, order_value)
 
 def make_html_head(rosdistro, start_time, resource_path, has_status_and_maintainer=False):
     rosdistro = rosdistro[0].upper() + rosdistro[1:]
@@ -404,14 +414,29 @@ def make_html_head(rosdistro, start_time, resource_path, has_status_and_maintain
     .end-of-life { color: #f07878; }
     .unknown { color: #c8c8c8; }
 
-    .square { border: 1px solid gray; display: inline-block; font-size: 0px; height: 15px; margin-right: 4px; width: 15px; }
-    .square a { display: block; }
-    .pkgLatest { background: #a2d39c; }
-    .pkgMissing { background: #f07878; }
-    .pkgOutdated { background: #7ea7d8; }
-    .pkgIgnore { background: #c8c8c8; }
-    .pkgObsolete { background: #f0f078; }
-    .hiddentext { color: transparent; font-size: 0px; }
+    td b { border: 1px solid gray; display: inline-block; font-size: 0px; height: 15px; margin-right: 4px; width: 15px; position: relative; }
+    td b a { display: block; position: absolute; top: 0; left: 0; width: 100%%; height: 100%%; }
+    td b { background: #a2d39c; }
+    td b.m { background: #f07878; }
+    td b.o { background: #7ea7d8; }
+    td b.i { background: #c8c8c8; }
+    td b.obs { background: #f0f078; }
+    td .ht { display: none; }
+
+    tbody tr { background-color: #fff; }
+    tbody tr:nth-child(odd) { background-color: #E2E4FF; }
+    tbody tr td:nth-child(n+6) {
+        white-space: nowrap;
+        padding: 0 2px;
+    }
+    tbody tr td:nth-child(-n+5) {
+        padding: 3px 4px;
+    }
+    tbody tr td:nth-child(1) {
+        overflow: hidden;
+    }
+
+    tfoot { font-size: 50%%; }
 
     table.dataTable thead th div.DataTables_sort_wrapper span.sum { position: inherit; }
     table.DTTT_selectable tbody tr { cursor: inherit; }
@@ -450,7 +475,7 @@ def make_html_head(rosdistro, start_time, resource_path, has_status_and_maintain
         });
     }
 
-    $(document).ready(function() {
+    /*$(document).ready(function() {
         var oTable = $('#csv_table').dataTable( {
             "bJQueryUI": true,
             "bPaginate": false,
@@ -517,7 +542,7 @@ def make_html_head(rosdistro, start_time, resource_path, has_status_and_maintain
         if ('q' in url_vars) {
             oTable.fnFilter(url_vars['q'])
         }
-    } );
+    }*/ );
     /* ]]> */
 </script>
 ''' % (rosdistro, time.strftime('%Y-%m-%d %H:%M:%S %Z', start_time),
@@ -530,11 +555,11 @@ def make_html_legend():
         ('wet', '<a href="http://ros.org/wiki/catkin">catkin</a>'),
         ('dry', '<a href="http://ros.org/wiki/rosbuild">rosbuild</a>'),
         ('<span class="square">1</span>&nbsp;<span class="square">2</span>&nbsp;<span class="square">3</span>', 'The apt repos (1) building, (2) shadow-fixed, (3) ros/public'),
-        ('<span class="square pkgLatest">&nbsp;</span>', 'same version'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgOutdated">&nbsp;</span>', 'different version'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgMissing">&nbsp;</span>', 'missing'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgObsolete">&nbsp;</span>', 'obsolete'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgIgnore">&nbsp;</span>', 'intentionally missing'.replace(' ', '&nbsp;'))
+        ('<span class="square pkgLatest">&nbsp;</span>', 'same version'),
+        ('<span class="square pkgOutdated">&nbsp;</span>', 'different version'),
+        ('<span class="square pkgMissing">&nbsp;</span>', 'missing'),
+        ('<span class="square pkgObsolete">&nbsp;</span>', 'obsolete'),
+        ('<span class="square pkgIgnore">&nbsp;</span>', 'intentionally missing')
     ]
     definitions = ['<li><b>%s:</b>&nbsp;%s</li>' % (k, v) for (k, v) in definitions]
     return '''\
@@ -557,7 +582,7 @@ def make_html_table(columns, counts, rows):
     for i in range(len(columns)):
         headers.append('%s<br/>%s' % (columns[i], ''.join(['<span class="sum repo%s">%d</span>' % (i + 1, v) for i, v in enumerate(counts[i])])))
     header_str = '<tr>' + ''.join('<th>%s</th>' % c for c in headers) + '</tr>'
-    rows_str = '\n'.join('<tr>' + ' '.join('<td>%s</td>' % c for c in r) + '</tr>' for r in rows)
+    rows_str = '\n'.join('<tr>' + ''.join('<td>%s</td>' % c for c in r) + '</tr>' for r in rows)
     footer_str = '<tr>' + ''.join('<th>%s</th>' % (c if i != 2 else '') for i, c in enumerate(columns)) + '</tr>'
     return '''\
 <table class="display" id="csv_table">
