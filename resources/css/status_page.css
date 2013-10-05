@@ -3,27 +3,44 @@ table { border-collapse:collapse; border-spacing:0; }
 th { text-align: left }
 
 html, body { color: #111; font: 100%/1.45em "Lucida Grande", Verdana, Arial, Helvetica, sans-serif; margin: 0; padding: 0; }
-table { font-size: 0.8em; }
 
 a { text-decoration: none; color: #4e6ca3; }
 a:hover { text-decoration: underline; }
 
 dl { font-size: 80%; list-style: none; margin: 0; padding: 0.5em; }
 dl dt, dl dd { float: left; margin-right: 1.75em; }
-/*li .square { width: 20px; height: 20px; font-size:100%%; text-align: center; }
-*/
-.developed { color: #a2d39c; }
-.maintained { color: #a2d39c; }
-.unmaintained { color: #f0f078; }
-.end-of-life { color: #f07878; }
-.unknown { color: #c8c8c8; }
+
+/* Styles for the non-scrolling table header. */
+table.fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  
+}
+table {
+  font-size: 0.8em;
+  position: relative;
+}
+table thead { visibility: hidden; }
+table thead.floating {
+  visibility: visible;
+  position: absolute;
+  top: 0; left: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid gray;
+  text-indent: 3px;
+}
+table thead.fixed {
+  position: fixed;
+}
 
 tbody tr td:nth-child(n+6) a {
   border: 1px solid gray;
   display: inline-block; 
-  font-size: 0px;
   height: 15px; width: 15px;
   margin-right: 4px;
+  margin-top: 6px;
+  text-indent: -2000em;
 }
 tbody tr td:nth-child(n+6) a { background: #a2d39c; }
 tbody tr td:nth-child(n+6) a.m { background: #f07878; }
@@ -57,10 +74,17 @@ tbody tr td:nth-child(5) a {
 
 @media (min-width: 1380px) {
   tbody tr td:nth-child(1) div { width: 300px; }
-  tbody tr td:nth-child(5) a { width: 240px; padding-left: 10px; }
+  tbody tr td:nth-child(4) { padding-right: 20px; }
+  tbody tr td:nth-child(5) a { width: 240px; }
 }
 
-tfoot { font-size: 50%%; }
+tfoot { font-sizde: 50%; }
+
+.developed { color: #a2d39c; }
+.maintained { color: #a2d39c; }
+.unmaintained { color: #f0f078; }
+.end-of-life { color: #f07878; }
+.unknown { color: #c8c8c8; }
 
 .sum {
   display: inline-block;
@@ -74,6 +98,3 @@ tfoot { font-size: 50%%; }
 .filter_column input { width: 55px; }
 th:first-child .filter_column input { width: 150px; }
 .search_init { color: gray; }
-
-.tooltip { position: absolute; z-index: 999; left: -9999px; border: 1px solid #111; width: 260px; }
-.tooltip p {  margin: 0; padding: 0; color: #fff; background-color: #222; padding: 2px 7px; }

@@ -3,13 +3,66 @@
 });  */
 
 window.tbody_ready = function() {
-  $('tbody').on('mouseover', 'tr td:nth-child(n+6) a', function(e) {
-      $(this).attr('title', 'foo');
+  var table = $('table');
+
+  /* This mouseover handler wires up the tooltip and CI url in a JIT manner
+   * when the mouse hovers on a version square. Critically important is that 
+   * there's only instance of this handler: on the tbody. 
+   * This is the "live" event pattern. */
+  $('tbody', table).on('mouseover', 'tr td:nth-child(n+6) a', function(e) {
+    var a = $(this);
+    var repo = ''
+    if (a.is("td a:nth-child(1)")) repo = repos[0];
+    if (a.is("td a:nth-child(2)")) repo = repos[1];
+    if (a.is("td a:nth-child(3)")) repo = repos[2];
+    var ver = a.text();
+    if (!ver) ver = $('td:nth-child(2)', a.closest('tr')).text();
+    a.attr('title', repo + ': ' + ver);
+    a.attr('href', 'http://google.ca');
+  });
+
+  var orig_header = $('thead', table);
+  var header = orig_header.clone();
+  header.addClass('floating');
+  $('table').prepend(header);
+  $('th', header).each(function() {
+    $(this).append($('<div class="spacer"></div>'));
+  });
+  $(window).on('resize', function() {
+    $('th', header).each(function(i, el) {
+      $('.spacer', this).css('width', $('tr th:nth-child(' + (i+1) + ')', orig_header).width());
+    });
+  });
+  setTimeout(function() {
+  $(window).trigger('resize');
+  },0);
+
+  $(window).on('scroll', function() {
+    if ($(window).scrollTop() > table.position().top) {
+      // Fixed thead
+      header.addClass('fixed');
+      header.css('left', -Math.max(window.scrollX, 0));
+    } else {
+      // Floating thead
+      header.removeClass('fixed');
+    }
   });
 };
 
-$('document').ready(function() {
-});
+
+/*j$('document').ready(function() {
+  $('th', fixed_thead).each(function(i, el) {
+    var spacer_div = $('<div class="spacer"></div>');
+    $(this).append(spacer_div);
+  });
+  $("body").append(fixed_thead); 
+  $(window).on('resize', function() {
+    $('th', fixed_thead).each(function(i, el) {
+      $('.spacer', this).css('width', $('body table:not(.fixed) thead tr th:nth-child(' + (i+1) + ')').width());
+    });
+  });
+  $(window).trigger('resize');
+});*/
 
 
 /* <![CDATA[ */

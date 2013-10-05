@@ -13,7 +13,7 @@ import numpy as np
 from buildfarm.ros_distro import debianize_package_name
 
 version_rx = re.compile(r'[0-9.-]+[0-9]')
-
+REPOS = ['building', 'shadow-fixed', 'ros/public']
 
 def get_da_strs(distro_arches):
     distros = set()
@@ -237,6 +237,8 @@ def transform_csv_to_html(data_source, metadata_builder,
         ('<a class="square ign">&nbsp;</a>', 'intentionally missing')
     ]  
 
+    repos = REPOS
+
     output = StringIO()
     try:
         interpreter = em.Interpreter(output=output)
@@ -345,7 +347,6 @@ def format_versions_cell(cell, latest_version, url=None,
                          public_changing_on_sync=False,
                          no_source=False):
     versions = get_cell_versions(cell)
-    repos = ['building', 'shadow-fixed', 'ros/public']
     search_suffixes = ['1', '2', '3']
     # set the latest_version to None if no package expected
     if no_source:
@@ -356,7 +357,7 @@ def format_versions_cell(cell, latest_version, url=None,
                                    s,
                                    versions[-1],
                                    url if r == 'building' else None)\
-                        for v, r, s in zip(versions, repos, search_suffixes)])
+                        for v, r, s in zip(versions, REPOS, search_suffixes)])
 
     if public_changing_on_sync:
         cell += '<span class="ht">sync</span>'
@@ -366,7 +367,6 @@ def format_versions_cell(cell, latest_version, url=None,
 
 def format_version(version, latest, repo, search_suffix,
                    public_version, url=None):
-    label = '%s: %s' % (repo, version)
     if latest:
         color = {'None': 'm',
                  latest: ''}.get(version, 'o')
@@ -384,7 +384,7 @@ def format_version(version, latest, repo, search_suffix,
         order_value = '<a href="%s"></a>' % (url) #, order_value)
     else:
         order_value = ''
-    return make_square_div(label, color, order_value)
+    return make_square_div(version, color, order_value)
 
 
 def is_regression(version, public_version):
@@ -395,9 +395,10 @@ def is_regression(version, public_version):
 def make_square_div(label, color, order_value):
     #order_value = '<a></a>'
     if color == '': 
-        return '<a title="%s" />' % label
+        #return '<a>%s</a>' % label
+        return '<a/>'
     else:
-        return '<a class="%s" title="%s" />' % (color, label)
+        return '<a class="%s">%s</a>' % (color, label)
 
 
 # '{ type: "select",  values: ["--", "developed", "maintained", "unmaintained", "end-of-life", "unknown"] }, { type: "text" },' if has_status_and_maintainer else '')

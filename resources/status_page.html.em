@@ -6,6 +6,9 @@
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 
   <script type="text/javascript" src="js/zepto.min.js"></script>
+  <script type="text/javascript">
+    window.repos = @(repr(repos));
+  </script>
   <script type="text/javascript" src="js/setup.js"></script>
 
   <link rel="stylesheet" href="css/status_page.css" />
