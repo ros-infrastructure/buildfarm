@@ -133,7 +133,7 @@ if __name__ == '__main__':
                                      start_time, template_file, cached_release)
     html_file = os.path.join(args.basedir, '%s.html' % args.rosdistro)
     with open(html_file, 'w') as f:
-        f.write(html.encode('utf8'))
+        f.write(html) #.encode('utf8'))
 
     print('Symlinking js and css...')
     for res in ['js', 'css']:

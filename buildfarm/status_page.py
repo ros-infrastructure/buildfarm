@@ -5,8 +5,13 @@ from __future__ import print_function
 import csv
 import re
 import time
-import em
 from StringIO import StringIO
+
+# Monkey-patching over some unicode bugs in empy.
+import em
+em.str = unicode
+em.Stream.write_old = em.Stream.write
+em.Stream.write = lambda self, data: em.Stream.write_old(self, data.encode('utf8'))
 
 import numpy as np
 

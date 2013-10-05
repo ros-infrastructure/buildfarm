@@ -18,9 +18,15 @@ window.tbody_ready = function() {
     var ver = a.text();
     if (!ver) ver = $('td:nth-child(2)', a.closest('tr')).text();
     a.attr('title', repo + ': ' + ver);
-    a.attr('href', 'http://google.ca');
+    if (repo == repos[0]) {
+      // TODO: Actually build up this URL properly.
+      a.attr('href', 'http://jenkins.ros.org/view/HbinR32/job/ros-hydro-actionlib_binarydeb_raring_i386/');
+    }
   });
 
+  /* CSS makes the original header in the document invisible. We create a clone of that 
+   * to be the "real" header, with the dimensions copied to the clone, and the clone alternatiing
+   * between being position: absolute and position: fixed, depending on the scroll of the page. */ 
   var orig_header = $('thead', table);
   var header = orig_header.clone();
   header.addClass('floating');
@@ -34,7 +40,7 @@ window.tbody_ready = function() {
     });
   });
   setTimeout(function() {
-  $(window).trigger('resize');
+    $(window).trigger('resize');
   },0);
 
   $(window).on('scroll', function() {
