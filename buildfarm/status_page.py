@@ -5,6 +5,7 @@ from __future__ import print_function
 import csv
 import re
 import time
+from StringIO import StringIO
 
 import numpy as np
 
@@ -379,176 +380,24 @@ def make_square_div(label, color, order_value):
 
 def make_html_head(rosdistro, start_time, resource_path, has_status_and_maintainer=False):
     rosdistro = rosdistro[0].upper() + rosdistro[1:]
-    # Some of the code here is taken from a datatables example.
-    return '''
-<title>ROS %s - build status page - %s</title>
+    output = StringIO();
+
+    output.write('<title>ROS %s - build status page - %s</title>\n' % (rosdistro, time.strftime('%Y-%m-%d %H:%M:%S %Z', start_time)))
+    output.write('''
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 
-<style type="text/css" media="screen">
-    @import "%s/jquery/jquery-ui-1.9.2.custom.min.css";
-    @import "%s/jquery/jquery.dataTables_themeroller.css";
-    @import "%s/jquery/TableTools_JUI.css";
+<script type="text/javascript" src="jquery/jquery-1.8.3.min.js"></script>
+<script type="text/javascript" src="jquery/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="jquery/jquery.dataTables.columnFilter.js"></script>
+<script type="text/javascript" src="jquery/FixedHeader.min.js"></script>
+<script type="text/javascript" src="jquery/TableTools.min.js"></script>
 
-    body, div, dl, dt, dd, input, th, td { margin:0; padding:0; }
-    table { border-collapse:collapse; border-spacing:0; }
-    th { text-align: left }
+<link rel="stylesheet" href="css/status_page.css" />
+''')
 
-    html, body { color: #111; font: 100%%/1.45em "Lucida Grande", Verdana, Arial, Helvetica, sans-serif; margin: 0; padding: 0; }
+    # '{ type: "select",  values: ["--", "developed", "maintained", "unmaintained", "end-of-life", "unknown"] }, { type: "text" },' if has_status_and_maintainer else '')
 
-    a { text-decoration: none; color: #4e6ca3; }
-    a:hover { text-decoration: underline; }
-
-    ul { font-size: 80%%; list-style: none; margin: 0; padding: 0.5em; }
-    li { float: left; margin-right: 1.75em; }
-    li .square { width: 20px; height: 20px; font-size:100%%; text-align: center; }
-
-    table.display thead th, table.display td { font-size: 0.8em; }
-    .dataTables_info { padding-top: 0; }
-    .css_right { float: right; }
-    #example_wrapper .fg-toolbar { font-size: 0.8em }
-    #theme_links span { float: left; padding: 2px 10px; }
-
-    .developed { color: #a2d39c; }
-    .maintained { color: #a2d39c; }
-    .unmaintained { color: #f0f078; }
-    .end-of-life { color: #f07878; }
-    .unknown { color: #c8c8c8; }
-
-    td b { border: 1px solid gray; display: inline-block; font-size: 0px; height: 15px; margin-right: 4px; width: 15px; position: relative; }
-    td b a { display: block; position: absolute; top: 0; left: 0; width: 100%%; height: 100%%; }
-    td b { background: #a2d39c; }
-    td b.m { background: #f07878; }
-    td b.o { background: #7ea7d8; }
-    td b.i { background: #c8c8c8; }
-    td b.obs { background: #f0f078; }
-    td .ht { display: none; }
-
-    tbody tr { background-color: #fff; }
-    tbody tr:nth-child(odd) { background-color: #E2E4FF; }
-    tbody tr td:nth-child(n+6) {
-        white-space: nowrap;
-        padding: 0 2px;
-    }
-    tbody tr td:nth-child(-n+5) {
-        padding: 3px 4px;
-    }
-    tbody tr td:nth-child(1) {
-        overflow: hidden;
-    }
-
-    tfoot { font-size: 50%%; }
-
-    table.dataTable thead th div.DataTables_sort_wrapper span.sum { position: inherit; }
-    table.DTTT_selectable tbody tr { cursor: inherit; }
-    .sum { display: block; font-size: 0.8em; width: 55px; }
-    .repo2 {text-align: center; }
-    .repo3 {text-align: right; }
-    .filter_column input { width: 55px; }
-    th:first-child .filter_column input { width: 150px; }
-    .search_init { color: gray; }
-
-    .tooltip { position: absolute; z-index: 999; left: -9999px; border: 1px solid #111; width: 260px; }
-    .tooltip p {  margin: 0; padding: 0; color: #fff; background-color: #222; padding: 2px 7px; }
-</style>
-
-<script type="text/javascript" src="%s/jquery/jquery-1.8.3.min.js"></script>
-<script type="text/javascript" src="%s/jquery/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="%s/jquery/jquery.dataTables.columnFilter.js"></script>
-<script type="text/javascript" src="%s/jquery/FixedHeader.min.js"></script>
-<script type="text/javascript" src="%s/jquery/TableTools.min.js"></script>
-
-<script type="text/javascript" charset="utf-8">
-    /* <![CDATA[ */
-    function simple_tooltip(target_items, name) {
-        $(target_items).each(function(i){
-            $("body").append("<div class='" + name + "' id='" + name + i + "'><p>" + $(this).attr('title') + "</p></div>");
-            var my_tooltip = $("#" + name + i);
-            if ($(this).attr("title", "") != "") {
-                $(this).removeAttr("title").mouseover(function(){
-                    my_tooltip.css({opacity: 0.8, display: "none"}).fadeIn(200);
-                }).mousemove(function(kmouse) {
-                    my_tooltip.css({left: Math.min(kmouse.pageX + 15, $(window).width() - 260), top: kmouse.pageY + 15});
-                }).mouseout(function(){
-                    my_tooltip.fadeOut(200);
-                });
-            }
-        });
-    }
-
-    /*$(document).ready(function() {
-        var oTable = $('#csv_table').dataTable( {
-            "bJQueryUI": true,
-            "bPaginate": false,
-            "bStateSave": true,
-            "iCookieDuration": 60*60*24*7,
-            "sDom": 'T<"clear">lfrtip',
-            "oTableTools": {
-                "aButtons": [],
-                "sRowSelect": "multi"
-            },
-            "oLanguage": {
-                "sSearch": '<span id="search" title="Special keywords to search for: diff, sync, regression, green, blue, red, yellow, gray">Search:</span>'
-            }
-        } );
-        oTable.columnFilter( {
-            "aoColumns": [
-                { type: "text" },
-                { type: "text" },
-                { type: "select",  values: ['wet', 'dry', 'variant', 'unknown'] },
-                %s
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" }
-            ],
-            "bUseColVis": true
-        } );
-
-        new FixedHeader(oTable);
-
-        simple_tooltip("#search", "tooltip");
-
-        // modify search to only fire after some time of no input
-        var search_wait_delay = 200;
-        var search_wait = 0;
-        var search_wait_interval;
-        $('.dataTables_filter input')
-        .unbind('keypress keyup')
-        .bind('keypress keyup', function(e) {
-            var item = $(this);
-            search_wait = 0;
-            if (!search_wait_interval) search_wait_interval = setInterval(function() {
-                if (search_wait >= 3){
-                    clearInterval(search_wait_interval);
-                    search_wait_interval = '';
-                    searchTerm = $(item).val();
-                    oTable.fnFilter(searchTerm);
-                    search_wait = 0;
-                }
-                search_wait++;
-            }, search_wait_delay);
-        });
-
-        // query via url
-        var url_vars = {};
-        window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
-            url_vars[key] = value;
-        });
-        if ('q' in url_vars) {
-            oTable.fnFilter(url_vars['q'])
-        }
-    }*/ );
-    /* ]]> */
-</script>
-''' % (rosdistro, time.strftime('%Y-%m-%d %H:%M:%S %Z', start_time),
-        resource_path, resource_path, resource_path, resource_path, resource_path, resource_path, resource_path, resource_path,
-        '{ type: "select",  values: ["--", "developed", "maintained", "unmaintained", "end-of-life", "unknown"] }, { type: "text" },' if has_status_and_maintainer else '')
-
+    return output.getvalue()
 
 def make_html_legend():
     definitions = [

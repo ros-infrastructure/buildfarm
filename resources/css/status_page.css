@@ -1,0 +1,64 @@
+/*@import "jquery/jquery-ui-1.9.2.custom.min.css";
+@import "jquery/jquery.dataTables_themeroller.css";
+@import "jquery/TableTools_JUI.css";
+*/
+body, div, dl, dt, dd, input, th, td { margin:0; padding:0; }
+table { border-collapse:collapse; border-spacing:0; }
+th { text-align: left }
+
+html, body { color: #111; font: 100%%/1.45em "Lucida Grande", Verdana, Arial, Helvetica, sans-serif; margin: 0; padding: 0; }
+
+a { text-decoration: none; color: #4e6ca3; }
+a:hover { text-decoration: underline; }
+
+ul { font-size: 80%%; list-style: none; margin: 0; padding: 0.5em; }
+li { float: left; margin-right: 1.75em; }
+li .square { width: 20px; height: 20px; font-size:100%%; text-align: center; }
+
+table.display thead th, table.display td { font-size: 0.8em; }
+.dataTables_info { padding-top: 0; }
+.css_right { float: right; }
+#example_wrapper .fg-toolbar { font-size: 0.8em }
+#theme_links span { float: left; padding: 2px 10px; }
+
+.developed { color: #a2d39c; }
+.maintained { color: #a2d39c; }
+.unmaintained { color: #f0f078; }
+.end-of-life { color: #f07878; }
+.unknown { color: #c8c8c8; }
+
+td b { border: 1px solid gray; display: inline-block; font-size: 0px; height: 15px; margin-right: 4px; width: 15px; position: relative; }
+td b a { display: block; position: absolute; top: 0; left: 0; width: 100%%; height: 100%%; }
+td b { background: #a2d39c; }
+td b.m { background: #f07878; }
+td b.o { background: #7ea7d8; }
+td b.i { background: #c8c8c8; }
+td b.obs { background: #f0f078; }
+td .ht { display: none; }
+
+tbody tr { background-color: #fff; }
+tbody tr:nth-child(odd) { background-color: #E2E4FF; }
+tbody tr td:nth-child(n+6) {
+    white-space: nowrap;
+    padding: 0 2px;
+}
+tbody tr td:nth-child(-n+5) {
+    padding: 3px 4px;
+}
+tbody tr td:nth-child(1) {
+    overflow: hidden;
+}
+
+tfoot { font-size: 50%%; }
+
+table.dataTable thead th div.DataTables_sort_wrapper span.sum { position: inherit; }
+table.DTTT_selectable tbody tr { cursor: inherit; }
+.sum { display: block; font-size: 0.8em; width: 55px; }
+.repo2 {text-align: center; }
+.repo3 {text-align: right; }
+.filter_column input { width: 55px; }
+th:first-child .filter_column input { width: 150px; }
+.search_init { color: gray; }
+
+.tooltip { position: absolute; z-index: 999; left: -9999px; border: 1px solid #111; width: 260px; }
+.tooltip p {  margin: 0; padding: 0; color: #fff; background-color: #222; padding: 2px 7px; }

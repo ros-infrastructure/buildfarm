@@ -134,11 +134,12 @@ if __name__ == '__main__':
     with open(html_file, 'w') as f:
         f.write(html.encode('utf8'))
 
-    print('Symlinking jQuery resources...')
-    dst = os.path.join(args.basedir, 'jquery')
-    if not os.path.exists(dst):
-        src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                           'resources', 'jquery')
-        os.symlink(os.path.abspath(src), dst)
+    print('Symlinking js and css...')
+    for res in ['js', 'css']:
+        dst = os.path.join(args.basedir, res)
+        if not os.path.exists(dst):
+            src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                               'resources', res)
+            os.symlink(os.path.abspath(src), dst)
 
     print('Generated .html file "%s"' % html_file)
