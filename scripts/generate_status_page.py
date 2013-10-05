@@ -127,9 +127,10 @@ if __name__ == '__main__':
         cached_release = None
 
     print('Transforming .csv into .html file...')
+    template_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'resources', 'status_page.html.em')
     with open(csv_file, 'r') as f:
         html = transform_csv_to_html(f, metadata_builder, args.rosdistro,
-                                     start_time, args.resources, cached_release)
+                                     start_time, template_file, cached_release)
     html_file = os.path.join(args.basedir, '%s.html' % args.rosdistro)
     with open(html_file, 'w') as f:
         f.write(html.encode('utf8'))

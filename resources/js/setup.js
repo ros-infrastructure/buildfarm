@@ -1,5 +1,19 @@
-    /* <![CDATA[ */
-    function simple_tooltip(target_items, name) {
+/*$('html').on('mouseover', 'tbody tr td:nth-child(n+6) a', function(e) {
+  $(this).attr('title', 'foo');
+});  */
+
+window.tbody_ready = function() {
+  $('tbody').on('mouseover', 'tr td:nth-child(n+6) a', function(e) {
+      $(this).attr('title', 'foo');
+  });
+};
+
+$('document').ready(function() {
+});
+
+
+/* <![CDATA[ */
+    /*function simple_tooltip(target_items, name) {
         $(target_items).each(function(i){
             $("body").append("<div class='" + name + "' id='" + name + i + "'><p>" + $(this).attr('title') + "</p></div>");
             var my_tooltip = $("#" + name + i);
@@ -13,7 +27,7 @@
                 });
             }
         });
-    }
+    }*/
 
     /*$(document).ready(function() {
         var oTable = $('#csv_table').dataTable( {

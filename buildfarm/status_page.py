@@ -5,6 +5,7 @@ from __future__ import print_function
 import csv
 import re
 import time
+import em
 from StringIO import StringIO
 
 import numpy as np
@@ -192,44 +193,57 @@ def render_csv(rd_data, apt_data, outfile, rosdistro,
 
 
 def transform_csv_to_html(data_source, metadata_builder,
-                          rosdistro, start_time, resource_path, cached_release=None):
+                          rosdistro, start_time, template_file, cached_release=None):
     reader = csv.reader(data_source, delimiter=',', quotechar='"')
     rows = [row for row in reader]
 
-    header = rows[0]
+    headers = rows[0]
     rows = rows[1:]
 
-    html_head = make_html_head(rosdistro, start_time, resource_path, cached_release is not None)
-
-    metadata_columns = [None] * 3 + [metadata_builder(c) for c in header[3:]]
-    header = [format_header_cell(header[i],
+    metadata_columns = [None] * 3 + [metadata_builder(c) for c in headers[3:]]
+    headers = [format_header_cell(headers[i],
                                  metadata_columns[i]) \
-                  for i in range(len(header))]
+                  for i in range(len(headers))]
 
     # count non-None rows per (sub-)column
-    counts = [[]] * 3 + [[0] * 3 for _ in range(3, len(header))]
+    row_counts = [[]] * 3 + [[0] * 3 for _ in range(3, len(headers))]
     for row in rows:
-        for i in range(3, len(counts)):
+        for i in range(3, len(row_counts)):
             versions = get_cell_versions(row[i])
             for j in range(0, len(versions)):
                 if versions[j] != 'None':
-                    counts[i][j] += 1
+                    row_counts[i][j] += 1
 
     def get_package_name_from_row(row):
         return row[0]
     rows = sorted(rows, key=get_package_name_from_row)
     rows = [format_row(r, metadata_columns) for r in rows]
     if cached_release:
-        inject_status_and_maintainer(cached_release, header, counts, rows)
+        inject_status_and_maintainer(cached_release, headers, row_counts, rows)
 
     # div-wrap the first two cells for layout reasons.
     for row in rows:
         row[0] = "<div>%s</div>" % row[0]
         row[1] = "<div>%s</div>" % row[1]
-        
-    body = make_html_legend()
-    body += make_html_table(header, counts, rows)
-    return make_html_doc(html_head, body)
+
+    legend = [
+        ('wet', '<a href="http://ros.org/wiki/catkin">catkin</a>'),
+        ('dry', '<a href="http://ros.org/wiki/rosbuild">rosbuild</a>'),
+        ('<a class="square m">1</a> <a class="square">2</a>&nbsp;<a class="square">3</a>', 'The apt repos (1) building, (2) shadow-fixed, (3) ros/public'),
+        ('<a class="square">&nbsp;</a>', 'same version'),
+        ('<a class="square o">&nbsp;</a>', 'different version'),
+        ('<a class="square m">&nbsp;</a>', 'missing'),
+        ('<a class="square obs">&nbsp;</a>', 'obsolete'),
+        ('<a class="square ign">&nbsp;</a>', 'intentionally missing')
+    ]  
+
+    output = StringIO()
+    try:
+        interpreter = em.Interpreter(output=output)
+        interpreter.file(open(template_file), locals=locals())
+        return output.getvalue()
+    finally:
+        interpreter.shutdown()
 
 
 def inject_status_and_maintainer(cached_release, header, counts, rows):
@@ -385,85 +399,5 @@ def make_square_div(label, color, order_value):
     else:
         return '<a class="%s" title="%s" />' % (color, label)
 
-def make_html_head(rosdistro, start_time, resource_path, has_status_and_maintainer=False):
-    rosdistro = rosdistro[0].upper() + rosdistro[1:]
-    output = StringIO();
 
-    output.write('<title>ROS %s - build status page - %s</title>\n' % (rosdistro, time.strftime('%Y-%m-%d %H:%M:%S %Z', start_time)))
-    output.write('''
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-
-<script type="text/javascript" src="jquery/jquery-1.8.3.min.js"></script>
-<script type="text/javascript" src="jquery/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="jquery/jquery.dataTables.columnFilter.js"></script>
-<script type="text/javascript" src="jquery/FixedHeader.min.js"></script>
-<script type="text/javascript" src="jquery/TableTools.min.js"></script>
-
-<link rel="stylesheet" href="css/status_page.css" />
-''')
-
-    # '{ type: "select",  values: ["--", "developed", "maintained", "unmaintained", "end-of-life", "unknown"] }, { type: "text" },' if has_status_and_maintainer else '')
-
-    return output.getvalue()
-
-def make_html_legend():
-    definitions = [
-        ('wet', '<a href="http://ros.org/wiki/catkin">catkin</a>'),
-        ('dry', '<a href="http://ros.org/wiki/rosbuild">rosbuild</a>'),
-        ('<span class="square">1</span>&nbsp;<span class="square">2</span>&nbsp;<span class="square">3</span>', 'The apt repos (1) building, (2) shadow-fixed, (3) ros/public'),
-        ('<span class="square pkgLatest">&nbsp;</span>', 'same version'),
-        ('<span class="square pkgOutdated">&nbsp;</span>', 'different version'),
-        ('<span class="square pkgMissing">&nbsp;</span>', 'missing'),
-        ('<span class="square pkgObsolete">&nbsp;</span>', 'obsolete'),
-        ('<span class="square pkgIgnore">&nbsp;</span>', 'intentionally missing')
-    ]
-    definitions = ['<li><b>%s:</b>&nbsp;%s</li>' % (k, v) for (k, v) in definitions]
-    return '''\
-<ul>
-    %s
-</ul>
-''' % ('\n'.join(definitions))
-
-
-def make_html_table(columns, counts, rows):
-    '''
-    Returns a string containing an HTML-formatted table, given a header and some
-    rows.
-
-    >>> make_html_table(header=['a'], rows=[[1], [2]])
-    '<table>\\n<tr><th>a</th></tr>\\n<tr><td>1</td></tr>\\n<tr><td>2</td></tr>\\n</table>\\n'
-
-    '''
-    headers = []
-    for i in range(len(columns)):
-        headers.append('%s<br/>%s' % (columns[i], ''.join(['<span class="sum repo%s">%d</span>' % (i + 1, v) for i, v in enumerate(counts[i])])))
-    header_str = '<tr>' + ''.join('<th>%s</th>' % c for c in headers) + '</tr>'
-    rows_str = '\n'.join('<tr>' + ''.join('<td>%s</td>' % c for c in r) + '</tr>' for r in rows)
-    footer_str = '<tr>' + ''.join('<th>%s</th>' % (c if i != 2 else '') for i, c in enumerate(columns)) + '</tr>'
-    return '''\
-<table class="display" id="csv_table">
-    <thead>
-        %s
-    </thead>
-    <tfoot>
-        %s
-    </tfoot>
-    <tbody>
-        %s
-    </tbody>
-</table>
-''' % (header_str, footer_str, rows_str)
-
-
-def make_html_doc(head, body):
-    '''
-    Returns the contents of an HTML page, given a title and body.
-    '''
-    output = StringIO()
-    output.write('<!DOCTYPE html>\n')
-    output.write('<html>\n<head>\n')
-    output.write(head)
-    output.write('</head>\n<body>\n')
-    output.write(body)
-    output.write('</body>\n</html>\n')
-    return output.getvalue()
+# '{ type: "select",  values: ["--", "developed", "maintained", "unmaintained", "end-of-life", "unknown"] }, { type: "text" },' if has_status_and_maintainer else '')
