@@ -459,13 +459,11 @@ def make_html_doc(head, body):
     '''
     Returns the contents of an HTML page, given a title and body.
     '''
-    return '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-    <head>
-        %(head)s
-    </head>
-    <body>
-        %(body)s
-    </body>
-</html>
-''' % locals()
+    output = StringIO()
+    output.write('<!DOCTYPE html>\n')
+    output.write('<html>\n<head>\n')
+    output.write(head)
+    output.write('</head>\n<body>\n')
+    output.write(body)
+    output.write('</body>\n</html>\n')
+    return output.getvalue()
