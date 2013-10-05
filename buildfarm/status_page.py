@@ -221,9 +221,14 @@ def transform_csv_to_html(data_source, metadata_builder,
     rows = [format_row(r, metadata_columns) for r in rows]
     if cached_release:
         inject_status_and_maintainer(cached_release, header, counts, rows)
+
+    # div-wrap the first two cells for layout reasons.
+    for row in rows:
+        row[0] = "<div>%s</div>" % row[0]
+        row[1] = "<div>%s</div>" % row[1]
+        
     body = make_html_legend()
     body += make_html_table(header, counts, rows)
-
     return make_html_doc(html_head, body)
 
 
@@ -253,7 +258,7 @@ def inject_status_and_maintainer(cached_release, header, counts, rows):
             if pkg_xml is not None:
                 try:
                     pkg = parse_package_string(pkg_xml)
-                    maintainer_cell = ',<br />'.join(['<a href="mailto:%s">%s</a>' % (m.email, m.name) for m in pkg.maintainers])
+                    maintainer_cell = ''.join(['<a href="mailto:%s">%s</a>' % (m.email, m.name) for m in pkg.maintainers])
                 except InvalidPackage as e:
                     maintainer_cell = 'invalid package.xml'
             else:
@@ -299,6 +304,7 @@ def format_row(row, metadata_columns):
                                           public_changing_on_sync[i],
                                           no_source and i % 3 == 0) \
                          for i in range(3, len(row))]
+
     if has_diff_between_rosdistros:
         row[0] += ' <span class="ht">diff</span>'
 
@@ -373,10 +379,11 @@ def is_regression(version, public_version):
 
 
 def make_square_div(label, color, order_value):
+    #order_value = '<a></a>'
     if color == '': 
-        return '<b title="%s">%s</b>' % (label, order_value)
+        return '<a title="%s" />' % label
     else:
-        return '<b class="%s" title="%s">%s</b>' % (color, label, order_value)
+        return '<a class="%s" title="%s" />' % (color, label)
 
 def make_html_head(rosdistro, start_time, resource_path, has_status_and_maintainer=False):
     rosdistro = rosdistro[0].upper() + rosdistro[1:]
