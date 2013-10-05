@@ -26,7 +26,7 @@ table thead.floating {
   visibility: visible;
   position: absolute;
   top: 0; left: 0;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 1.0);
   border-bottom: 1px solid gray;
   text-indent: 3px;
 }
@@ -51,6 +51,8 @@ tbody tr td:nth-child(n+6) a.obs { background: #f0f078; }
 .ht { display: none; }
 
 table {
+}
+tbody {
 }
 tbody tr { background-color: #fff; }
 tbody tr:nth-child(odd) { background-color: #E2E4FF; }

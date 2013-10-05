@@ -29,7 +29,7 @@ window.tbody_ready = function() {
    * between being position: absolute and position: fixed, depending on the scroll of the page. */ 
   var orig_header = $('thead', table);
   var header = orig_header.clone();
-  header.addClass('floating');
+  header.addClass('floating').hide();
   $('table').prepend(header);
   $('th', header).each(function() {
     $(this).append($('<div class="spacer"></div>'));
@@ -38,16 +38,24 @@ window.tbody_ready = function() {
     $('th', header).each(function(i, el) {
       $('.spacer', this).css('width', $('tr th:nth-child(' + (i+1) + ')', orig_header).width());
     });
+    header.show();
   });
   setTimeout(function() {
     $(window).trigger('resize');
   },0);
 
+  var last_left = null;
   $(window).on('scroll', function() {
     if ($(window).scrollTop() > table.position().top) {
       // Fixed thead
       header.addClass('fixed');
-      header.css('left', -Math.max(window.scrollX, 0));
+      var left = window.scrollX;
+      left = Math.max(left, 0);
+      left = Math.min(left, table.width() - document.documentElement.clientWidth);
+      if (left != last_left) {
+        header.css('left', -left);
+        last_left = left;
+      }
     } else {
       // Floating thead
       header.removeClass('fixed');
