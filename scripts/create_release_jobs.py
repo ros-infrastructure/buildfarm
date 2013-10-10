@@ -121,7 +121,7 @@ def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro
     elif rosdistro == 'groovy':
         packages_for_sync = 675
     elif rosdistro == 'hydro':
-        packages_for_sync = 700
+        packages_for_sync = 750
     else:
         packages_for_sync = 10000
 
