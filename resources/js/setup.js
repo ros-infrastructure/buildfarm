@@ -1,4 +1,10 @@
 var SORT_COLUMNS = [ 1, 2, 3, 4, 5 ];
+var QUERY_TRANSFORMS = {
+  'blue': 'class="o"',
+  'red': 'class="m"',
+  'yellow': 'class="obs"',
+  'gray': 'class="i"'
+};
 var META_COLUMNS = 5;
 
 /* Counterpart to nth-child selectors—returns the number of the child that this
@@ -48,6 +54,10 @@ window.tbody_ready = function() {
     });
     header.show();
   });
+
+  // This is an awkward race condition. The "better way" here would be to have the tfoot contain
+  // dummy elements which lock the size of the table. Then the resize event could be triggered
+  // immediately.
   setTimeout(function() {
     $(window).trigger('resize');
   }, 0);
@@ -99,6 +109,7 @@ window.body_ready = function() {
 
 window.body_done = function() {
   if (window.queries || window.sort) {
+    $('.search form input').val(window.queries.replace("+", " "));
     filter_table();
     $('tbody').show();
   }
@@ -127,6 +138,9 @@ function filter_table() {
   var result_rows;
   if (window.queries) {
     var queries = window.queries.split("+");
+    queries = $.map(queries, function(q) {
+      return QUERY_TRANSFORMS[q] || q;
+    });
     console.log("Filtering for queries:", queries);
     result_rows = $.map(window.rows, function(row) {
       for (var i = 0; i < queries.length; i++) {
