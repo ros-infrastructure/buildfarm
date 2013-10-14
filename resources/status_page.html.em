@@ -16,11 +16,44 @@
 </head>
 <body>
   <script type="text/javascript">window.body_ready();</script>
-  <dl>
-@[for term, defn in legend]@
-    <dt>@(term)</dt><dd>@(defn)</dd>
-@[end for]@
-  </dl>
+  <div class="top wetdry">
+    <h1><img src="http://wiki.ros.org/custom/images/ros_org.png" alt="ROS.org" /></h1>
+    <h2>Debian Build Status</h2>
+    <ul>
+      <li><strong>wet</strong> - <a href="http://ros.org/wiki/catkin">catkin</a></li> 
+      <li><strong>dry</strong> - <a href="http://ros.org/wiki/rosbuild">rosbuild</a></li> 
+    </ul>
+  </div>
+  <div class="top repos">
+    <p class="squares"><a class="w">1</a> <a class="w">2</a> <a class="w">3</a></p>
+    <ol>
+      <li>building repo</li>
+      <li>shadow-fixed repo</li>
+      <li>ros/public repo</li>
+    </ol>
+  </div>
+  <div class="top colors">
+    <ul class="squares">
+      <li><a></a> same version</li>
+      <li><a class="o"></a> different version</li>
+      <li><a class="m"></a> missing</li>
+      <li><a class="obs"></a> obsolete</li>
+      <li><a class="i"></a> intentionally missing</li> 
+    </ul> 
+  </div>
+  <div class="top search">
+    <form>
+      <input type="text" name="q" id="q" />
+      <p>Search for any text, or the following magic keywords:<br/>
+         <a href="?q=diff">diff</a>,
+         <a href="?q=sync">sync</a>,
+         <a href="?q=regression">regression</a>,
+         <a href="?q=blue">blue</a>,
+         <a href="?q=red">red</a>,
+         <a href="?q=yellow">yellow</a>,
+         <a href="?q=gray">gray</a></p>
+    </form> 
+  </div>
   <table>
     <thead>
        <tr>
@@ -29,13 +62,13 @@
 @[end for]@
       </tr>    
     </thead>
-    <tfoot>
+    <!-- <tfoot>
       <tr>
 @[for header in headers]@
       <th>@(header)</th>
 @[end for]@
       </tr>
-    </tfoot>
+    </tfoot> -->
     <tbody>
       <script type="text/javascript">window.tbody_ready();</script>
 @[for row in rows]@
