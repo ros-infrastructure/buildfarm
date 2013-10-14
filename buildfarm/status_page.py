@@ -329,6 +329,9 @@ def format_row(row, metadata_columns):
     if has_diff_between_rosdistros:
         row[0] += ' <span class="ht">diff</span>'
 
+    if True in public_changing_on_sync:
+        row[0] += ' <span class="ht">sync</span>'
+
     type_texts = {
        'wet': 'wet',
        'dry': 'dry',
@@ -363,9 +366,6 @@ def format_versions_cell(cell, latest_version, url=None,
                                    versions[-1],
                                    url if r == 'building' else None)\
                         for v, r, s in zip(versions, REPOS, search_suffixes)])
-
-    if public_changing_on_sync:
-        cell += '<span class="ht">sync</span>'
 
     return cell
 
