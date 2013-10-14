@@ -1,6 +1,4 @@
-/*$('html').on('mouseover', 'tbody tr td:nth-child(n+6) a', function(e) {
-  $(this).attr('title', 'foo');
-});  */
+var SORT_COLUMNS = [ 1, 2, 3, 4, 5 ];
 
 window.tbody_ready = function() {
   var table = $('table');
@@ -31,10 +29,13 @@ window.tbody_ready = function() {
   var header = orig_header.clone();
   header.addClass('floating').hide();
   $('table').prepend(header);
+  // Insert spacer divs into the floating header to that it matches the
+  // dimensions of the original table.
   $('th', header).each(function() {
     $(this).append($('<div class="spacer"></div>'));
   });
   $(window).on('resize', function() {
+    // Resize the spacers to make the floating version match the original.
     $('th', header).each(function(i, el) {
       $('.spacer', this).css('width', $('tr th:nth-child(' + (i+1) + ')', orig_header).width());
     });
@@ -42,7 +43,7 @@ window.tbody_ready = function() {
   });
   setTimeout(function() {
     $(window).trigger('resize');
-  },0);
+  }, 0);
 
   var last_left = null;
   $(window).on('scroll', function() {
@@ -61,106 +62,87 @@ window.tbody_ready = function() {
       header.removeClass('fixed');
     }
   });
+
+  /* If there is a load-time query string which will trigger an immediate
+   * filter, hide the in-progress loading of the table. Deliberately do this
+   * after the header cloning dingus above, so that the header dimensions are
+   * correct. */
+  if (window.queries || window.sort) {
+    $('tbody').css('visibility', 'hidden');
+    setTimeout(function() {
+      $('tbody').css('visibility', 'visible').hide();
+    }, 0);
+  }
 };
 
-
-/*j$('document').ready(function() {
-  $('th', fixed_thead).each(function(i, el) {
-    var spacer_div = $('<div class="spacer"></div>');
-    $(this).append(spacer_div);
-  });
-  $("body").append(fixed_thead); 
-  $(window).on('resize', function() {
-    $('th', fixed_thead).each(function(i, el) {
-      $('.spacer', this).css('width', $('body table:not(.fixed) thead tr th:nth-child(' + (i+1) + ')').width());
+window.body_ready = function() {
+  var url_parts = window.location.href.split('?');
+  if (url_parts[1]) {
+    var query_parts = url_parts[1].split('&');
+    $.each(query_parts, function(i, query_part) {
+      key_val = query_part.split('=');
+      switch(key_val[0]) {
+        case 'q': window.queries = key_val[1]; break;
+        case 's': window.sort = key_val[1]; break;
+        case 'r': window.reverse = key_val[1]; break;
+      }
     });
+  }
+};
+
+window.body_done = function() {
+  if (window.queries || window.sort) {
+    filter_table();
+    $('tbody').show();
+  }
+}
+
+function scan_rows() {
+  window.rows = [];
+  $('table tbody tr').each(function() {
+    row_info = [$(this).html()];
+    var tr = this;
+    $.each(SORT_COLUMNS, function() {
+      var sort_text = $("td:nth-child(" + this + ")", tr).text();
+      row_info.push(sort_text);
+    });
+    window.rows.push(row_info);
   });
-  $(window).trigger('resize');
-});*/
+  console.log("Total rows found: " + window.rows.length);
+}
 
+function filter_table() {
+  // One time setup, to build up the array of row contents combined with sortable fields.
+  if (!window.rows) { scan_rows(); }
 
-/* <![CDATA[ */
-    /*function simple_tooltip(target_items, name) {
-        $(target_items).each(function(i){
-            $("body").append("<div class='" + name + "' id='" + name + i + "'><p>" + $(this).attr('title') + "</p></div>");
-            var my_tooltip = $("#" + name + i);
-            if ($(this).attr("title", "") != "") {
-                $(this).removeAttr("title").mouseover(function(){
-                    my_tooltip.css({opacity: 0.8, display: "none"}).fadeIn(200);
-                }).mousemove(function(kmouse) {
-                    my_tooltip.css({left: Math.min(kmouse.pageX + 15, $(window).width() - 260), top: kmouse.pageY + 15});
-                }).mouseout(function(){
-                    my_tooltip.fadeOut(200);
-                });
-            }
-        });
-    }*/
+  // If query provided, copy only the matching rows to the result set.
+  // It not, just use the original. It gets mangled when sorting, but that's okay.
+  var result_rows;
+  if (window.queries) {
+    var queries = window.queries.split("+");
+    console.log("Filtering for queries:", queries);
+    result_rows = $.map(window.rows, function(row) {
+      for (var i = 0; i < queries.length; i++) {
+        if (row[0].indexOf(queries[i]) == -1) return null;
+      }
+      return [row];
+    });
+  } else {
+    result_rows = window.rows;
+  }
 
-    /*$(document).ready(function() {
-        var oTable = $('#csv_table').dataTable( {
-            "bJQueryUI": true,
-            "bPaginate": false,
-            "bStateSave": true,
-            "iCookieDuration": 60*60*24*7,
-            "sDom": 'T<"clear">lfrtip',
-            "oTableTools": {
-                "aButtons": [],
-                "sRowSelect": "multi"
-            },
-            "oLanguage": {
-                "sSearch": '<span id="search" title="Special keywords to search for: diff, sync, regression, green, blue, red, yellow, gray">Search:</span>'
-            }
-        } );
-        oTable.columnFilter( {
-            "aoColumns": [
-                { type: "text" },
-                { type: "text" },
-                { type: "select",  values: ['wet', 'dry', 'variant', 'unknown'] },
-                %s
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" }
-            ],
-            "bUseColVis": true
-        } );
+  if (window.sort) {
+    var sort = parseInt(window.sort);
+    var order = 1;
+    if (window.reverse == 1) order = -1;
+    result_rows.sort(function(a, b) {
+      if (a[sort] > b[sort]) return order;
+      if (a[sort] < b[sort]) return -order;
+      return 0;
+    });
+  }
 
-        new FixedHeader(oTable);
+  var result_rows_plain = $.map(result_rows, function(row) { return row[0]; });
+  $('table tbody').html("<tr/><tr>" + result_rows_plain.join("</tr><tr>") + "</tr>");
+}
 
-        simple_tooltip("#search", "tooltip");
-
-        // modify search to only fire after some time of no input
-        var search_wait_delay = 200;
-        var search_wait = 0;
-        var search_wait_interval;
-        $('.dataTables_filter input')
-        .unbind('keypress keyup')
-        .bind('keypress keyup', function(e) {
-            var item = $(this);
-            search_wait = 0;
-            if (!search_wait_interval) search_wait_interval = setInterval(function() {
-                if (search_wait >= 3){
-                    clearInterval(search_wait_interval);
-                    search_wait_interval = '';
-                    searchTerm = $(item).val();
-                    oTable.fnFilter(searchTerm);
-                    search_wait = 0;
-                }
-                search_wait++;
-            }, search_wait_delay);
-        });
-
-        // query via url
-        var url_vars = {};
-        window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
-            url_vars[key] = value;
-        });
-        if ('q' in url_vars) {
-            oTable.fnFilter(url_vars['q'])
-        }
-    }* ); */

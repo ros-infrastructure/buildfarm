@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="css/status_page.css" />
 </head>
 <body>
+  <script type="text/javascript">window.body_ready();</script>
   <dl>
 @[for term, defn in legend]@
     <dt>@(term)</dt><dd>@(defn)</dd>
@@ -42,4 +43,5 @@
     </tbody>
   </table>
 </body>
+<script type="text/javascript">window.body_done();</script>
 </html>
