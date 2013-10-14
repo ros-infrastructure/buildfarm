@@ -17,6 +17,11 @@ function child_num(node) {
 window.tbody_ready = function() {
   var table = $('table');
 
+  /* Populate the input box in the form. */
+  if (window.queries) {
+    $('.search form input').val(window.queries.replace("+", " "));
+  }
+
   /* This mouseover handler wires up the tooltip and CI url in a JIT manner
    * when the mouse hovers on a version square. Critically important is that 
    * there's only instance of this handler: on the tbody. 
@@ -109,7 +114,6 @@ window.body_ready = function() {
 
 window.body_done = function() {
   if (window.queries || window.sort) {
-    $('.search form input').val(window.queries.replace("+", " "));
     filter_table();
     $('tbody').show();
   }
