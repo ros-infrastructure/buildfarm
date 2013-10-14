@@ -67,7 +67,7 @@ tbody tr td:nth-child(-n+5) {
 }
 tbody tr td:nth-child(1) div { width: 230px; overflow-x: hidden; text-overflow: ellipsis; }
 tbody tr td:nth-child(2) div { width: 80px; overflow-x: hidden; }
-tbody tr td:nth-child(4) div { width: 75px; overflow-x: hidden; }
+tbody tr td:nth-child(4) a { display: block; width: 75px; }
 tbody tr td:nth-child(5) a {
     display: block;
     width: 180px;
@@ -84,12 +84,12 @@ tbody tr td:nth-child(5) a {
 
 tfoot { font-size: 50%; display: none; }
 
-
-.developed { color: #a2d39c; }
-.maintained { color: #a2d39c; }
-.unmaintained { color: #f0f078; }
-.end-of-life { color: #f07878; }
-.unknown { color: #c8c8c8; }
+tbody tr td:nth-child(4) a { text-decoration: none; }
+a.developed:before { content: "developed"; color: #a2d39c; }
+a.maintained:before { content: "maintained"; color: #a2d39c; }
+a.unmaintained:before { content: "unmaintained"; color: #f0f078; }
+a.end-of-life:before { content: "end-of-life"; color: #f07878; }
+a.unknown:before { content:"unknown"; color: #c8c8c8; }
 
 .sum {
   display: inline-block;

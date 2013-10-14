@@ -261,7 +261,7 @@ def inject_status_and_maintainer(cached_release, header, counts, rows):
     counts[3:3] = [[], []]
     for row in rows:
         status_cell = ''
-        maintainer_cell = ''
+        maintainer_cell = '<a>?</a>'
         if row[2] == 'wet':
             pkg_name = row[0].split(' ')[0]
             pkg = cached_release.packages[pkg_name]
@@ -276,18 +276,16 @@ def inject_status_and_maintainer(cached_release, header, counts, rows):
                 status_description = pkg.status_description
             elif repo.status_description is not None:
                 status_description = repo.status_description
-            status_cell = '<div class="%s"%s>%s</div>' % (status, ' title="%s"' % status_description if status_description else '', status)
+            status_cell = '<a class="%s"%s/>' % (status, ' title="%s"' % status_description if status_description else '')
             pkg_xml = cached_release.get_package_xml(pkg_name)
             if pkg_xml is not None:
                 try:
                     pkg = parse_package_string(pkg_xml)
                     maintainer_cell = ''.join(['<a href="mailto:%s">%s</a>' % (m.email, m.name) for m in pkg.maintainers])
                 except InvalidPackage as e:
-                    maintainer_cell = 'invalid package.xml'
-            else:
-                maintainer_cell = '?'
+                    maintainer_cell = '<a><b>bad package.xml</b></a>'
         else:
-            status_cell = '<div class="unknown">--</div>'
+            status_cell = '<a class="unknown"/>'
         row[3:3] = [status_cell, maintainer_cell]
 
 
