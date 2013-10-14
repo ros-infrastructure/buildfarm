@@ -226,7 +226,9 @@ def transform_csv_to_html(data_source, metadata_builder,
     if cached_release:
         inject_status_and_maintainer(cached_release, headers, row_counts, rows)
 
-    # div-wrap the first two cells for layout reasons.
+    # div-wrap the first two cells for layout reasons. It's difficult to contrain the 
+    # overall dimensions of a table cell without an inner element to use as the overflow
+    # container.
     for row in rows:
         row[0] = "<div>%s</div>" % row[0]
         row[1] = "<div>%s</div>" % row[1]

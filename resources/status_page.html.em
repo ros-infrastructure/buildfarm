@@ -8,6 +8,7 @@
   <script type="text/javascript" src="js/zepto.min.js"></script>
   <script type="text/javascript">
     window.repos = @(repr(repos));
+    window.job_url_templates = @(repr([c['job_url'] for c in metadata_columns[3:]]));
   </script>
   <script type="text/javascript" src="js/setup.js"></script>
 

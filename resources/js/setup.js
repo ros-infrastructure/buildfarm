@@ -1,4 +1,12 @@
 var SORT_COLUMNS = [ 1, 2, 3, 4, 5 ];
+var META_COLUMNS = 5;
+
+/* Counterpart to nth-child selectors—returns the number of the child that this
+ * node is. eg, how many siblings preceed it. Do note that nth-child is 1-based, 
+ * while this function is zero based. */
+function child_num(node) {
+  return $.inArray(node, $(node).parent().children());
+}
 
 window.tbody_ready = function() {
   var table = $('table');
@@ -7,18 +15,17 @@ window.tbody_ready = function() {
    * when the mouse hovers on a version square. Critically important is that 
    * there's only instance of this handler: on the tbody. 
    * This is the "live" event pattern. */
-  $('tbody', table).on('mouseover', 'tr td:nth-child(n+6) a', function(e) {
+  $('tbody', table).on('mouseover', 'tr td:nth-child(n+' + (META_COLUMNS + 1) + ') a', function(e) {
     var a = $(this);
-    var repo = ''
-    if (a.is("td a:nth-child(1)")) repo = repos[0];
-    if (a.is("td a:nth-child(2)")) repo = repos[1];
-    if (a.is("td a:nth-child(3)")) repo = repos[2];
+    var tr = a.closest('tr');
+    var repo_num = child_num(this);
     var ver = a.text();
-    if (!ver) ver = $('td:nth-child(2)', a.closest('tr')).text();
-    a.attr('title', repo + ': ' + ver);
-    if (repo == repos[0]) {
-      // TODO: Actually build up this URL properly.
-      a.attr('href', 'http://jenkins.ros.org/view/HbinR32/job/ros-hydro-actionlib_binarydeb_raring_i386/');
+    if (!ver) ver = $('td:nth-child(2)', tr).text();
+    a.attr('title', repos[repo_num] + ': ' + ver);
+    if (repo_num == 0) {
+      var job_url = window.job_url_templates[child_num(a.closest('td')[0]) - META_COLUMNS];
+      var pkg_name_converted = $('td div', tr).text().split(' ')[0].replace(/_/g, '-');
+      a.attr('href', job_url.replace('{pkg}', pkg_name_converted));
     }
   });
 
