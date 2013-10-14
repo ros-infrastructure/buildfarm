@@ -22,6 +22,15 @@ window.tbody_ready = function() {
     $('.search form input').val(window.queries.replace("+", " "));
   }
 
+  $('.search form input').on('input', function() {
+    queries = $(this).val();
+    window.filter_timeout && clearTimeout(window.filter_timeout);
+    window.filter_timeout = setTimeout(function() {
+      window.queries = queries;
+      filter_table();
+    }, 250);
+  });
+
   /* This mouseover handler wires up the tooltip and CI url in a JIT manner
    * when the mouse hovers on a version square. Critically important is that 
    * there's only instance of this handler: on the tbody. 
@@ -143,18 +152,37 @@ function filter_table() {
   if (window.queries) {
     var queries = window.queries.split("+");
     queries = $.map(queries, function(q) {
+      // Disregard short terms.
+      if (q.length < 3) return null;
+      // Transform "magic" queries as necessary.
       return QUERY_TRANSFORMS[q] || q;
     });
-    console.log("Filtering for queries:", queries);
-    result_rows = $.map(window.rows, function(row) {
-      for (var i = 0; i < queries.length; i++) {
-        if (row[0].indexOf(queries[i]) == -1) return null;
-      }
-      return [row];
-    });
+    
+    if (window.previous_queries && window.previous_queries.toString() == queries.toString()) {
+      console.log("No change, skipping rebuilding table.");
+      return
+    } else {
+      window.previous_queries = queries;
+    }
+
+    if (queries.length > 0) {
+      console.log("Filtering for queries:", queries);
+      result_rows = $.map(window.rows, function(row) {
+        for (var i = 0; i < queries.length; i++) {
+          if (row[0].indexOf(queries[i]) == -1) return null;
+        }
+        return [row];
+      });
+    } else {
+      console.log("No query terms, returning whole set.");
+      result_rows = window.rows;
+    }
   } else {
+    console.log("No query, returning whole set.");
     result_rows = window.rows;
   }
+
+  console.log("Result rows found: " + result_rows.length);
 
   if (window.sort) {
     var sort = parseInt(window.sort);
@@ -168,6 +196,22 @@ function filter_table() {
   }
 
   var result_rows_plain = $.map(result_rows, function(row) { return row[0]; });
+
+  // It's still a nasty rendering pause as the browser crunches through this. A possible
+  // future optimization would be to have multiple tbody elements, chunk up the resulting
+  // rows, and load them in in batches, separated by zero timeouts.
   $('table tbody').html("<tr/><tr>" + result_rows_plain.join("</tr><tr>") + "</tr>");
+
+  if (window.history && window.history.replaceState) {
+    var qs = [];
+    if (window.queries) qs.push("q=" + window.queries);
+    if (window.sort) qs.push("s=" + window.sort);
+    if (window.reverse) qs.push("r=" + window.reverse);
+    var url = document.location.origin + document.location.pathname
+    if (qs.length > 0) {
+      url += "?" + qs.join("&");
+    }
+    window.history.replaceState({}, document.title, url);
+  }
 }
 
