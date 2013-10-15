@@ -233,19 +233,9 @@ def transform_csv_to_html(data_source, metadata_builder,
         row[0] = "<div>%s</div>" % row[0]
         row[1] = "<div>%s</div>" % row[1]
 
-    legend = [
-        ('wet', '<a href="http://ros.org/wiki/catkin">catkin</a>'),
-        ('dry', '<a href="http://ros.org/wiki/rosbuild">rosbuild</a>'),
-        ('<a class="square m">1</a> <a class="square">2</a>&nbsp;<a class="square">3</a>', 'The apt repos (1) building, (2) shadow-fixed, (3) ros/public'),
-        ('<a class="square">&nbsp;</a>', 'same version'),
-        ('<a class="square o">&nbsp;</a>', 'different version'),
-        ('<a class="square m">&nbsp;</a>', 'missing'),
-        ('<a class="square obs">&nbsp;</a>', 'obsolete'),
-        ('<a class="square ign">&nbsp;</a>', 'intentionally missing')
-    ]  
-
     repos = REPOS
 
+    static_asset_version=1000;
     output = StringIO()
     try:
         interpreter = em.Interpreter(output=output)
@@ -398,5 +388,3 @@ def make_square_div(label, color):
     else:
         return '<a class="%s">%s</a>' % (color, label)
 
-
-# '{ type: "select",  values: ["--", "developed", "maintained", "unmaintained", "end-of-life", "unknown"] }, { type: "text" },' if has_status_and_maintainer else '')

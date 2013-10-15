@@ -10,9 +10,9 @@
     window.repos = @(repr(repos));
     window.job_url_templates = @(repr([c['job_url'] for c in metadata_columns[3:]]));
   </script>
-  <script type="text/javascript" src="js/setup.js"></script>
+  <script type="text/javascript" src="js/setup.js?@(static_asset_version)"></script>
 
-  <link rel="stylesheet" href="css/status_page.css" />
+  <link rel="stylesheet" href="css/status_page.css?@(static_asset_version)" />
 </head>
 <body>
   <script type="text/javascript">window.body_ready();</script>
