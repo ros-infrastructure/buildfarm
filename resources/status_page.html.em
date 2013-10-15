@@ -17,8 +17,8 @@
 <body>
   <script type="text/javascript">window.body_ready();</script>
   <div class="top wetdry">
-    <h1><img src="http://wiki.ros.org/custom/images/ros_org.png" alt="ROS.org" /></h1>
-    <h2>Debian Build Status</h2>
+    <h1><img src="http://wiki.ros.org/custom/images/ros_org.png" alt="ROS.org" width="150" height="32" /></h1>
+    <h2>ROS @(rosdistro.capitalize()) Build Status</h2>
     <ul>
       <li><strong>wet</strong> - <a href="http://ros.org/wiki/catkin">catkin</a></li> 
       <li><strong>dry</strong> - <a href="http://ros.org/wiki/rosbuild">rosbuild</a></li> 
