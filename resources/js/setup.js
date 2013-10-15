@@ -99,6 +99,7 @@ window.tbody_ready = function() {
     $(window).trigger('resize');
   }, 0);
 
+  // When the page scrolls, check whether the header should be fixed or floating.
   var last_left = null;
   $(window).on('scroll', function() {
     if ($(window).scrollTop() > table.position().top) {
@@ -115,6 +116,18 @@ window.tbody_ready = function() {
       // Floating thead
       header.removeClass('fixed');
     }
+  });
+
+  // Hook up sort logic on click to table headers.
+  $('th:nth-child(-n+' + META_COLUMNS + ')', header).on('click', function() {
+    var sort = child_num(this) + 1;
+    if (window.sort == sort) {
+      window.reverse = window.reverse ? 0 : 1;
+    } else {
+      window.sort = sort;
+      delete window.reverse;
+    }
+    filter_table();
   });
 
   /* If there is a load-time query string which will trigger an immediate
@@ -137,12 +150,16 @@ window.body_done = function() {
 }
 
 function scan_rows() {
+  // TODO: Potentially could make the initial load/search more responsive by having this
+  // go in chunks, with timeouts in between.
   window.rows = [];
   $('table tbody tr').each(function() {
     row_info = [$(this).html()];
     var tr = this;
     $.each(SORT_COLUMNS, function() {
-      var sort_text = $("td:nth-child(" + this + ")", tr).text();
+      var td = $("td:nth-child(" + this + ")", tr);
+      var sort_text = td.text();
+      if (sort_text == '') sort_text = td.html();
       row_info.push(sort_text);
     });
     window.rows.push(row_info);
@@ -166,11 +183,15 @@ function filter_table() {
       return QUERY_TRANSFORMS[q] || q;
     });
     
-    if (window.previous_queries && window.previous_queries.toString() == queries.toString()) {
+    if (window.previous_queries && window.previous_queries.toString() == queries.toString() &&
+        window.previous_sort == window.sort &&
+        window.previous_reverse == window.reverse) {
       console.log("No change, skipping rebuilding table.");
       return
     } else {
       window.previous_queries = queries;
+      window.previous_sort = window.sort;
+      window.previous_reverse = window.reverse;
     }
 
     if (queries.length > 0) {

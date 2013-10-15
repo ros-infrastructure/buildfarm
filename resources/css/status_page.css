@@ -39,9 +39,9 @@ table thead.floating {
   border-bottom: 1px solid gray;
   text-indent: 3px;
 }
-table thead.fixed {
-  position: fixed;
-}
+table thead.fixed { position: fixed; }
+th:nth-child(-n+5) { cursor: pointer; }
+th:nth-child(-n+5):hover { color: #888; }
 
 .squares a,
 tbody tr td:nth-child(n+6) a {
