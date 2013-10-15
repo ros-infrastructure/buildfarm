@@ -300,6 +300,8 @@ def format_header_cell(cell, metadata):
 def format_row(row, metadata_columns):
     public_changing_on_sync = [False] * 3 + \
         [is_public_changing_on_sync(c) for c in row[3:]]
+    regression = [False] * 3 + \
+        [is_regression(c) for c in row[3:]]
     # Flag if this is dry or a variant so as not to show sourcedebs as red
     no_source = row[2] in ['variant', 'dry']
     # ignore source columns for dry/variant when deciding of columns are homogeneous
@@ -319,18 +321,19 @@ def format_row(row, metadata_columns):
     # for unknown packages the latest version number is only a guess so don't mark missing cells
     latest_version = row[1] if row[2] != 'unknown' else None
     # only pass no_source if this is a sourcedeb entry
-    row = row[:3] + [format_versions_cell(row[i],
+    row = row[:3] + [format_versions_cell(get_cell_versions(row[i]),
                                           latest_version,
                                           job_urls[i],
                                           public_changing_on_sync[i],
                                           no_source and i % 3 == 0) \
                          for i in range(3, len(row))]
 
-    if has_diff_between_rosdistros:
-        row[0] += ' <span class="ht">diff</span>'
-
-    if True in public_changing_on_sync:
-        row[0] += ' <span class="ht">sync</span>'
+    hidden_texts = []
+    if has_diff_between_rosdistros: hidden_texts.append('diff')
+    if True in public_changing_on_sync: hidden_texts.append('sync')
+    if True in regression: hidden_texts.append('regression')
+    if len(hidden_texts) > 0: 
+        row[0] += ' <span class="ht">%s</span>' % ' '.join(hidden_texts)
 
     type_texts = {
        'wet': 'wet',
@@ -347,14 +350,23 @@ def is_public_changing_on_sync(cell):
     return versions[1] != versions[2]
 
 
+def is_regression(cell):
+    versions = get_cell_versions(cell)
+    public_version = versions[-1]
+    if public_version != "None":
+        for v in versions:
+            if v == "None":
+                return True
+    return False
+
+
 def get_cell_versions(cell):
     return cell.split('|')
 
 
-def format_versions_cell(cell, latest_version, url=None,
+def format_versions_cell(versions, latest_version, url=None,
                          public_changing_on_sync=False,
                          no_source=False):
-    versions = get_cell_versions(cell)
     search_suffixes = ['1', '2', '3']
     # set the latest_version to None if no package expected
     if no_source:
@@ -375,32 +387,13 @@ def format_version(version, latest, repo, search_suffix,
     if latest:
         color = {'None': 'm',
                  latest: ''}.get(version, 'o')
-        # use reasonable names (even if invisible) to be searchable
-        order_value = {'None': '5&nbsp;red',
-                       latest: '1&nbsp;green'}.get(version, '3&nbsp;blue')
     else:
         color = {'None': 'i'}.get(version, 'obs')
-        # use reasonable names (even if invisible) to be searchable
-        order_value = {'None': '2&nbsp;gray'}.get(version, '4&nbsp;yellow')
-    order_value += search_suffix
-    if repo != 'ros/public' and is_regression(version, public_version):
-        order_value += '&nbsp;regression' + search_suffix
-    if url:
-        order_value = '<a href="%s"></a>' % (url) #, order_value)
-    else:
-        order_value = ''
-    return make_square_div(version, color, order_value)
+    return make_square_div(version, color)
 
 
-def is_regression(version, public_version):
-    # public has a package and specific repo doesn't
-    return public_version != 'None' and version == 'None'
-
-
-def make_square_div(label, color, order_value):
-    #order_value = '<a></a>'
+def make_square_div(label, color):
     if color == '': 
-        #return '<a>%s</a>' % label
         return '<a/>'
     else:
         return '<a class="%s">%s</a>' % (color, label)
