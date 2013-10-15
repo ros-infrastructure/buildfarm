@@ -47,6 +47,9 @@ window.tbody_ready = function() {
     }, 250);
   });
 
+  // Disable submitting the form (eg, with an enter press).
+  $('.search form').on('submit', function() { return false; });
+
   // Hook up click handlers to the keyword shortcuts.
   $('.search a').on('click', function() {
     window.queries = $(this).text();
