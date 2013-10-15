@@ -149,8 +149,11 @@ window.tbody_ready = function() {
 window.body_done = function() {
   if (window.queries || window.sort) {
     filter_table();
-    $('tbody').show();
+  } else {
+    var count = $('tbody tr').length;
+    $("#search-count").text("showing " + count + " of " + count + " total");
   }
+  $('tbody').show();
 }
 
 function scan_rows() {
@@ -216,6 +219,7 @@ function filter_table() {
   }
 
   console.log("Result rows found: " + result_rows.length);
+  $("#search-count").text("showing " + result_rows.length + " of " + rows.length + " total");
 
   if (window.sort) {
     var sort = parseInt(window.sort);

@@ -20,6 +20,7 @@ div.top.wetdry { margin: 15px 0 0 15px; }
 div.top.wetdry ul { list-style: none; }
 div.top.search { width: 400px; margin-top: 20px; }
 div.top.search input { width: 300px; font-size: 1.0em }
+div.top.search #search-count { color: #444; font-style: italic; }
 div.top.colors { margin: 10px 0; }
 div.top.colors ul { list-style: none; }
 div.top.colors li a { margin: 0; position: relative; top: 3px; left: -5px; }

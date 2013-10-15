@@ -44,14 +44,16 @@
   <div class="top search">
     <form>
       <input type="text" name="q" id="q" />
-      <p>Search for any text, or the following keywords:<br/>
-         <a href="?q=diff">diff</a>,
-         <a href="?q=sync">sync</a>,
-         <a href="?q=regression">regression</a>,
-         <a href="?q=blue">blue</a>,
-         <a href="?q=red">red</a>,
-         <a href="?q=yellow">yellow</a>,
-         <a href="?q=gray">gray</a></p>
+      <p>Quick: 
+        <a href="?q=diff">diff</a>,
+        <a href="?q=sync">sync</a>,
+        <a href="?q=regression">regression</a>,
+        <a href="?q=blue">blue</a>,
+        <a href="?q=red">red</a>,
+        <a href="?q=yellow">yellow</a>,
+        <a href="?q=gray">gray</a>
+      </p>
+      <p id="search-count"></p>
     </form> 
   </div>
   <table>
