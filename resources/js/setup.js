@@ -17,11 +17,12 @@ function child_num(node) {
 window.tbody_ready = function() {
   var table = $('table');
 
-  /* Populate the input box in the form. */
+  // Populate the input box in the form.
   if (window.queries) {
     $('.search form input').val(window.queries.replace("+", " "));
   }
 
+  // Hook up the event handler which fires when the input is changed.
   $('.search form input').on('input', function() {
     queries = $(this).val();
     window.filter_timeout && clearTimeout(window.filter_timeout);
@@ -29,6 +30,13 @@ window.tbody_ready = function() {
       window.queries = queries;
       filter_table();
     }, 250);
+  });
+
+  // Hook up click handlers to the keyword shortcuts.
+  $('.search a').on('click', function() {
+    window.queries = $(this).text();
+    filter_table();
+    return false;
   });
 
   /* This mouseover handler wires up the tooltip and CI url in a JIT manner

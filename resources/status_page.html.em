@@ -44,7 +44,7 @@
   <div class="top search">
     <form>
       <input type="text" name="q" id="q" />
-      <p>Search for any text, or the following magic keywords:<br/>
+      <p>Search for any text, or the following keywords:<br/>
          <a href="?q=diff">diff</a>,
          <a href="?q=sync">sync</a>,
          <a href="?q=regression">regression</a>,
