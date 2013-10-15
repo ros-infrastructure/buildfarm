@@ -7,6 +7,21 @@ var QUERY_TRANSFORMS = {
 };
 var META_COLUMNS = 5;
 
+window.body_ready = function() {
+  var url_parts = window.location.href.split('?');
+  if (url_parts[1]) {
+    var query_parts = url_parts[1].split('&');
+    $.each(query_parts, function(i, query_part) {
+      key_val = query_part.split('=');
+      switch(key_val[0]) {
+        case 'q': window.queries = key_val[1]; break;
+        case 's': window.sort = key_val[1]; break;
+        case 'r': window.reverse = key_val[1]; break;
+      }
+    });
+  }
+};
+
 /* Counterpart to nth-child selectors—returns the number of the child that this
  * node is. eg, how many siblings preceed it. Do note that nth-child is 1-based, 
  * while this function is zero based. */
@@ -111,21 +126,6 @@ window.tbody_ready = function() {
     setTimeout(function() {
       $('tbody').css('visibility', 'visible').hide();
     }, 0);
-  }
-};
-
-window.body_ready = function() {
-  var url_parts = window.location.href.split('?');
-  if (url_parts[1]) {
-    var query_parts = url_parts[1].split('&');
-    $.each(query_parts, function(i, query_part) {
-      key_val = query_part.split('=');
-      switch(key_val[0]) {
-        case 'q': window.queries = key_val[1]; break;
-        case 's': window.sort = key_val[1]; break;
-        case 'r': window.reverse = key_val[1]; break;
-      }
-    });
   }
 };
 
