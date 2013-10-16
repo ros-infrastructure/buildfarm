@@ -1,4 +1,7 @@
-@{import time}
+@{
+import time
+static_asset_version=1001
+}
 <!DOCTYPE html>
 <html>
 <head>
@@ -64,13 +67,6 @@
 @[end for]@
       </tr>    
     </thead>
-    <!-- <tfoot>
-      <tr>
-@[for header in headers]@
-      <th>@(header)</th>
-@[end for]@
-      </tr>
-    </tfoot> -->
     <tbody>
       <script type="text/javascript">window.tbody_ready();</script>
 @[for row in rows]@

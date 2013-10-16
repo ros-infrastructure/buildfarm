@@ -235,7 +235,6 @@ def transform_csv_to_html(data_source, metadata_builder,
 
     repos = REPOS
 
-    static_asset_version=1000;
     output = StringIO()
     try:
         interpreter = em.Interpreter(output=output)
@@ -376,15 +375,23 @@ def format_version(version, latest, repo, search_suffix,
                    public_version, url=None):
     if latest:
         color = {'None': 'm',
-                 latest: ''}.get(version, 'o')
+                 latest: None}.get(version, 'o')
     else:
         color = {'None': 'i'}.get(version, 'obs')
-    return make_square_div(version, color)
+    label = version
+    if version == public_version:
+        label = None
+    if color in ['m', 'i']:
+        label = None
+    return make_square_div(label, color)
 
 
 def make_square_div(label, color):
-    if color == '': 
-        return '<a/>'
+    if color: 
+        if label:
+            return '<a class="%s">%s</a>' % (color, label)
+        else:
+            return '<a class="%s"/>' % color
     else:
-        return '<a class="%s">%s</a>' % (color, label)
+        return '<a/>'
 

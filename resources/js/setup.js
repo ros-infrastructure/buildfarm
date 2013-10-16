@@ -1,9 +1,12 @@
 var SORT_COLUMNS = [ 1, 2, 3, 4, 5 ];
 var QUERY_TRANSFORMS = {
   'blue': 'class="o"',
-  'red': 'class="m"',
+  'red': '<a class="m"></a>',
   'yellow': 'class="obs"',
-  'gray': 'class="i"'
+  'gray': '<a class="i"></a>',
+  'red1': '<td><a class="m"></a>',
+  'red2': '</a><a class="m"></a><a',
+  'red3': '<a class="m"></a></td>'
 };
 var META_COLUMNS = 5;
 
@@ -58,16 +61,23 @@ window.tbody_ready = function() {
     return false;
   });
 
-  /* This mouseover handler wires up the tooltip and CI url in a JIT manner
-   * when the mouse hovers on a version square. Critically important is that 
-   * there's only instance of this handler: on the tbody. 
-   * This is the "live" event pattern. */
+  // This mouseover handler wires up the tooltip and CI url in a JIT manner
+  // when the mouse hovers on a version square. Critically important is that 
+  // there's only instance of this handler: on the tbody. 
+  // This is the "live" event pattern.
   $('tbody', table).on('mouseover', 'tr td:nth-child(n+' + (META_COLUMNS + 1) + ') a', function(e) {
     var a = $(this);
     var tr = a.closest('tr');
     var repo_num = child_num(this);
     var ver = a.text();
-    if (!ver) ver = $('td:nth-child(2)', tr).text();
+    if (!ver) {
+      // If not included, then it's the same as the "latest", grab from that cell.
+      ver = $('td:nth-child(2)', tr).text();
+      if (a.hasClass('m') || a.hasClass('i')) {
+        // Unless this square is "missing" or "intentionally missing", in which case, it's None.
+        ver = "None"
+      }
+    }
     a.attr('title', repos[repo_num] + ': ' + ver);
     if (repo_num == 0) {
       var job_url = window.job_url_templates[child_num(a.closest('td')[0]) - META_COLUMNS];
@@ -161,7 +171,12 @@ function scan_rows() {
   // go in chunks, with timeouts in between.
   window.rows = [];
   $('table tbody tr').each(function() {
-    row_info = [$(this).html()];
+    // Add lowercased version of name for faster case-insensitive search.
+    var name_td = $('td:nth-child(5)', this);
+    if (name_td.text().length > 0) {
+      name_td.append(' <span class="ht">' + name_td.text().toLowerCase() + '</span>');
+    }
+    var row_info = [$(this).html()];
     var tr = this;
     $.each(SORT_COLUMNS, function() {
       var td = $("td:nth-child(" + this + ")", tr);
@@ -186,6 +201,10 @@ function filter_table() {
     queries = $.map(queries, function(q) {
       // Disregard short terms.
       if (q.length < 3) return null;
+      
+      // Terms to lowercase.
+      q = q.toLowerCase();
+
       // Transform "magic" queries as necessary.
       return QUERY_TRANSFORMS[q] || q;
     });
