@@ -121,7 +121,7 @@ window.tbody_ready = function() {
       header.addClass('fixed');
       var left = window.scrollX;
       left = Math.max(left, 0);
-      left = Math.min(left, table.width() - document.documentElement.clientWidth);
+      left = Math.min(left, Math.max(0, table.width() - document.documentElement.clientWidth));
       if (left != last_left) {
         header.css('left', -left);
         last_left = left;
