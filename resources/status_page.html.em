@@ -48,9 +48,10 @@ static_asset_version=1001
     <form>
       <input type="text" name="q" id="q" />
       <p>Quick: 
-        <a href="?q=diff">diff</a>,
-        <a href="?q=sync">sync</a>,
-        <a href="?q=regression">regression</a>,
+        <a href="?q=" title="Show all packages">all</a>,
+        <a href="?q=sync" title="Filter packages which are affected by a sync from shadow-fixed to public">sync</a>,
+        <a href="?q=regression" title="Filter packages which disappear by a sync from shadow-fixed to public">regression</a>,
+        <a href="?q=diff" title="Filter packages which are different between architectures">diff</a>,
         <a href="?q=blue">blue</a>,
         <a href="?q=red">red</a>,
         <a href="?q=yellow">yellow</a>,
