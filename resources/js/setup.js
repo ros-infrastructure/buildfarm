@@ -55,7 +55,16 @@ window.tbody_ready = function() {
 
   // Hook up click handlers to the keyword shortcuts.
   $('.search a').on('click', function() {
-    window.queries = $(this).text();
+    var url_parts = $(this).attr('href').split('?');
+    if (url_parts[1]) {
+      var query_parts = url_parts[1].split('&');
+      $.each(query_parts, function(i, query_part) {
+        key_val = query_part.split('=');
+        if (key_val[0] == 'q') {
+          window.queries = key_val[1];
+        }
+      });
+    }
     $('.search form input').val(window.queries);
     filter_table();
     return false;
