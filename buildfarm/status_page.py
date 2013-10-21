@@ -5,13 +5,20 @@ from __future__ import print_function
 import csv
 import re
 import time
+from StringIO import StringIO
+
+# Monkey-patching over some unicode bugs in empy.
+import em
+em.str = unicode
+em.Stream.write_old = em.Stream.write
+em.Stream.write = lambda self, data: em.Stream.write_old(self, data.encode('utf8'))
 
 import numpy as np
 
 from buildfarm.ros_distro import debianize_package_name
 
 version_rx = re.compile(r'[0-9.-]+[0-9]')
-
+REPOS = ['building', 'shadow-fixed', 'ros/public']
 
 def get_da_strs(distro_arches):
     distros = set()
@@ -191,39 +198,50 @@ def render_csv(rd_data, apt_data, outfile, rosdistro,
 
 
 def transform_csv_to_html(data_source, metadata_builder,
-                          rosdistro, start_time, resource_path, cached_release=None):
+                          rosdistro, start_time, template_file, cached_release=None):
     reader = csv.reader(data_source, delimiter=',', quotechar='"')
     rows = [row for row in reader]
 
-    header = rows[0]
+    headers = rows[0]
     rows = rows[1:]
 
-    html_head = make_html_head(rosdistro, start_time, resource_path, cached_release is not None)
-
-    metadata_columns = [None] * 3 + [metadata_builder(c) for c in header[3:]]
-    header = [format_header_cell(header[i],
+    metadata_columns = [None] * 3 + [metadata_builder(c) for c in headers[3:]]
+    headers = [format_header_cell(headers[i],
                                  metadata_columns[i]) \
-                  for i in range(len(header))]
+                  for i in range(len(headers))]
 
     # count non-None rows per (sub-)column
-    counts = [[]] * 3 + [[0] * 3 for _ in range(3, len(header))]
+    row_counts = [[]] * 3 + [[0] * 3 for _ in range(3, len(headers))]
     for row in rows:
-        for i in range(3, len(counts)):
+        for i in range(3, len(row_counts)):
             versions = get_cell_versions(row[i])
             for j in range(0, len(versions)):
                 if versions[j] != 'None':
-                    counts[i][j] += 1
+                    row_counts[i][j] += 1
 
     def get_package_name_from_row(row):
         return row[0]
     rows = sorted(rows, key=get_package_name_from_row)
     rows = [format_row(r, metadata_columns) for r in rows]
     if cached_release:
-        inject_status_and_maintainer(cached_release, header, counts, rows)
-    body = make_html_legend()
-    body += make_html_table(header, counts, rows)
+        inject_status_and_maintainer(cached_release, headers, row_counts, rows)
 
-    return make_html_doc(html_head, body)
+    # div-wrap the first two cells for layout reasons. It's difficult to contrain the 
+    # overall dimensions of a table cell without an inner element to use as the overflow
+    # container.
+    for row in rows:
+        row[0] = "<div>%s</div>" % row[0]
+        row[1] = "<div>%s</div>" % row[1]
+
+    repos = REPOS
+
+    output = StringIO()
+    try:
+        interpreter = em.Interpreter(output=output)
+        interpreter.file(open(template_file), locals=locals())
+        return output.getvalue()
+    finally:
+        interpreter.shutdown()
 
 
 def inject_status_and_maintainer(cached_release, header, counts, rows):
@@ -232,7 +250,7 @@ def inject_status_and_maintainer(cached_release, header, counts, rows):
     counts[3:3] = [[], []]
     for row in rows:
         status_cell = ''
-        maintainer_cell = ''
+        maintainer_cell = '<a>?</a>'
         if row[2] == 'wet':
             pkg_name = row[0].split(' ')[0]
             pkg = cached_release.packages[pkg_name]
@@ -247,18 +265,16 @@ def inject_status_and_maintainer(cached_release, header, counts, rows):
                 status_description = pkg.status_description
             elif repo.status_description is not None:
                 status_description = repo.status_description
-            status_cell = '<div class="%s"%s>%s</div>' % (status, ' title="%s"' % status_description if status_description else '', status)
+            status_cell = '<a class="%s"%s/>' % (status, ' title="%s"' % status_description if status_description else '')
             pkg_xml = cached_release.get_package_xml(pkg_name)
             if pkg_xml is not None:
                 try:
                     pkg = parse_package_string(pkg_xml)
-                    maintainer_cell = ',<br />'.join(['<a href="mailto:%s">%s</a>' % (m.email, m.name) for m in pkg.maintainers])
+                    maintainer_cell = ''.join(['<a href="mailto:%s">%s</a>' % (m.email, m.name) for m in pkg.maintainers])
                 except InvalidPackage as e:
-                    maintainer_cell = 'invalid package.xml'
-            else:
-                maintainer_cell = '?'
+                    maintainer_cell = '<a><b>bad package.xml</b></a>'
         else:
-            status_cell = '<div class="unknown">--</div>'
+            status_cell = '<a class="unknown"/>'
         row[3:3] = [status_cell, maintainer_cell]
 
 
@@ -273,6 +289,8 @@ def format_header_cell(cell, metadata):
 def format_row(row, metadata_columns):
     public_changing_on_sync = [False] * 3 + \
         [is_public_changing_on_sync(c) for c in row[3:]]
+    regression = [False] * 3 + \
+        [is_regression(c) for c in row[3:]]
     # Flag if this is dry or a variant so as not to show sourcedebs as red
     no_source = row[2] in ['variant', 'dry']
     # ignore source columns for dry/variant when deciding of columns are homogeneous
@@ -292,15 +310,27 @@ def format_row(row, metadata_columns):
     # for unknown packages the latest version number is only a guess so don't mark missing cells
     latest_version = row[1] if row[2] != 'unknown' else None
     # only pass no_source if this is a sourcedeb entry
-    row = row[:3] + [format_versions_cell(row[i],
+    row = row[:3] + [format_versions_cell(get_cell_versions(row[i]),
                                           latest_version,
                                           job_urls[i],
                                           public_changing_on_sync[i],
                                           no_source and i % 3 == 0) \
                          for i in range(3, len(row))]
-    if has_diff_between_rosdistros:
-        row[0] += ' <span class="hiddentext">diff</span>'
 
+    hidden_texts = []
+    if has_diff_between_rosdistros: hidden_texts.append('diff')
+    if True in public_changing_on_sync: hidden_texts.append('sync')
+    if True in regression: hidden_texts.append('regression')
+    if len(hidden_texts) > 0: 
+        row[0] += ' <span class="ht">%s</span>' % ' '.join(hidden_texts)
+
+    type_texts = {
+       'wet': 'wet',
+       'dry': 'dry',
+       'unknown': '?',
+       'variant': "var"
+    }
+    row[2] = type_texts[row[2]]
     return row
 
 
@@ -309,15 +339,23 @@ def is_public_changing_on_sync(cell):
     return versions[1] != versions[2]
 
 
+def is_regression(cell):
+    versions = get_cell_versions(cell)
+    public_version = versions[-1]
+    if public_version != "None":
+        for v in versions:
+            if v == "None":
+                return True
+    return False
+
+
 def get_cell_versions(cell):
     return cell.split('|')
 
 
-def format_versions_cell(cell, latest_version, url=None,
+def format_versions_cell(versions, latest_version, url=None,
                          public_changing_on_sync=False,
                          no_source=False):
-    versions = get_cell_versions(cell)
-    repos = ['building', 'shadow-fixed', 'ros/public']
     search_suffixes = ['1', '2', '3']
     # set the latest_version to None if no package expected
     if no_source:
@@ -328,263 +366,32 @@ def format_versions_cell(cell, latest_version, url=None,
                                    s,
                                    versions[-1],
                                    url if r == 'building' else None)\
-                        for v, r, s in zip(versions, repos, search_suffixes)])
-
-    if public_changing_on_sync:
-        cell += '<span class="hiddentext">sync</span>'
+                        for v, r, s in zip(versions, REPOS, search_suffixes)])
 
     return cell
 
 
 def format_version(version, latest, repo, search_suffix,
                    public_version, url=None):
-    label = '%s: %s' % (repo, version)
     if latest:
-        color = {'None': 'pkgMissing',
-                 latest: 'pkgLatest'}.get(version, 'pkgOutdated')
-        # use reasonable names (even if invisible) to be searchable
-        order_value = {'None': '5&nbsp;red',
-                       latest: '1&nbsp;green'}.get(version, '3&nbsp;blue')
+        color = {'None': 'm',
+                 latest: None}.get(version, 'o')
     else:
-        color = {'None': 'pkgIgnore'}.get(version, 'pkgObsolete')
-        # use reasonable names (even if invisible) to be searchable
-        order_value = {'None': '2&nbsp;gray'}.get(version, '4&nbsp;yellow')
-    order_value += search_suffix
-    if repo != 'ros/public' and is_regression(version, public_version):
-        order_value += '&nbsp;regression' + search_suffix
-    if url:
-        order_value = '<a href="%s">%s</a>' % (url, order_value)
-    return make_square_div(label, color, order_value)
+        color = {'None': 'i'}.get(version, 'obs')
+    label = version
+    if version == public_version:
+        label = None
+    if color in ['m', 'i']:
+        label = None
+    return make_square_div(label, color)
 
 
-def is_regression(version, public_version):
-    # public has a package and specific repo doesn't
-    return public_version != 'None' and version == 'None'
+def make_square_div(label, color):
+    if color: 
+        if label:
+            return '<a class="%s">%s</a>' % (color, label)
+        else:
+            return '<a class="%s"/>' % color
+    else:
+        return '<a/>'
 
-
-def make_square_div(label, color, order_value):
-    return '<div class="square %s" title="%s">%s</div>' % \
-        (color, label, order_value)
-
-
-def make_html_head(rosdistro, start_time, resource_path, has_status_and_maintainer=False):
-    rosdistro = rosdistro[0].upper() + rosdistro[1:]
-    # Some of the code here is taken from a datatables example.
-    return '''
-<title>ROS %s - build status page - %s</title>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-
-<style type="text/css" media="screen">
-    @import "%s/jquery/jquery-ui-1.9.2.custom.min.css";
-    @import "%s/jquery/jquery.dataTables_themeroller.css";
-    @import "%s/jquery/TableTools_JUI.css";
-
-    body, div, dl, dt, dd, input, th, td { margin:0; padding:0; }
-    table { border-collapse:collapse; border-spacing:0; }
-    th { text-align: left }
-
-    html, body { color: #111; font: 100%%/1.45em "Lucida Grande", Verdana, Arial, Helvetica, sans-serif; margin: 0; padding: 0; }
-
-    a { text-decoration: none; color: #4e6ca3; }
-    a:hover { text-decoration: underline; }
-
-    ul { font-size: 80%%; list-style: none; margin: 0; padding: 0.5em; }
-    li { float: left; margin-right: 1.75em; }
-    li .square { width: 20px; height: 20px; font-size:100%%; text-align: center; }
-
-    table.display thead th, table.display td { font-size: 0.8em; }
-    .dataTables_info { padding-top: 0; }
-    .css_right { float: right; }
-    #example_wrapper .fg-toolbar { font-size: 0.8em }
-    #theme_links span { float: left; padding: 2px 10px; }
-
-    .developed { color: #a2d39c; }
-    .maintained { color: #a2d39c; }
-    .unmaintained { color: #f0f078; }
-    .end-of-life { color: #f07878; }
-    .unknown { color: #c8c8c8; }
-
-    .square { border: 1px solid gray; display: inline-block; font-size: 0px; height: 15px; margin-right: 4px; width: 15px; }
-    .square a { display: block; }
-    .pkgLatest { background: #a2d39c; }
-    .pkgMissing { background: #f07878; }
-    .pkgOutdated { background: #7ea7d8; }
-    .pkgIgnore { background: #c8c8c8; }
-    .pkgObsolete { background: #f0f078; }
-    .hiddentext { color: transparent; font-size: 0px; }
-
-    table.dataTable thead th div.DataTables_sort_wrapper span.sum { position: inherit; }
-    table.DTTT_selectable tbody tr { cursor: inherit; }
-    .sum { display: block; font-size: 0.8em; width: 55px; }
-    .repo2 {text-align: center; }
-    .repo3 {text-align: right; }
-    .filter_column input { width: 55px; }
-    th:first-child .filter_column input { width: 150px; }
-    .search_init { color: gray; }
-
-    .tooltip { position: absolute; z-index: 999; left: -9999px; border: 1px solid #111; width: 260px; }
-    .tooltip p {  margin: 0; padding: 0; color: #fff; background-color: #222; padding: 2px 7px; }
-</style>
-
-<script type="text/javascript" src="%s/jquery/jquery-1.8.3.min.js"></script>
-<script type="text/javascript" src="%s/jquery/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="%s/jquery/jquery.dataTables.columnFilter.js"></script>
-<script type="text/javascript" src="%s/jquery/FixedHeader.min.js"></script>
-<script type="text/javascript" src="%s/jquery/TableTools.min.js"></script>
-
-<script type="text/javascript" charset="utf-8">
-    /* <![CDATA[ */
-    function simple_tooltip(target_items, name) {
-        $(target_items).each(function(i){
-            $("body").append("<div class='" + name + "' id='" + name + i + "'><p>" + $(this).attr('title') + "</p></div>");
-            var my_tooltip = $("#" + name + i);
-            if ($(this).attr("title", "") != "") {
-                $(this).removeAttr("title").mouseover(function(){
-                    my_tooltip.css({opacity: 0.8, display: "none"}).fadeIn(200);
-                }).mousemove(function(kmouse) {
-                    my_tooltip.css({left: Math.min(kmouse.pageX + 15, $(window).width() - 260), top: kmouse.pageY + 15});
-                }).mouseout(function(){
-                    my_tooltip.fadeOut(200);
-                });
-            }
-        });
-    }
-
-    $(document).ready(function() {
-        var oTable = $('#csv_table').dataTable( {
-            "bJQueryUI": true,
-            "bPaginate": false,
-            "bStateSave": true,
-            "iCookieDuration": 60*60*24*7,
-            "sDom": 'T<"clear">lfrtip',
-            "oTableTools": {
-                "aButtons": [],
-                "sRowSelect": "multi"
-            },
-            "oLanguage": {
-                "sSearch": '<span id="search" title="Special keywords to search for: diff, sync, regression, green, blue, red, yellow, gray">Search:</span>'
-            }
-        } );
-        oTable.columnFilter( {
-            "aoColumns": [
-                { type: "text" },
-                { type: "text" },
-                { type: "select",  values: ['wet', 'dry', 'variant', 'unknown'] },
-                %s
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" },
-                { type: "text" }
-            ],
-            "bUseColVis": true
-        } );
-
-        new FixedHeader(oTable);
-
-        simple_tooltip("#search", "tooltip");
-
-        // modify search to only fire after some time of no input
-        var search_wait_delay = 200;
-        var search_wait = 0;
-        var search_wait_interval;
-        $('.dataTables_filter input')
-        .unbind('keypress keyup')
-        .bind('keypress keyup', function(e) {
-            var item = $(this);
-            search_wait = 0;
-            if (!search_wait_interval) search_wait_interval = setInterval(function() {
-                if (search_wait >= 3){
-                    clearInterval(search_wait_interval);
-                    search_wait_interval = '';
-                    searchTerm = $(item).val();
-                    oTable.fnFilter(searchTerm);
-                    search_wait = 0;
-                }
-                search_wait++;
-            }, search_wait_delay);
-        });
-
-        // query via url
-        var url_vars = {};
-        window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
-            url_vars[key] = value;
-        });
-        if ('q' in url_vars) {
-            oTable.fnFilter(url_vars['q'])
-        }
-    } );
-    /* ]]> */
-</script>
-''' % (rosdistro, time.strftime('%Y-%m-%d %H:%M:%S %Z', start_time),
-        resource_path, resource_path, resource_path, resource_path, resource_path, resource_path, resource_path, resource_path,
-        '{ type: "select",  values: ["--", "developed", "maintained", "unmaintained", "end-of-life", "unknown"] }, { type: "text" },' if has_status_and_maintainer else '')
-
-
-def make_html_legend():
-    definitions = [
-        ('wet', '<a href="http://ros.org/wiki/catkin">catkin</a>'),
-        ('dry', '<a href="http://ros.org/wiki/rosbuild">rosbuild</a>'),
-        ('<span class="square">1</span>&nbsp;<span class="square">2</span>&nbsp;<span class="square">3</span>', 'The apt repos (1) building, (2) shadow-fixed, (3) ros/public'),
-        ('<span class="square pkgLatest">&nbsp;</span>', 'same version'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgOutdated">&nbsp;</span>', 'different version'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgMissing">&nbsp;</span>', 'missing'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgObsolete">&nbsp;</span>', 'obsolete'.replace(' ', '&nbsp;')),
-        ('<span class="square pkgIgnore">&nbsp;</span>', 'intentionally missing'.replace(' ', '&nbsp;'))
-    ]
-    definitions = ['<li><b>%s:</b>&nbsp;%s</li>' % (k, v) for (k, v) in definitions]
-    return '''\
-<ul>
-    %s
-</ul>
-''' % ('\n'.join(definitions))
-
-
-def make_html_table(columns, counts, rows):
-    '''
-    Returns a string containing an HTML-formatted table, given a header and some
-    rows.
-
-    >>> make_html_table(header=['a'], rows=[[1], [2]])
-    '<table>\\n<tr><th>a</th></tr>\\n<tr><td>1</td></tr>\\n<tr><td>2</td></tr>\\n</table>\\n'
-
-    '''
-    headers = []
-    for i in range(len(columns)):
-        headers.append('%s<br/>%s' % (columns[i], ''.join(['<span class="sum repo%s">%d</span>' % (i + 1, v) for i, v in enumerate(counts[i])])))
-    header_str = '<tr>' + ''.join('<th>%s</th>' % c for c in headers) + '</tr>'
-    rows_str = '\n'.join('<tr>' + ' '.join('<td>%s</td>' % c for c in r) + '</tr>' for r in rows)
-    footer_str = '<tr>' + ''.join('<th>%s</th>' % (c if i != 2 else '') for i, c in enumerate(columns)) + '</tr>'
-    return '''\
-<table class="display" id="csv_table">
-    <thead>
-        %s
-    </thead>
-    <tfoot>
-        %s
-    </tfoot>
-    <tbody>
-        %s
-    </tbody>
-</table>
-''' % (header_str, footer_str, rows_str)
-
-
-def make_html_doc(head, body):
-    '''
-    Returns the contents of an HTML page, given a title and body.
-    '''
-    return '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-    <head>
-        %(head)s
-    </head>
-    <body>
-        %(body)s
-    </body>
-</html>
-''' % locals()
