@@ -74,14 +74,14 @@ set -o errexit
 export PYTHONPATH=$WORKSPACE/monitored_vcs
 
 $WORKSPACE/monitored_vcs/scripts/generate_status_page.py groovy --basedir $WORKSPACE/groovy_apt_cache
-scp -o StrictHostKeyChecking=no $WORKSPACE/groovy_apt_cache/groovy.* rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/
+scp -o StrictHostKeyChecking=no -r $WORKSPACE/groovy_apt_cache/groovy.* $WORKSPACE/monitored_vcs/resources/css $WORKSPACE/monitored_vcs/resources/js rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/
 
 $WORKSPACE/monitored_vcs/scripts/generate_status_page.py groovy --basedir $WORKSPACE/groovy_mirror_apt_cache --resources .. --shadow-repo http://packages.ros.org/ros-shadow-fixed/ubuntu/ --public-repo http://packages.ros.org/ros/ubuntu/
 scp -o StrictHostKeyChecking=no $WORKSPACE/groovy_mirror_apt_cache/groovy.* rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/mirror/</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
-    <hudson.tasks.Mailer plugin="mailer@1.4">
+    <hudson.tasks.Mailer plugin="mailer@1.5">
       <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
