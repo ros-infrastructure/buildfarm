@@ -223,8 +223,7 @@ def transform_csv_to_html(data_source, metadata_builder,
         return row[0]
     rows = sorted(rows, key=get_package_name_from_row)
     rows = [format_row(r, metadata_columns) for r in rows]
-    if cached_release:
-        inject_status_and_maintainer(cached_release, headers, row_counts, rows)
+    inject_status_and_maintainer(cached_release, headers, row_counts, rows)
 
     # div-wrap the first two cells for layout reasons. It's difficult to contrain the 
     # overall dimensions of a table cell without an inner element to use as the overflow
@@ -251,7 +250,7 @@ def inject_status_and_maintainer(cached_release, header, counts, rows):
     for row in rows:
         status_cell = ''
         maintainer_cell = '<a>?</a>'
-        if row[2] == 'wet':
+        if row[2] == 'wet' and cached_release:
             pkg_name = row[0].split(' ')[0]
             pkg = cached_release.packages[pkg_name]
             repo = cached_release.repositories[pkg.repository_name]
