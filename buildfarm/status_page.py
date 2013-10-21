@@ -198,7 +198,7 @@ def render_csv(rd_data, apt_data, outfile, rosdistro,
 
 
 def transform_csv_to_html(data_source, metadata_builder,
-                          rosdistro, start_time, template_file, cached_release=None):
+                          rosdistro, start_time, template_file, resource_path, cached_release=None):
     reader = csv.reader(data_source, delimiter=',', quotechar='"')
     rows = [row for row in reader]
 

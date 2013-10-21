@@ -8,14 +8,14 @@ static_asset_version=1001
   <title>ROS @(rosdistro.capitalize()) - build status page - @(time.strftime('%Y-%m-%d %H:%M:%S %Z', start_time))</title>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 
-  <script type="text/javascript" src="js/zepto.min.js"></script>
+  <script type="text/javascript" src="@(resource_path)/js/zepto.min.js"></script>
   <script type="text/javascript">
     window.repos = @(repr(repos));
     window.job_url_templates = @(repr([c['job_url'] for c in metadata_columns[3:]]));
   </script>
-  <script type="text/javascript" src="js/setup.js?@(static_asset_version)"></script>
+  <script type="text/javascript" src="@(resource_path)/js/setup.js?@(static_asset_version)"></script>
 
-  <link rel="stylesheet" href="css/status_page.css?@(static_asset_version)" />
+  <link rel="stylesheet" href="@(resource_path)/css/status_page.css?@(static_asset_version)" />
 </head>
 <body>
   <script type="text/javascript">window.body_ready();</script>
@@ -23,8 +23,8 @@ static_asset_version=1001
     <h1><img src="http://wiki.ros.org/custom/images/ros_org.png" alt="ROS.org" width="150" height="32" /></h1>
     <h2>ROS @(rosdistro.capitalize()) Build Status</h2>
     <ul>
-      <li><strong>wet</strong> - <a href="http://ros.org/wiki/catkin">catkin</a></li> 
-      <li><strong>dry</strong> - <a href="http://ros.org/wiki/rosbuild">rosbuild</a></li> 
+      <li><strong>wet</strong> - <a href="http://wiki.ros.org/catkin">catkin</a></li>
+      <li><strong>dry</strong> - <a href="http://wiki.ros.org/rosbuild">rosbuild</a></li>
     </ul>
   </div>
   <div class="top repos">
