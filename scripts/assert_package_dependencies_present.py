@@ -12,7 +12,7 @@ import yaml
 
 def parse_options():
     parser = argparse.ArgumentParser(
-        description="Return 0 if all packages are found in"
+        description="Return 0 if all dependencies of packages are found in"
         " the repository, else print missing packages and return 1.")
     parser.add_argument(dest="rootdir",
                         help='The directory for apt to use as a rootdir')
@@ -26,9 +26,6 @@ def parse_options():
 
 if __name__ == "__main__":
     args = parse_options()
-
-    #cmd = 'apt-get update -c %s'%args.aptconffile
-    #subprocess.call(cmd.split())
 
     c = apt.Cache(rootdir=args.rootdir)
     if args.update:
