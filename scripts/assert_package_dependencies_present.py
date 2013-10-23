@@ -38,7 +38,8 @@ if __name__ == "__main__":
     for p in args.packages:
         tdir = tempfile.mkdtemp()
         try:
-            cmd = 'apt-get source %s -c %s' % (p, args.aptconffile)
+            cmd = 'apt-get source %s -c %s --dsc-only --download-only' % \
+                (p, args.aptconffile)
             subprocess.check_call(cmd.split(), cwd=tdir)
             dir_list = os.listdir(tdir)
             dsc_file = None
