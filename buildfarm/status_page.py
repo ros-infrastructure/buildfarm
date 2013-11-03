@@ -377,10 +377,15 @@ def format_version(version, latest, repo, search_suffix,
                  latest: None}.get(version, 'o')
     else:
         color = {'None': 'i'}.get(version, 'obs')
+
     label = version
-    if version == public_version:
+    if version == latest:
+        # When version is the same as latest, Javascript will infer it. This
+        # avoids repetition in the HTML page.
         label = None
     if color in ['m', 'i']:
+        # These color blocks represent no-package, which Javascript knows too;
+        # no need to explicitly specify.
         label = None
     return make_square_div(label, color)
 
