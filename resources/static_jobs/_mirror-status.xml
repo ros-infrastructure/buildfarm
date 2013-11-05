@@ -66,18 +66,61 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>#!/bin/bash -x
+      <command>#!/usr/bin/env python
 
-#stop on error
-set -o errexit
+# Fetch trace files from packages.ros.org mirrors
+from urllib2 import urlopen
+from dateutil import parser
 
-export PYTHONPATH=$WORKSPACE/monitored_vcs
+verbose = False
 
-$WORKSPACE/monitored_vcs/scripts/generate_status_page.py hydro --basedir $WORKSPACE/hydro_apt_cache
-scp -o StrictHostKeyChecking=no -r $WORKSPACE/hydro_apt_cache/hydro.* $WORKSPACE/monitored_vcs/resources/css $WORKSPACE/monitored_vcs/resources/js rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/
+repos = ['ros-ubuntu', 'ros-shadow-fixed']
 
-$WORKSPACE/monitored_vcs/scripts/generate_status_page.py hydro --basedir $WORKSPACE/hydro_mirror_apt_cache --resources .. --shadow-repo http://packages.ros.org/ros-shadow-fixed/ubuntu/ --public-repo http://packages.ros.org/ros/ubuntu/
-scp -o StrictHostKeyChecking=no $WORKSPACE/hydro_mirror_apt_cache/hydro.* rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/mirror/</command>
+filenames = ['repos.ros.org',
+             'ftp-osl.osuosl.org',
+             'ftp-nyc.osuosl.org',
+             'ftp-chi.osuosl.org']
+
+
+hosts = ['ftp-osl.osuosl.org',
+         'ftp-chi.osuosl.org',
+         'ftp-nyc.osuosl.org']
+
+missing = []
+
+trace_files = {}
+
+
+def get_time_from_contents(contents):
+    lines = contents.split('\n')
+    if len(lines) > 0:
+        datestr = lines[0]
+        dateobj = parser.parse(datestr)
+        return dateobj
+    return None
+
+for repo in repos:
+    print "REPO %s " % repo
+    print 'v'*80
+    for host in hosts:
+        print "HOST %s" % host
+        for filename in filenames:
+            path = 'http://%s/pub/%s/project/trace/%s' %\
+                (host, repo, filename)
+            try:
+                contents = urlopen(path).read().decode('utf-8')
+                padding = 20 - len(filename)
+                print " %s %s @ %s" % (filename,
+                                       ' ' * padding,
+                                       get_time_from_contents(contents))
+                trace_files[(host, repo, filename)] = contents
+            except:
+                missing.append((host, repo, filename))
+    print '^'*80
+
+if verbose:
+    print "Did not find %s" % missing
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
