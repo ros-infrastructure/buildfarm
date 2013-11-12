@@ -118,8 +118,15 @@ class ArchitectureSpecific(object):
         return run(cmd)
 
 
-    def build(self, dsc_filename, hooks=None):
-        pass
+    def build(self, dsc_filename, output_dir, hookdir=""):
+        cmd = ['sudo', 'pbuilder', '--build',
+               '--basetgz', self.base_tarball_filename,
+               '--hookdir', hookdir,
+               '--buildresult', output_dir,
+               '--debbuildopts', '-b',
+               dsc_filename]
+        return run(cmd)
+        
 
 if __name__ == "__main__":
     print "running pbuilder test"
@@ -135,4 +142,7 @@ if __name__ == "__main__":
 
 
     #test_as.verify_up_to_date()
-    test_as.execute('/tmp/hello_world.bash')
+    #test_as.execute('/tmp/hello_world.bash')
+
+
+    test_as.build('/tmp/src/ros-hydro-roscpp_1.9.50-0precise.dsc', '/tmp/output')
