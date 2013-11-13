@@ -46,6 +46,8 @@ class PbuilderRunner(object):
 
         self.base_path = os.path.join(root, codename, arch)
         self._apt_conf_dir = os.path.join(self.base_path, 'etc', 'apt')
+        self._aptcache_dir = os.path.join(self.base_path, 'aptcache')
+        self._build_dir = os.path.join(self.base_path, 'build')
         self.base_tarball_filename = os.path.join(self.base_path,
                                                   "base-%s.tar.gz" %\
                                                       image_number)
@@ -58,8 +60,11 @@ class PbuilderRunner(object):
                                              mirror=self._mirror,
                                              additional_repos=ros_repos)
 
-        cmd = ["sudo", "pbuilder", "--update", "--basetgz",
-               self.base_tarball_filename]
+        cmd = ["sudo", "pbuilder", "--update",
+               '--buildplace', self._build_dir,
+               '--aptcache', self._aptcache_dir,
+               '--autocleanaptcache',
+               "--basetgz", self.base_tarball_filename]
         return run(cmd)
 
     def check_present(self):
@@ -86,6 +91,12 @@ class PbuilderRunner(object):
         if not os.path.isdir(self.base_path):
             os.makedirs(self.base_path)
 
+        if not os.path.isdir(self._aptcache_dir):
+            os.makedirs(self._aptcache_dir)
+
+        if not os.path.isdir(self._build_dir):
+            os.makedirs(self._build_dir)
+
         ros_repos = buildfarm.apt_root.parse_repo_args(repo_urls)
         buildfarm.apt_root.setup_apt_rootdir(self.base_path,
                                              self._codename,
@@ -95,9 +106,11 @@ class PbuilderRunner(object):
 
         cmd = ['sudo', 'pbuilder', 'create',
                '--distribution', self._codename,
+               '--buildplace', self._build_dir,
                '--aptconfdir', self._apt_conf_dir,
                '--basetgz', self.base_tarball_filename,
                '--architecture', self._arch,
+               '--aptcache', self._aptcache_dir,
                '--mirror', self._mirror,
                '--keyring', self._keyring,
                '--debootstrap', self._debootstrap_type,
@@ -122,6 +135,8 @@ class PbuilderRunner(object):
     def build(self, dsc_filename, output_dir, hookdir=""):
         cmd = ['sudo', 'pbuilder', '--build',
                '--basetgz', self.base_tarball_filename,
+               '--buildplace', self._build_dir,
+               '--aptcache', self._aptcache_dir,
                '--hookdir', hookdir,
                '--buildresult', output_dir,
                '--debbuildopts', '-b',
