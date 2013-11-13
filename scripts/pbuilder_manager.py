@@ -87,7 +87,7 @@ class PbuilderRunner(object):
             os.makedirs(self.base_path)
 
         ros_repos = buildfarm.apt_root.parse_repo_args(repo_urls)
-        buildfarm.apt_root.setup_apt_rootdir(self._root,
+        buildfarm.apt_root.setup_apt_rootdir(self.base_path,
                                              self._codename,
                                              self._arch,
                                              mirror=self._mirror,
@@ -104,7 +104,12 @@ class PbuilderRunner(object):
                '--debootstrapopts', '--arch=%s' % self._arch,
                '--debootstrapopts',  '--keyring=%s' % self._keyring]
 
-        return run(cmd)
+        result = run(cmd)
+        if not result:
+            if os.path.exists(self.base_tarball_filename):
+                os.remove(self.base_tarball_filename)
+
+        return result
 
     def execute(self, filename):
         if not self.check_present():
@@ -128,7 +133,7 @@ if __name__ == "__main__":
     print "running pbuilder test"
 
     test_as = PbuilderRunner(root='/tmp/test',
-                             codename='precise',
+                             codename='trusty',
                              arch='amd64',
                              image_number=1)
 
