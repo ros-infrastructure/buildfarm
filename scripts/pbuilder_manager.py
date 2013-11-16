@@ -3,17 +3,20 @@
 import os
 import subprocess
 import buildfarm.apt_root
+from tempfile import NamedTemporaryFile
 
 default_mirror = 'http://us.archive.ubuntu.com/ubuntu'
 arm_mirror = 'http://ports.ubuntu.com/ubuntu-ports'
 repo_urls = ['ros@http://50.28.27.175/repos/building']
 
 
+#build_command = ['cowbuilder']
+build_command = ['sudo', 'pbuilder']
+
 def get_mirror(arch):
     if arch in ['armel', 'armhf']:
         return arm_mirror
     return default_mirror
-
 
 def get_debootstrap_type(arch):
     if arch in ['armel', 'armhf']:
@@ -28,6 +31,28 @@ def run(cmd):
     except:
         return False
     return True
+
+
+class PbuilderrcTempfile(object):
+    def __init__(self, key_values):
+
+        def add(key, value):
+            return "%s=%s\n" % (key, value)
+        content = ""
+        for k, v in key_values.items():
+            content += add(k, v)
+        self._tempfile = NamedTemporaryFile()
+        self._tempfile.write(content)
+        self._tempfile.flush()
+        print "pbuilder config", self._tempfile.name, "with:"
+        for l in content.splitlines():
+            print "- %s" % l
+
+    def __enter__(self):
+        return self._tempfile.name
+
+    def __exit__(self, type, value, tb):
+        pass
 
 
 class PbuilderRunner(object):
@@ -60,12 +85,18 @@ class PbuilderRunner(object):
                                              mirror=self._mirror,
                                              additional_repos=ros_repos)
 
-        cmd = ["sudo", "pbuilder", "--update",
-               '--buildplace', self._build_dir,
-               '--aptcache', self._aptcache_dir,
-               '--autocleanaptcache',
-               "--basetgz", self.base_tarball_filename]
-        return run(cmd)
+
+        pb_args = {}
+        pb_args['BUILDPLACE'] = self._build_dir
+        pb_args['APTCACHE'] = self._aptcache_dir
+        pb_args['AUTOCLEANAPTCACHE'] = 'yes'
+        pb_args['BASETGZ'] = self.base_tarball_filename
+
+        with PbuilderrcTempfile(pb_args) as conffile:
+            cmd = build_command + \
+                ["--update",
+                 "--configfile", conffile]
+            return run(cmd)
 
     def check_present(self):
         """
@@ -103,21 +134,23 @@ class PbuilderRunner(object):
                                              self._arch,
                                              mirror=self._mirror,
                                              additional_repos=ros_repos)
+        pb_args = {}
+        pb_args['APTCONFDIR'] = self._apt_conf_dir
+        pb_args['ARCHITECTURE'] = self._arch
+        pb_args['BASETGZ'] = self.base_tarball_filename
+        pb_args['DISTRIBUTION'] = self._codename
+        pb_args['BUILDPLACE'] = self._build_dir
+        pb_args['APTCACHE'] = self._aptcache_dir
+        pb_args['MIRROR'] = self._mirror
+        pb_args['KEYRING'] = self._keyring
+        pb_args['DEBOOTSTRAP'] = self._debootstrap_type
+        pb_args['DEBOOTSTRAPOPTS'] = "( '--arch=%s' '--keyring=%s' )" % \
+            (self._arch, self._keyring)
+        with PbuilderrcTempfile(pb_args) as conffile:
+            cmd = build_command + ['--create',
+                                   "--configfile", conffile]
+            result = run(cmd)
 
-        cmd = ['sudo', 'pbuilder', 'create',
-               '--distribution', self._codename,
-               '--buildplace', self._build_dir,
-               '--aptconfdir', self._apt_conf_dir,
-               '--basetgz', self.base_tarball_filename,
-               '--architecture', self._arch,
-               '--aptcache', self._aptcache_dir,
-               '--mirror', self._mirror,
-               '--keyring', self._keyring,
-               '--debootstrap', self._debootstrap_type,
-               '--debootstrapopts', '--arch=%s' % self._arch,
-               '--debootstrapopts',  '--keyring=%s' % self._keyring]
-
-        result = run(cmd)
         if not result:
             if os.path.exists(self.base_tarball_filename):
                 os.remove(self.base_tarball_filename)
@@ -127,20 +160,33 @@ class PbuilderRunner(object):
     def execute(self, filename):
         if not self.check_present():
             return False
-        cmd = ['sudo', 'pbuilder', '--execute',
-               '--basetgz', self.base_tarball_filename,
-               filename]
-        return run(cmd)
+        pb_args = {}
+        pb_args['BASETGZ'] = self.base_tarball_filename
+        pb_args['BUILDPLACE'] = self._build_dir
+        with PbuilderrcTempfile(pb_args) as conffile:
+            cmd = build_command + ['--execute',
+                                   "--configfile", conffile,
+                                   filename]
+            return run(cmd)
 
     def build(self, dsc_filename, output_dir, hookdir=""):
-        cmd = ['sudo', 'pbuilder', '--build',
-               '--basetgz', self.base_tarball_filename,
-               '--buildplace', self._build_dir,
-               '--aptcache', self._aptcache_dir,
-               '--hookdir', hookdir,
-               '--buildresult', output_dir,
-               '--debbuildopts', '-b',
-               dsc_filename]
+        pb_args = {}
+        pb_args['BASETGZ'] = self.base_tarball_filename
+        pb_args['DISTRIBUTION'] = self._codename
+        pb_args['BUILDPLACE'] = self._build_dir
+        pb_args['APTCACHE'] = self._aptcache_dir
+        pb_args['HOOKDIR'] = hookdir
+        pb_args['BUILDRESULT'] = output_dir
+        pb_args['DEBBUILDOPTS'] = '-b'
+
+
+        # pb_args['APTCONFDIR'] = self._apt_conf_dir
+
+        with PbuilderrcTempfile(pb_args) as conffile:
+            cmd = build_command + \
+                ['--build',
+                 '--configfile', conffile,
+                 dsc_filename]
         return run(cmd)
 
 
