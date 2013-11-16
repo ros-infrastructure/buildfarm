@@ -12,6 +12,7 @@ repo_urls = ['ros@http://50.28.27.175/repos/building']
 
 #build_command = ['cowbuilder']
 build_command = ['sudo', 'pbuilder']
+#build_command = ['pbuilder']
 
 def get_mirror(arch):
     if arch in ['armel', 'armhf']:
@@ -72,6 +73,7 @@ class PbuilderRunner(object):
         self.base_path = os.path.join(root, codename, arch)
         self._apt_conf_dir = os.path.join(self.base_path, 'etc', 'apt')
         self._aptcache_dir = os.path.join(self.base_path, 'aptcache')
+        self._ccache_dir = os.path.join(self.base_path, 'ccache')
         self._build_dir = os.path.join(self.base_path, 'build')
         self.base_tarball_filename = os.path.join(self.base_path,
                                                   "base-%s.tar.gz" %\
@@ -89,6 +91,7 @@ class PbuilderRunner(object):
         pb_args = {}
         pb_args['BUILDPLACE'] = self._build_dir
         pb_args['APTCACHE'] = self._aptcache_dir
+        pb_args['CCACHEDIR'] = self._ccache_dir
         pb_args['AUTOCLEANAPTCACHE'] = 'yes'
         pb_args['BASETGZ'] = self.base_tarball_filename
 
@@ -141,6 +144,7 @@ class PbuilderRunner(object):
         pb_args['DISTRIBUTION'] = self._codename
         pb_args['BUILDPLACE'] = self._build_dir
         pb_args['APTCACHE'] = self._aptcache_dir
+        pb_args['CCACHEDIR'] = self._ccache_dir
         pb_args['MIRROR'] = self._mirror
         pb_args['KEYRING'] = self._keyring
         pb_args['DEBOOTSTRAP'] = self._debootstrap_type
@@ -175,6 +179,7 @@ class PbuilderRunner(object):
         pb_args['DISTRIBUTION'] = self._codename
         pb_args['BUILDPLACE'] = self._build_dir
         pb_args['APTCACHE'] = self._aptcache_dir
+        pb_args['CCACHEDIR'] = self._ccache_dir
         pb_args['HOOKDIR'] = hookdir
         pb_args['BUILDRESULT'] = output_dir
         pb_args['DEBBUILDOPTS'] = '-b'
