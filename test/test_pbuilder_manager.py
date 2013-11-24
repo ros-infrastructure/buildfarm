@@ -35,6 +35,7 @@ class TestPbuilderRunner(unittest.TestCase):
             fh.write("""#!/bin/bash
 
 echo Hello World
+pwd
 exit 0
 """)
             fh.flush()

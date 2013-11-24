@@ -9,6 +9,9 @@ default_mirror = 'http://us.archive.ubuntu.com/ubuntu'
 arm_mirror = 'http://ports.ubuntu.com/ubuntu-ports'
 repo_urls = ['ros@http://repos.ros.org/repos/building']
 
+#TODOS
+# parameterize mirror URLs (ros urls hardcoded)
+# enable different configs (ala minimum package list for devel jobs)
 
 #build_command = ['cowbuilder']
 build_command = ['sudo', 'pbuilder']
@@ -166,12 +169,15 @@ class PbuilderRunner(object):
 
         return result
 
-    def execute(self, filename):
+    def execute(self, filename, bindmounts=None):
         if not self.check_present():
             return False
         pb_args = {}
         pb_args['BASETGZ'] = self.base_tarball_filename
         pb_args['BUILDPLACE'] = self._build_dir
+        if bindmounts:
+            pb_args['BINDMOUNTS'] = bindmounts
+
         with PbuilderrcTempfile(pb_args) as conffile:
             cmd = build_command + ['--execute',
                                    "--configfile", conffile,
