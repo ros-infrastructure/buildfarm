@@ -14,10 +14,12 @@ repo_urls = ['ros@http://50.28.27.175/repos/building']
 build_command = ['sudo', 'pbuilder']
 #build_command = ['pbuilder']
 
+
 def get_mirror(arch):
     if arch in ['armel', 'armhf']:
         return arm_mirror
     return default_mirror
+
 
 def get_debootstrap_type(arch):
     if arch in ['armel', 'armhf']:
@@ -35,7 +37,11 @@ def run(cmd):
 
 
 class PbuilderrcTempfile(object):
+    """This class generates a tempfile which has pbuilderrc contents
+    and yields the filename on enter."""
     def __init__(self, key_values):
+        """ Create the pbuilderrc file with the keys and values passed
+        in as a map """
 
         def add(key, value):
             return "%s=%s\n" % (key, value)
@@ -173,7 +179,17 @@ class PbuilderRunner(object):
                                    filename]
             return run(cmd)
 
-    def build(self, dsc_filename, output_dir, hookdir=""):
+    def build(self, dsc_filename, output_dir, hookdir="", debbuildopts="-b"):
+        """ Build the dsc into a debian.
+        @param dsc_filename The filename of the dsc file to build.
+        @param output_dir The directory into which to output the debian package
+        @param hookdir If defined pass in this directory as the hookdir
+        @param debuildopts pass through as DEBBUILDOPTS to pbuilderrc
+        """
+
+        if not self.check_present():
+            return False
+
         pb_args = {}
         pb_args['BASETGZ'] = self.base_tarball_filename
         pb_args['DISTRIBUTION'] = self._codename
@@ -182,8 +198,7 @@ class PbuilderRunner(object):
         pb_args['CCACHEDIR'] = self._ccache_dir
         pb_args['HOOKDIR'] = hookdir
         pb_args['BUILDRESULT'] = output_dir
-        pb_args['DEBBUILDOPTS'] = '-b'
-
+        pb_args['DEBBUILDOPTS'] = debbuildopts
 
         # pb_args['APTCONFDIR'] = self._apt_conf_dir
 
@@ -195,20 +210,3 @@ class PbuilderRunner(object):
         return run(cmd)
 
 
-if __name__ == "__main__":
-    print "running pbuilder test"
-
-    test_as = PbuilderRunner(root='/tmp/test',
-                             codename='trusty',
-                             arch='amd64',
-                             image_number=1)
-
-    #test_as.create()
-
-    #test_as.update()
-
-    test_as.verify_up_to_date()
-    test_as.execute('/tmp/hello_world.bash')
-
-    #test_as.build('/tmp/src/ros-hydro-roscpp_1.9.50-0precise.dsc',
-    #              '/tmp/output')
