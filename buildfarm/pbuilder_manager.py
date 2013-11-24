@@ -7,7 +7,7 @@ from tempfile import NamedTemporaryFile
 
 default_mirror = 'http://us.archive.ubuntu.com/ubuntu'
 arm_mirror = 'http://ports.ubuntu.com/ubuntu-ports'
-repo_urls = ['ros@http://50.28.27.175/repos/building']
+repo_urls = ['ros@http://repos.ros.org/repos/building']
 
 
 #build_command = ['cowbuilder']
@@ -92,7 +92,6 @@ class PbuilderRunner(object):
                                              self._arch,
                                              mirror=self._mirror,
                                              additional_repos=ros_repos)
-
 
         pb_args = {}
         pb_args['BUILDPLACE'] = self._build_dir
@@ -208,5 +207,3 @@ class PbuilderRunner(object):
                  '--configfile', conffile,
                  dsc_filename]
         return run(cmd)
-
-
