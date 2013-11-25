@@ -69,7 +69,8 @@ class PbuilderRunner(object):
     def __init__(self, root, codename, arch, image_number=0,
                  mirror=default_mirror,
                  debootstrap_type='debootstrap',
-                 keyring='/etc/apt/trusted.gpg'):
+                 keyring='/etc/apt/trusted.gpg',
+                 extrapackages=None):
         self._root = root
         self._codename = codename
         self._arch = arch
@@ -78,6 +79,7 @@ class PbuilderRunner(object):
         self._mirror = mirror
         self._debootstrap_type = debootstrap_type
         self._keyring = keyring
+        self._extrapackages=extrapackages
 
         self.base_path = os.path.join(root, codename, arch)
         self._apt_conf_dir = os.path.join(self.base_path, 'etc', 'apt')
@@ -102,6 +104,8 @@ class PbuilderRunner(object):
         pb_args['CCACHEDIR'] = self._ccache_dir
         pb_args['AUTOCLEANAPTCACHE'] = 'yes'
         pb_args['BASETGZ'] = self.base_tarball_filename
+        if self._extrapackages:
+            pb_args['EXTRAPACKAGES'] = '"%s"' % self._extrapackages
 
         with PbuilderrcTempfile(pb_args) as conffile:
             cmd = build_command + \
@@ -154,10 +158,13 @@ class PbuilderRunner(object):
         pb_args['APTCACHE'] = self._aptcache_dir
         pb_args['CCACHEDIR'] = self._ccache_dir
         pb_args['MIRROR'] = self._mirror
-        pb_args['KEYRING'] = self._keyring
+        pb_args['APTKEYRINGS'] = "( %s )" % self._keyring
         pb_args['DEBOOTSTRAP'] = self._debootstrap_type
         pb_args['DEBOOTSTRAPOPTS'] = "( '--arch=%s' '--keyring=%s' )" % \
             (self._arch, self._keyring)
+        if self._extrapackages:
+            pb_args['EXTRAPACKAGES'] = '"%s"' % self._extrapackages
+
         with PbuilderrcTempfile(pb_args) as conffile:
             cmd = build_command + ['--create',
                                    "--configfile", conffile]
