@@ -336,5 +336,10 @@ if (mark_unstable) {
       <timeoutType>absolute</timeoutType>
     </hudson.plugins.build__timeout.BuildTimeoutWrapper>
 @[end if]
+@[if SSH_KEY_ID]
+    <com.cloudbees.jenkins.plugins.sshagent.SSHAgentBuildWrapper plugin="ssh-agent@@1.4.1">
+      <user>@(SSH_KEY_ID)</user>
+    </com.cloudbees.jenkins.plugins.sshagent.SSHAgentBuildWrapper>
+@[end if]
   </buildWrappers>
 </project>
