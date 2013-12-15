@@ -16,6 +16,8 @@ rm -rf $WORKSPACE/output
 rm -rf $WORKSPACE/workspace
 
 $WORKSPACE/monitored_vcs/scripts/generate_sourcedeb $RELEASE_URI $PACKAGE $ROSDISTRO $SHORT_PACKAGE_NAME --working $WORKSPACE/workspace --output $WORKSPACE/output --repo-fqdn $FQDN 
+ret=$?
 
 # clean up the workspace to save disk space
 rm -rf $WORKSPACE/workspace
+exit $ret
