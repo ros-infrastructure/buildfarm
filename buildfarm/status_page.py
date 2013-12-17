@@ -298,22 +298,12 @@ def format_row(row, metadata_columns):
 
     # urls for each building repository column
     metadata = [None] * 3 + [md for md in metadata_columns[3:]]
-    if row[2] == 'dry':
-        # disable links for dry source columns
-        metadata = [(c if c and not c['is_source'] else None) for i, c in enumerate(metadata)]
-    elif row[2] in ['unknown', 'variant']:
-        # disable all links for unknown and variant rows
-        metadata = [None for _ in range(len(metadata))]
-    job_urls = [md['job_url'].format(pkg=row[0].replace('_', '-')) \
-                    if md else None for md in metadata]
     # for unknown packages the latest version number is only a guess so don't mark missing cells
     latest_version = row[1] if row[2] != 'unknown' else None
     # only pass no_source if this is a sourcedeb entry
     row = row[:3] + [format_versions_cell(get_cell_versions(row[i]),
                                           latest_version,
-                                          job_urls[i],
-                                          public_changing_on_sync[i],
-                                          no_source and metadata[i] and metadata[i]['is_source']) \
+                                          no_source and metadata[i]['is_source']) \
                          for i in range(3, len(row))]
 
     hidden_texts = []
@@ -352,31 +342,30 @@ def get_cell_versions(cell):
     return cell.split('|')
 
 
-def format_versions_cell(versions, latest_version, url=None,
-                         public_changing_on_sync=False,
+def format_versions_cell(versions, latest_version,
                          no_source=False):
-    search_suffixes = ['1', '2', '3']
     # set the latest_version to None if no package expected
     if no_source:
         latest_version = None
-    cell = ''.join([format_version(v,
-                                   latest_version,
-                                   r,
-                                   s,
-                                   versions[-1],
-                                   url if r == 'building' else None)\
-                        for v, r, s in zip(versions, REPOS, search_suffixes)])
+    cell = ''.join([format_version(v, latest_version)\
+                        for v in versions])
 
     return cell
 
 
-def format_version(version, latest, repo, search_suffix,
-                   public_version, url=None):
+def format_version(version, latest):
     if latest:
-        color = {'None': 'm',
-                 latest: None}.get(version, 'o')
+        if not version or version == 'None':
+            color = 'm' # missing
+        elif version == latest:
+            color = None # latest
+        else:
+            color = 'o' # outdated
     else:
-        color = {'None': 'i'}.get(version, 'obs')
+        if not version or version == 'None':
+            color = 'i' # ignore
+        else:
+            color = 'obs' # obsolete
 
     label = version
     if version == latest:
@@ -391,7 +380,7 @@ def format_version(version, latest, repo, search_suffix,
 
 
 def make_square_div(label, color):
-    if color: 
+    if color:
         if label:
             return '<a class="%s">%s</a>' % (color, label)
         else:
