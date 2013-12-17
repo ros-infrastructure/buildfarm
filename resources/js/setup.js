@@ -91,7 +91,9 @@ window.tbody_ready = function() {
     if (repo_num == 0) {
       var job_url = window.job_url_templates[child_num(a.closest('td')[0]) - META_COLUMNS];
       var pkg_name_converted = $('td div', tr).text().split(' ')[0].replace(/_/g, '-');
-      a.attr('href', job_url.replace('{pkg}', pkg_name_converted));
+      if (!a.hasClass('i') && !a.hasClass('obs') ) {
+        a.attr('href', job_url.replace('{pkg}', pkg_name_converted));
+      }
     }
   });
 
