@@ -300,7 +300,7 @@ def format_row(row, metadata_columns):
     metadata = [None] * 3 + [md for md in metadata_columns[3:]]
     if row[2] == 'dry':
         # disable links for dry source columns
-        metadata = [(c if i < 3 or i % 3 else None) for i, c in enumerate(metadata)]
+        metadata = [(c if c and not c['is_source'] else None) for i, c in enumerate(metadata)]
     elif row[2] in ['unknown', 'variant']:
         # disable all links for unknown and variant rows
         metadata = [None for _ in range(len(metadata))]
@@ -313,7 +313,7 @@ def format_row(row, metadata_columns):
                                           latest_version,
                                           job_urls[i],
                                           public_changing_on_sync[i],
-                                          no_source and i % 3 == 0) \
+                                          no_source and metadata[i] and metadata[i]['is_source']) \
                          for i in range(3, len(row))]
 
     hidden_texts = []

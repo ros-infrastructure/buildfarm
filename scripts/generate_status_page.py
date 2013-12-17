@@ -92,7 +92,8 @@ if __name__ == '__main__':
             'rosdistro': args.rosdistro,
             'rosdistro_short': args.rosdistro[0].upper(),
             'distro': distro,
-            'distro_short': distro[0].upper()
+            'distro_short': distro[0].upper(),
+            'is_source': is_source
         }
 
         data['arch_short'] = {'amd64': '64',
