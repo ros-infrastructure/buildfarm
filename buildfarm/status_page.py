@@ -250,8 +250,10 @@ def inject_status_and_maintainer(cached_release, header, counts, rows):
     for row in rows:
         status_cell = ''
         maintainer_cell = '<a>?</a>'
+        # Use website url if defined, otherwise default to ros wiki
+        pkg_name = row[0].split(' ')[0]
+        url = 'http://wiki.ros.org/%s' % pkg_name
         if row[2] == 'wet' and cached_release:
-            pkg_name = row[0].split(' ')[0]
             pkg = cached_release.packages[pkg_name]
             repo = cached_release.repositories[pkg.repository_name]
             status = 'unknown'
@@ -270,10 +272,15 @@ def inject_status_and_maintainer(cached_release, header, counts, rows):
                 try:
                     pkg = parse_package_string(pkg_xml)
                     maintainer_cell = ''.join(['<a href="mailto:%s">%s</a>' % (m.email, m.name) for m in pkg.maintainers])
+                    for u in pkg['urls']:
+                        if u.type == 'website':
+                            url = u
+                            break
                 except InvalidPackage as e:
                     maintainer_cell = '<a><b>bad package.xml</b></a>'
         else:
             status_cell = '<a class="unknown"/>'
+        row[0] = '<a href="%s">%s</a>' % (url, pkg_name)
         row[3:3] = [status_cell, maintainer_cell]
 
 
