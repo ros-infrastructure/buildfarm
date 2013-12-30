@@ -280,7 +280,7 @@ def inject_status_and_maintainer(cached_release, header, counts, rows):
                     maintainer_cell = '<a><b>bad package.xml</b></a>'
         else:
             status_cell = '<a class="unknown"/>'
-        row[0] = '<a href="%s">%s</a>' % (url, pkg_name)
+        row[0] = row[0].replace(pkg_name, '<a href="%s">%s</a>' % (url, pkg_name), 1)
         row[3:3] = [status_cell, maintainer_cell]
 
 
