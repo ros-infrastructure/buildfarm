@@ -177,6 +177,10 @@ class PbuilderRunner(object):
         return result
 
     def execute(self, filename, bindmounts=None):
+        """ Execute the script inside the chroot
+        @param filename The filename of the script
+        @param bindmounts A space separated list of paths to bindmount inside
+        """
         if not self.check_present():
             return False
         pb_args = {}
