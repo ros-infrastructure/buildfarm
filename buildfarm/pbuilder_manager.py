@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #TODO License
 
 import os
@@ -14,6 +15,8 @@ repo_urls = ['ros@http://repos.ros.org/repos/building']
 # enable different configs (ala minimum package list for devel jobs)
 
 #build_command = ['cowbuilder']
+
+# TODO detect root and skip sudo
 build_command = ['sudo', 'pbuilder']
 #build_command = ['pbuilder']
 
