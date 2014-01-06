@@ -28,6 +28,7 @@ class TestPbuilderRunner(unittest.TestCase):
         
         self.assertFalse(test_as.check_present())
         self.assertTrue(test_as.create())
+        self.assertTrue(test_as.check_present())
 
 #test_as.verify_up_to_date()
 
