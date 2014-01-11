@@ -190,6 +190,10 @@ if (manager.logContains(".*W: Failed to fetch .* Hash Sum mismatch.*")) {
 	reschedule_build("Not all sources were able to be updated")
 } else if (manager.logContains(".*hudson.plugins.git.GitException: Could not clone.*")) {
 	reschedule_build("Could not clone")
+} else if (manager.logContains(".*Something wicked happened resolving .*")) {
+	reschedule_build("apt repo could not be resolved")
+} else if (manager.logContains(".*Some index files failed to download.*")) {
+	reschedule_build("apt index file could not be downloaded")
 }
 </groovyScript>
       <behavior>0</behavior>
