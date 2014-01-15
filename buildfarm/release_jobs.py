@@ -356,7 +356,7 @@ def binarydeb_jobs(package, maintainer_emails, distros, arches, apt_target_repos
                 # build first distro/arch before others
                 d['PRIORITY'] = 101
                 first_matrix_job = False
-            else
+            else:
                 d['PRIORITY'] = 100
             config = create_binarydeb_config(d)
             #print(config)
