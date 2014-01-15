@@ -41,6 +41,12 @@ table thead.floating {
   text-indent: 3px;
 }
 table thead.fixed { position: fixed; }
+/* avoid position fixed on firefox since it makes the page really laggy when scrolling, https://github.com/ros-infrastructure/buildfarm/issues/160 */
+@-moz-document url-prefix() {
+  table thead.fixed {
+    position: absolute;
+  }
+}
 th:nth-child(-n+5) { cursor: pointer; }
 th:nth-child(-n+5):hover { color: #888; }
 

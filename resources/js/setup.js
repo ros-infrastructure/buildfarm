@@ -54,7 +54,8 @@ window.tbody_ready = function() {
   $('.search form').on('submit', function() { return false; });
 
   // Hook up click handlers to the keyword shortcuts.
-  $('.search a').on('click', function() {
+  $('.search a').on('click', function(e) {
+    e.preventDefault();
     var url_parts = $(this).attr('href').split('?');
     if (url_parts[1]) {
       var query_parts = url_parts[1].split('&');
@@ -67,7 +68,6 @@ window.tbody_ready = function() {
     }
     $('.search form input').val(window.queries);
     filter_table();
-    return false;
   });
 
   // This mouseover handler wires up the tooltip and CI url in a JIT manner
@@ -278,7 +278,11 @@ function filter_table() {
     if (qs.length > 0) {
       url += "?" + qs.join("&");
     }
-    window.history.replaceState({}, document.title, url);
+    try {
+      window.history.replaceState({}, document.title, url);
+    } catch (e) {
+      // ignore potential SecurityError when using file:// url
+    }
   }
 }
 
