@@ -345,12 +345,19 @@ def binarydeb_jobs(package, maintainer_emails, distros, arches, apt_target_repos
         TIMEOUT=timeout
     )
     jobs = []
+    first_matrix_job = True
     for distro in distros:
         for arch in arches:
             d['ARCH'] = arch
             d['DISTRO'] = distro
             d["CHILD_PROJECTS"] = calc_child_jobs(package, distro, arch, jobgraph)
             d["DEPENDENTS"] = add_dependent_to_dict(package, jobgraph)
+            if first_matrix_job:
+                # build first distro/arch before others
+                d['PRIORITY'] = 101
+                first_matrix_job = False
+            else
+                d['PRIORITY'] = 100
             config = create_binarydeb_config(d)
             #print(config)
             job_name = binarydeb_job_name(package, distro, arch)
