@@ -34,9 +34,11 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
         <command>
 // PURGE OLD PRERELEASE JOBS
 
+import hudson.model.AbstractProject
 import java.util.Calendar
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import jenkins.model.Jenkins
 
 c = Calendar.getInstance();
 c.add(Calendar.DAY_OF_MONTH, -30);
