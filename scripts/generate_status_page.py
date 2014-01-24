@@ -9,7 +9,7 @@ import time
 
 from buildfarm.apt_data import get_version_data
 from buildfarm.status_page import get_distro_arches, render_csv, transform_csv_to_html
-from rosdistro import get_cached_release, get_index, get_index_url
+from rosdistro import get_cached_distribution, get_index, get_index_url
 
 JENKINS_HOST='http://jenkins.ros.org'
 
@@ -123,15 +123,15 @@ if __name__ == '__main__':
 
     if args.rosdistro != 'fuerte':
         index = get_index(get_index_url())
-        cached_release = get_cached_release(index, args.rosdistro)
+        cached_distribution = get_cached_distribution(index, args.rosdistro)
     else:
-        cached_release = None
+        cached_distribution = None
 
     print('Transforming .csv into .html file...')
     template_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'resources', 'status_page.html.em')
     with open(csv_file, 'r') as f:
         html = transform_csv_to_html(f, metadata_builder, args.rosdistro,
-                                     start_time, template_file, args.resources, cached_release)
+                                     start_time, template_file, args.resources, cached_distribution)
     html_file = os.path.join(args.basedir, '%s.html' % args.rosdistro)
     with open(html_file, 'w') as f:
         f.write(html) #.encode('utf8'))

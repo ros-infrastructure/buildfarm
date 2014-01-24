@@ -198,7 +198,7 @@ def render_csv(rd_data, apt_data, outfile, rosdistro,
 
 
 def transform_csv_to_html(data_source, metadata_builder,
-                          rosdistro, start_time, template_file, resource_path, cached_release=None):
+                          rosdistro, start_time, template_file, resource_path, cached_distribution=None):
     reader = csv.reader(data_source, delimiter=',', quotechar='"')
     rows = [row for row in reader]
 
@@ -223,7 +223,7 @@ def transform_csv_to_html(data_source, metadata_builder,
         return row[0]
     rows = sorted(rows, key=get_package_name_from_row)
     rows = [format_row(r, metadata_columns) for r in rows]
-    inject_status_and_maintainer(cached_release, headers, row_counts, rows)
+    inject_status_and_maintainer(cached_distribution, headers, row_counts, rows)
 
     # div-wrap the first two cells for layout reasons. It's difficult to contrain the 
     # overall dimensions of a table cell without an inner element to use as the overflow
@@ -243,7 +243,7 @@ def transform_csv_to_html(data_source, metadata_builder,
         interpreter.shutdown()
 
 
-def inject_status_and_maintainer(cached_release, header, counts, rows):
+def inject_status_and_maintainer(cached_distribution, header, counts, rows):
     from catkin_pkg.package import InvalidPackage, parse_package_string
     header[3:3] = ['Status', 'Maintainer']
     counts[3:3] = [[], []]
@@ -253,9 +253,9 @@ def inject_status_and_maintainer(cached_release, header, counts, rows):
         # Use website url if defined, otherwise default to ros wiki
         pkg_name = row[0].split(' ')[0]
         url = 'http://wiki.ros.org/%s' % pkg_name
-        if row[2] == 'wet' and cached_release:
-            pkg = cached_release.packages[pkg_name]
-            repo = cached_release.repositories[pkg.repository_name]
+        if row[2] == 'wet' and cached_distribution:
+            pkg = cached_distribution.release_packages[pkg_name]
+            repo = cached_distribution.repositories[pkg.repository_name].release_repository
             status = 'unknown'
             if pkg.status is not None:
                 status = pkg.status
@@ -267,7 +267,7 @@ def inject_status_and_maintainer(cached_release, header, counts, rows):
             elif repo.status_description is not None:
                 status_description = repo.status_description
             status_cell = '<a class="%s"%s/>' % (status, ' title="%s"' % status_description if status_description else '')
-            pkg_xml = cached_release.get_package_xml(pkg_name)
+            pkg_xml = cached_distribution.get_release_package_xml(pkg_name)
             if pkg_xml is not None:
                 try:
                     pkg = parse_package_string(pkg_xml)
