@@ -5,7 +5,7 @@ from __future__ import print_function
 
 import sys
 
-from rosdistro import get_cached_release, get_index, get_index_url, get_release_build_files, get_release_file
+from rosdistro import get_cached_distribution, get_distribution_file, get_index, get_index_url, get_release_build_files
 
 
 class RepoMetadata(object):
@@ -48,16 +48,19 @@ class Rosdistro:
         if self._rosdistro not in self._index.distributions:
             print ("Unknown distribution '%s'" % self._rosdistro, file=sys.stderr)
             sys.exit(1)
-        self._dist = get_cached_release(self._index, self._rosdistro)
+        self._dist = get_cached_distribution(self._index, self._rosdistro)
         self._build_files = get_release_build_files(self._index, self._rosdistro)
 
         self._repoinfo = {}
         self._package_in_repo = {}
-        for name, repo in self._dist.repositories.iteritems():
+        for name in self._dist.repositories.keys():
+            repo = self._dist.repositories[name].release_repository
+            if not repo:
+                continue
             self._repoinfo[name] = RepoMetadata(name, repo.url, repo.version)
             self._repoinfo[name].packages = {}
             for pkg_name in repo.package_names:
-                pkg = self._dist.packages[pkg_name]
+                pkg = self._dist.release_packages[pkg_name]
                 self._repoinfo[name].packages[pkg_name] = pkg.subfolder
                 self._package_in_repo[pkg_name] = name
 
@@ -71,7 +74,7 @@ class Rosdistro:
         return arches
 
     def get_package_xml(self, pkg_name):
-        return self._dist.get_package_xml(pkg_name)
+        return self._dist.get_release_package_xml(pkg_name)
 
     def debianize_package_name(self, package_name):
         return debianize_package_name(self._rosdistro, package_name)
@@ -159,5 +162,5 @@ class Rosdistro:
 def get_target_distros(rosdistro):
     print("Fetching targets")
     index = get_index(get_index_url())
-    rel_file = get_release_file(index, rosdistro)
-    return rel_file.platforms['ubuntu']
+    dist_file = get_distribution_file(index, rosdistro)
+    return dist_file.platforms['ubuntu']
