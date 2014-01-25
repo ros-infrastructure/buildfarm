@@ -163,4 +163,4 @@ def get_target_distros(rosdistro):
     print("Fetching targets")
     index = get_index(get_index_url())
     dist_file = get_distribution_file(index, rosdistro)
-    return dist_file.platforms['ubuntu']
+    return dist_file.release_platforms['ubuntu']
