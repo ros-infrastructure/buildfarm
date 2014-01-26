@@ -30,9 +30,7 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>sudo apt-get update
-sudo apt-get install -y python-rosdistro
-
+      <command>#!/bin/bash
 INDEX_URL=`python -c "import rosdistro; print(rosdistro.get_index_url())"`
 rosdistro_build_cache $INDEX_URL --debug
 
