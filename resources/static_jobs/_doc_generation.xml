@@ -12,9 +12,10 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.queueSorter.PrioritySorterJobProperty plugin="PrioritySorter@1.3">
-      <priority>40</priority>
-    </hudson.queueSorter.PrioritySorterJobProperty>
+    <jenkins.advancedqueue.AdvancedQueueSorterJobProperty plugin="PrioritySorter@2.6">
+      <useJobPriority>true</useJobPriority>
+      <priority>960</priority>
+    </jenkins.advancedqueue.AdvancedQueueSorterJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>debbuild</assignedNode>
@@ -22,7 +23,7 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector">
+  <triggers>
     <hudson.triggers.TimerTrigger>
       <spec>0 3 * * *</spec>
     </hudson.triggers.TimerTrigger>
@@ -72,7 +73,7 @@ rm -rf $DOC_DIR</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
-    <hudson.tasks.Mailer plugin="mailer@1.5">
+    <hudson.tasks.Mailer plugin="mailer@1.8">
       <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>

@@ -12,11 +12,12 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.queueSorter.PrioritySorterJobProperty plugin="PrioritySorter@1.3">
-      <priority>164</priority>
-    </hudson.queueSorter.PrioritySorterJobProperty>
+    <jenkins.advancedqueue.AdvancedQueueSorterJobProperty plugin="PrioritySorter@2.6">
+      <useJobPriority>true</useJobPriority>
+      <priority>836</priority>
+    </jenkins.advancedqueue.AdvancedQueueSorterJobProperty>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@1.3.0">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.0.1">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
@@ -30,35 +31,19 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
         <name>master</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
-    <disableSubmodules>false</disableSubmodules>
-    <recursiveSubmodules>false</recursiveSubmodules>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-    <authorOrCommitter>false</authorOrCommitter>
-    <clean>false</clean>
-    <wipeOutWorkspace>false</wipeOutWorkspace>
-    <pruneBranches>false</pruneBranches>
-    <remotePoll>false</remotePoll>
-    <ignoreNotifyCommit>false</ignoreNotifyCommit>
-    <useShallowClone>false</useShallowClone>
-    <buildChooser class="hudson.plugins.git.util.DefaultBuildChooser"/>
     <gitTool>Default</gitTool>
     <submoduleCfg class="list"/>
-    <relativeTargetDir/>
-    <reference/>
-    <excludedRegions/>
-    <excludedUsers/>
-    <gitConfigName/>
-    <gitConfigEmail/>
-    <skipTag>false</skipTag>
-    <includedRegions/>
-    <scmName/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.PerBuildTag />
+    </extensions>
   </scm>
   <assignedNode>master</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector">
+  <triggers>
     <hudson.triggers.TimerTrigger>
       <spec>21 21 * * *</spec>
     </hudson.triggers.TimerTrigger>
@@ -84,9 +69,10 @@ source ./setup.sh
         <name>SUCCESS</name>
         <ordinal>0</ordinal>
         <color>BLUE</color>
+        <completeBuild>true</completeBuild>
       </threshold>
     </hudson.tasks.BuildTrigger>
-    <hudson.tasks.Mailer plugin="mailer@1.5">
+    <hudson.tasks.Mailer plugin="mailer@1.8">
       <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>

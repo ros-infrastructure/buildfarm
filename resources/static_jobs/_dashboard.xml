@@ -4,9 +4,10 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.queueSorter.PrioritySorterJobProperty plugin="PrioritySorter@1.3">
-      <priority>200</priority>
-    </hudson.queueSorter.PrioritySorterJobProperty>
+    <jenkins.advancedqueue.AdvancedQueueSorterJobProperty plugin="PrioritySorter@2.6">
+      <useJobPriority>true</useJobPriority>
+      <priority>800</priority>
+    </jenkins.advancedqueue.AdvancedQueueSorterJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>master</assignedNode>
@@ -14,14 +15,14 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector">
+  <triggers>
     <hudson.triggers.TimerTrigger>
       <spec>0 */6 * * *</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.13">
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.14">
       <scriptSource class="hudson.plugins.groovy.StringScriptSource">
         <command>import hudson.model.Result
 import jenkins.model.Jenkins

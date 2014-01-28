@@ -7,9 +7,10 @@ See this thread for more info: http://jenkins.361315.n4.nabble.com/Workspace-cle
 Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.queueSorter.PrioritySorterJobProperty plugin="PrioritySorter@1.3">
-      <priority>120</priority>
-    </hudson.queueSorter.PrioritySorterJobProperty>
+    <jenkins.advancedqueue.AdvancedQueueSorterJobProperty plugin="PrioritySorter@2.6">
+      <useJobPriority>true</useJobPriority>
+      <priority>880</priority>
+    </jenkins.advancedqueue.AdvancedQueueSorterJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>master</assignedNode>
@@ -17,10 +18,10 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector"/>
+  <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.13">
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.14">
       <scriptSource class="hudson.plugins.groovy.StringScriptSource">
         <command>import hudson.FilePath;
 
@@ -112,7 +113,7 @@ for (slave in jenkins.slaves)
     </hudson.plugins.groovy.SystemGroovy>
   </builders>
   <publishers>
-    <hudson.tasks.Mailer plugin="mailer@1.5">
+    <hudson.tasks.Mailer plugin="mailer@1.8">
       <recipients>ros-buildfarm-status@googlegroups.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>

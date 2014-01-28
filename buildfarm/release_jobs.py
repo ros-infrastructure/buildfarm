@@ -354,10 +354,10 @@ def binarydeb_jobs(package, maintainer_emails, distros, arches, apt_target_repos
             d["DEPENDENTS"] = add_dependent_to_dict(package, jobgraph)
             if first_matrix_job:
                 # build first distro/arch before others
-                d['PRIORITY'] = 101
+                d['PRIORITY'] = 899
                 first_matrix_job = False
             else:
-                d['PRIORITY'] = 100
+                d['PRIORITY'] = 900
             config = create_binarydeb_config(d)
             #print(config)
             job_name = binarydeb_job_name(package, distro, arch)
