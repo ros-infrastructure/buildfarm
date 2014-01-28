@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>Reconfigure devel jobs for Hydro.&#xd;
+  <description>Reconfigure devel jobs for Indigo.&#xd;
 &#xd;
 Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator class="hudson.tasks.LogRotator">
@@ -31,7 +31,7 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>generate_jenkins_devel hydro --delete</command>
+      <command>generate_jenkins_devel indigo --delete</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

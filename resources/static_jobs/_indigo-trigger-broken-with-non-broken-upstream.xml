@@ -39,7 +39,7 @@ import hudson.model.Result
 
 println "Triggering builds for the following jobs:"
 
-def prefix = "ros-hydro-"
+def prefix = "ros-indigo-"
 pattern_src = Pattern.compile(prefix + ".+_sourcedeb")
 pattern_bin = Pattern.compile(prefix + ".+_binarydeb_.+")
 for (p in hudson.model.Hudson.instance.projects) {
