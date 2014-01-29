@@ -11,24 +11,23 @@ from buildfarm.ros_distro import debianize_package_name
 
 
 def parse_options():
-    parser = argparse.ArgumentParser(
-             description='Create a set of jenkins jobs '
-             'for source debs and binary debs for a catkin package.')
+    parser = argparse.ArgumentParser(description='Create a set of jenkins jobs '
+                                     'for source debs and binary debs for a catkin package.')
     parser.add_argument('--fqdn', dest='fqdn',
-           help='The source repo to push to, fully qualified something...',
-           default='repos.ros.org')
+                        help='The source repo to push to, fully qualified something...',
+                        default='repos.ros.org')
     parser.add_argument(dest='rosdistro',
-           help='The ros distro. electric, fuerte, groovy')
+                        help='The ros distro. electric, fuerte, groovy')
     parser.add_argument('--distros', nargs='+',
-           help='A list of debian distros. Default: %(default)s',
-           default=[])
+                        help='A list of debian distros. Default: %(default)s',
+                        default=[])
     parser.add_argument('--arches', nargs='+',
-           help='A list of debian arches. Default: %(default)s',
-           default=['i386', 'amd64'])
+                        help='A list of debian arches. Default: %(default)s',
+                        default=['i386', 'amd64'])
     parser.add_argument('--sourcedeb-only', action='store_true', default=False,
-           help='Only check sourcedeb jobs. Default: all')
+                        help='Only check sourcedeb jobs. Default: all')
     parser.add_argument('--commit', dest='commit',
-           help='Really?', action='store_true')
+                        help='Really?', action='store_true')
     return parser.parse_args()
 
 
@@ -36,7 +35,7 @@ def trigger_if_necessary(da, pkg, rosdistro,
                          jenkins_instance, missing_by_arch):
     if da != 'source' and 'source' in missing_by_arch and \
             pkg in missing_by_arch['source']:
-        print ("  Skipping trigger of binarydeb job for package '%s' on arch '%s' as the sourcedeb job will trigger them automatically" % (pkg, da))
+        print("  Skipping trigger of binarydeb job for package '%s' on arch '%s' as the sourcedeb job will trigger them automatically" % (pkg, da))
         return False
 
     if da == 'source':
@@ -47,11 +46,11 @@ def trigger_if_necessary(da, pkg, rosdistro,
     job_info = jenkins_instance.get_job_info(job_name)
 
     if 'color' in job_info and 'anime' in job_info['color']:
-        print ("  Skipping trigger of job %s because it's already running" % job_name)
+        print("  Skipping trigger of job %s because it's already running" % job_name)
         return False
 
     if 'inQueue' in job_info and job_info['inQueue']:
-        print ("  Skipping trigger of job '%s' because it's already queued" % job_name)
+        print("  Skipping trigger of job '%s' because it's already queued" % job_name)
         return False
 
     if da != 'source' and 'upstreamProjects' in job_info:
@@ -61,10 +60,10 @@ def trigger_if_necessary(da, pkg, rosdistro,
                                           da)
             for u in upstream:
                 if u['name'] == p_name:
-                    print ("  Skipping trigger of job '%s' because the upstream job '%s' is also triggered" % (job_name, p_name))
+                    print("  Skipping trigger of job '%s' because the upstream job '%s' is also triggered" % (job_name, p_name))
                     return False
 
-    print ("Triggering '%s'" % (job_name))
+    print("Triggering '%s'" % (job_name))
     #return jenkins_instance.build_job(job_name)
     # replicate internal implementation of Jenkins.build_job()
     import urllib2

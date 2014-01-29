@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import apt
 import os
 import argparse
@@ -19,9 +21,9 @@ def parse_options():
     parser.add_argument("-u", "--update", dest="update", action='store_true', default=False,
                         help="update the cache from the server")
     parser.add_argument('--repo', dest='repo_urls', action='append', metavar=['REPO_NAME@REPO_URL'],
-           help='The name for the source and the url such as ros@http://repos.ros.org/repos/building')
+                        help='The name for the source and the url such as ros@http://repos.ros.org/repos/building')
     parser.add_argument('--destdir', dest='dest_dir', action='store', default='.',
-           help='What directory to download the debs into. Default: "." ')
+                        help='What directory to download the debs into. Default: "." ')
 
     args = parser.parse_args()
 
@@ -34,7 +36,7 @@ def parse_options():
 
     try:
         os.makedirs(args.dest_dir)
-    except OSError, ex:
+    except OSError as ex:
         if ex.errno != 17:
             parser.error("Failed to make directory %s with error: %s" % (args.dest_dir, ex))
 
@@ -69,7 +71,7 @@ def get_packages(rootdir, update, substring, dest_dir='.'):
     for p in [k for k in c.keys() if args.substring in k]:
         pack = c[p]
         v = pack.candidate  # versions[0]
-        print "fetching packge", p, " for arch", v.architecture,
+        print("fetching packge", p, " for arch", v.architecture)
         # This is going to throw some nasty tracebacks but it's just for the screen printing. https://bugs.launchpad.net/ubuntu/+source/apt/+bug/684785
         v.fetch_binary(destdir=dest_dir)
 
@@ -80,25 +82,25 @@ def render_vertical(packages):
         all_packages.update(v)
 
     if len(all_packages) == 0:
-        print "no packages found matching string"
+        print("no packages found matching string")
         return
 
     width = max([len(p) for p in all_packages])
     pstr = "package"
-    print pstr, " " * (width - len(pstr)), ":",
+    print(pstr, " " * (width - len(pstr)), ":")
     for k in packages.iterkeys():
-        print k, "|",
-    print ''
+        print(k, "|")
+    print('')
 
     for p in all_packages:
         l = len(p)
-        print p, " " * (width - l), ":",
-        for k  in packages.iterkeys():
+        print(p, " " * (width - l), ":")
+        for k in packages.iterkeys():
             if p in packages[k]:
-                print 'x' * len(k), '|',
+                print('x' * len(k), '|')
             else:
-                print ' ' * len(k), '|',
-        print ''
+                print(' ' * len(k), '|')
+        print('')
 
 
 if __name__ == "__main__":
@@ -122,7 +124,7 @@ if __name__ == "__main__":
                 dist_arch = "%s_%s" % (d, a)
                 specific_rootdir = os.path.join(rootdir, dist_arch)
                 setup_apt_root.setup_apt_rootdir(specific_rootdir, d, a, additional_repos=ros_repos)
-                print "setup rootdir %s" % specific_rootdir
+                print("setup rootdir %s" % specific_rootdir)
 
                 packages[dist_arch] = list_packages(specific_rootdir, update=True, substring=args.substring)
 
@@ -130,9 +132,9 @@ if __name__ == "__main__":
 
         result = raw_input('Would you like to pull these debs? [y/N]')
         if result == "y" or result == "Y":  # TODO change to starting with y
-            print "starts with y"
+            print("starts with y")
         else:
-            print "doesn't start with y"
+            print("doesn't start with y")
             sys.exit(0)
 
         for d in distros:
@@ -140,7 +142,7 @@ if __name__ == "__main__":
                 dist_arch = "%s_%s" % (d, a)
                 specific_rootdir = os.path.join(rootdir, dist_arch)
                 setup_apt_root.setup_apt_rootdir(specific_rootdir, d, a, additional_repos=ros_repos)
-                print "setup rootdir %s" % specific_rootdir
+                print("setup rootdir %s" % specific_rootdir)
 
                 get_packages(specific_rootdir, update=True, substring=args.substring, dest_dir=args.dest_dir)
 

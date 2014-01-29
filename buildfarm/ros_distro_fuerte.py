@@ -21,7 +21,7 @@ class Rosdistro:
         try:
             self.repo_map = yaml.load(urllib2.urlopen(URL_PROTOTYPE % rosdistro_name))
         except urllib2.HTTPError as ex:
-            print ("Loading distro from '%s'failed with HTTPError %s" % (URL_PROTOTYPE % rosdistro_name, ex), file=sys.stderr)
+            print("Loading distro from '%s'failed with HTTPError %s" % (URL_PROTOTYPE % rosdistro_name, ex), file=sys.stderr)
             raise
         if 'release-name' not in self.repo_map:
             print("No 'release-name' key in yaml file")
@@ -67,10 +67,10 @@ class Rosdistro:
 
     def get_package_checkout_info(self):
         packages = {}
-        for info  in self._repoinfo.values():
+        for info in self._repoinfo.values():
             for p, path in info.packages.iteritems():
-                if info.version == None:
-                    print ("Skipping repo %s due to null version" % p)
+                if info.version is None:
+                    print("Skipping repo %s due to null version" % p)
                     continue
                 packages[p] = {'url': info.url,
                                'version': 'release/%s/%s' % (p, info.version),
@@ -114,7 +114,7 @@ class Rosdistro:
     def compute_rosinstall_snippet(self, local_name, gbp_url, version, distro_name):
 
         if version is None:
-            print ("Error version unset for %s" % local_name)
+            print("Error version unset for %s" % local_name)
             return None
         config = {}
         config['local-name'] = local_name

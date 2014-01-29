@@ -7,20 +7,19 @@ import buildfarm.apt_root
 
 
 def parse_options():
-    parser = argparse.ArgumentParser(
-             description='setup a directory to be used as a rootdir for apt')
+    parser = argparse.ArgumentParser(description='setup a directory to be used as a rootdir for apt')
     parser.add_argument('--mirror', dest='mirror', action='store', default='http://us.archive.ubuntu.com/ubuntu/',
-           help='The url for the default repo, like --mirror to debootstrap')
+                        help='The url for the default repo, like --mirror to debootstrap')
     parser.add_argument('--repo', dest='repo_urls', action='append', metavar=['REPO_NAME@REPO_URL'],
-           help='The name for the source and the url such as ros@http://repos.ros.org/repos/building')
+                        help='The name for the source and the url such as ros@http://repos.ros.org/repos/building')
     parser.add_argument(dest='distro',
-           help='The debian release distro, lucid, oneiric, etc')
+                        help='The debian release distro, lucid, oneiric, etc')
     parser.add_argument(dest='architecture',
-           help='The debian binary architecture. amd64, i386, armel')
+                        help='The debian binary architecture. amd64, i386, armel')
     parser.add_argument(dest='rootdir',
-           help='The rootdir to use')
+                        help='The rootdir to use')
     parser.add_argument('--local-conf-dir', dest='local_conf',
-                      help='A directory to write an apt-conf to use with apt-get update.')
+                        help='A directory to write an apt-conf to use with apt-get update.')
     args = parser.parse_args()
 
     if not args.repo_urls:

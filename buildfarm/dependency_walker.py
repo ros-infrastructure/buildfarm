@@ -87,7 +87,7 @@ def prune_self_depends(packages, package):
 
 
 def _print_package_set(packages):
-    print (", ".join([p.name for p in packages]))
+    print(", ".join([p.name for p in packages]))
 
 
 def _get_depends(packages, package, recursive=False, buildtime=False):

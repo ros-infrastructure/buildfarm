@@ -46,7 +46,7 @@ class Rosdistro:
         self._targets = None
         self._index = get_index(get_index_url())
         if self._rosdistro not in self._index.distributions:
-            print ("Unknown distribution '%s'" % self._rosdistro, file=sys.stderr)
+            print("Unknown distribution '%s'" % self._rosdistro, file=sys.stderr)
             sys.exit(1)
         self._dist = get_cached_distribution(self._index, self._rosdistro)
         self._build_files = get_release_build_files(self._index, self._rosdistro)
@@ -96,10 +96,10 @@ class Rosdistro:
 
     def get_package_checkout_info(self):
         packages = {}
-        for info  in self._repoinfo.values():
+        for info in self._repoinfo.values():
             for p, path in info.packages.iteritems():
-                if info.version == None:
-                    print ("Skipping repo %s due to null version" % p)
+                if info.version is None:
+                    print("Skipping repo %s due to null version" % p)
                     continue
                 packages[p] = {'url': info.url,
                                'version': 'release/%s/%s' % (p, info.version),
@@ -143,7 +143,7 @@ class Rosdistro:
     def compute_rosinstall_snippet(self, local_name, gbp_url, version, distro_name):
 
         if version is None:
-            print ("Error version unset for %s" % local_name)
+            print("Error version unset for %s" % local_name)
             return None
         config = {}
         config['local-name'] = local_name
