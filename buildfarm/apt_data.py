@@ -62,29 +62,30 @@ class RosdistroData(object):
                 self.packages[pkg_name] = RosdistroVersion(pkg_name, 'wet', version)
 
         # load dry rosdistro stacks
-        dry_yaml = yaml.load(urllib2.urlopen(distro_uri(rosdistro_name)))
-        stacks = dry_yaml['stacks'] or {}
-        for stack_name, d in stacks.items():
-            if stack_name == '_rules':
-                continue
-            version = d.get('version')
-            if version:
-                if stack_name in self.packages:
-                    logging.warn("Stack '%s' exists in dry (%s) as well as in wet (%s) distro. Ignoring dry package." % (stack_name, version, self.packages[stack_name].version))
+        if rosdistro_name == 'groovy':
+            dry_yaml = yaml.load(urllib2.urlopen(distro_uri(rosdistro_name)))
+            stacks = dry_yaml['stacks'] or {}
+            for stack_name, d in stacks.items():
+                if stack_name == '_rules':
                     continue
-                self.packages[stack_name] = RosdistroVersion(stack_name, 'dry', version)
+                version = d.get('version')
+                if version:
+                    if stack_name in self.packages:
+                        logging.warn("Stack '%s' exists in dry (%s) as well as in wet (%s) distro. Ignoring dry package." % (stack_name, version, self.packages[stack_name].version))
+                        continue
+                    self.packages[stack_name] = RosdistroVersion(stack_name, 'dry', version)
 
-        # load variants
-        variants = dry_yaml['variants'] or {}
-        for variant in variants:
-            if len(variant) != 1:
-                logging.warn("Not length 1 dict in variant '%s': skipping" % variant)
-                continue
-            variant_name = variant.keys()[0]
-            if variant_name in self.packages:
-                logging.warn("Variant '%s' exists also as a package in %s. Ignoring variant." % (variant_name, self.packages[variant_name].type))
-                continue
-            self.packages[variant_name] = RosdistroVersion(variant_name, 'variant', '1.0.0')
+            # load variants
+            variants = dry_yaml['variants'] or {}
+            for variant in variants:
+                if len(variant) != 1:
+                    logging.warn("Not length 1 dict in variant '%s': skipping" % variant)
+                    continue
+                variant_name = variant.keys()[0]
+                if variant_name in self.packages:
+                    logging.warn("Variant '%s' exists also as a package in %s. Ignoring variant." % (variant_name, self.packages[variant_name].type))
+                    continue
+                self.packages[variant_name] = RosdistroVersion(variant_name, 'variant', '1.0.0')
 
 
 class RosdistroVersion(object):
