@@ -126,19 +126,20 @@ def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro
     else:
         packages_for_sync = 10000
 
-    #dry stacks
-    # dry dependencies
-    d = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))
+    if rosdistro == 'groovy':
+        #dry stacks
+        # dry dependencies
+        d = rospkg.distro.load_distro(rospkg.distro.distro_uri(rosdistro))
 
-    for s in sorted(d.stacks.iterkeys()):
-        if whitelist_repos and s not in whitelist_repos:
-            continue
-        print("Configuring DRY job [%s]" % s)
-        if not d.stacks[s].version:
-            print('- skipping "%s" since version is null' % s)
-            continue
-        results[rd.debianize_package_name(s)] = release_jobs.dry_doit(s, dry_maintainers[s], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync, ssh_key_id=ssh_key_id)
-        #time.sleep(1)
+        for s in sorted(d.stacks.iterkeys()):
+            if whitelist_repos and s not in whitelist_repos:
+                continue
+            print("Configuring DRY job [%s]" % s)
+            if not d.stacks[s].version:
+                print('- skipping "%s" since version is null' % s)
+                continue
+            results[rd.debianize_package_name(s)] = release_jobs.dry_doit(s, dry_maintainers[s], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync, ssh_key_id=ssh_key_id)
+            #time.sleep(1)
 
     # special metapackages job
     if not whitelist_repos or 'metapackages' in whitelist_repos:
