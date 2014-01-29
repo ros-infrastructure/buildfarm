@@ -211,9 +211,13 @@ if __name__ == '__main__':
 
     release_jobs.check_for_circular_dependencies(dependencies)
 
-    # even for wet_only the dry packages need to be consider, else they are not added as downstream dependencies for the wet jobs
-    stack_depends, dry_maintainers = release_jobs.dry_get_stack_dependencies(args.rosdistro)
-    dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies, stack_depends)
+    if args.rosdistro == 'groovy':
+        # even for wet_only the dry packages need to be consider, else they are not added as downstream dependencies for the wet jobs
+        stack_depends, dry_maintainers = release_jobs.dry_get_stack_dependencies(args.rosdistro)
+        dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies, stack_depends)
+    else:
+        stack_depends, dry_maintainers = {}, {}
+        dry_jobgraph = {}
 
     combined_jobgraph = {}
     for k, v in dependencies.iteritems():
