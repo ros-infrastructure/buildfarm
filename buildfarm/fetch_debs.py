@@ -19,7 +19,7 @@ def parse_options():
     parser.add_argument("-u", "--update", dest="update", action='store_true', default=False,
                         help="update the cache from the server")
     parser.add_argument('--repo', dest='repo_urls', action='append', metavar=['REPO_NAME@REPO_URL'],
-           help='The name for the source and the url such as ros@http://50.28.27.175/repos/building')
+           help='The name for the source and the url such as ros@http://repos.ros.org/repos/building')
     parser.add_argument('--destdir', dest='dest_dir', action='store', default='.',
            help='What directory to download the debs into. Default: "." ')
 
@@ -27,7 +27,7 @@ def parse_options():
 
     # default for now to use our devel server
     if not args.repo_urls:
-        args.repo_urls = ['ros@http://50.28.27.175/repos/building']
+        args.repo_urls = ['ros@http://repos.ros.org/repos/building']
     for a in args.repo_urls:
         if not '@' in a:
             parser.error("Invalid repo definition: %s" % a)

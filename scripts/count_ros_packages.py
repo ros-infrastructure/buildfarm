@@ -13,7 +13,7 @@ def parse_options():
            help='Ubuntu distro lucid, precise, etc')
     parser.add_argument("arch",
            help='The arch amd63 i386')
-    parser.add_argument('--repo', dest='repo_url', action='store', default='http://50.28.27.175/repos/building',
+    parser.add_argument('--repo', dest='repo_url', action='store', default='http://repos.ros.org/repos/building',
            help='The repo url')
 
     parser.add_argument('--count', dest='count', action='store', default=100,

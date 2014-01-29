@@ -16,7 +16,7 @@ def parse_options():
              'for source debs and binary debs for a catkin package.')
     parser.add_argument('--fqdn', dest='fqdn',
            help='The source repo to push to, fully qualified something...',
-           default='50.28.27.175')
+           default='repos.ros.org')
     parser.add_argument(dest='rosdistro',
            help='The ros distro. electric, fuerte, groovy')
     parser.add_argument('--distros', nargs='+',

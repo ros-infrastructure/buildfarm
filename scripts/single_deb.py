@@ -720,7 +720,7 @@ def single_deb_main():
     parser.add_option("--noupload",
                       dest="noupload", default=False, action="store_true")
     parser.add_option("--fqdn",
-                      dest="fqdn", default='50.28.27.175', action="store")
+                      dest="fqdn", default='repos.ros.org', action="store")
     parser.add_option("--interactive",
                       dest="interactive", default=False, action="store_true")
     parser.add_option('--smtp', dest="smtp", default='pub1.willowgarage.com', metavar="SMTP_SERVER")

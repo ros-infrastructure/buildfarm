@@ -22,7 +22,7 @@ def parse_options():
              description='Create a set of jenkins jobs '
              'for source debs and binary debs for a catkin package.')
     parser.add_argument('--fqdn', dest='fqdn',
-           help='The source repo to push to, fully qualified something. Default: taken from distro-build.yaml, for Fuerte: 50.28.27.175')
+           help='The source repo to push to, fully qualified something. Default: taken from distro-build.yaml, for Fuerte: repos.ros.org')
     parser.add_argument(dest='rosdistro',
            help='The ros distro. fuerte, groovy, hydro, ...')
     parser.add_argument('--distros', nargs='+',
@@ -50,7 +50,7 @@ def parse_options():
 
     if args.rosdistro == 'fuerte':
         if args.fqdn is None:
-            args.fqdn = '50.28.27.175'
+            args.fqdn = 'repos.ros.org'
         if args.arches is None:
             args.arches = ['amd64', 'i386']
 
