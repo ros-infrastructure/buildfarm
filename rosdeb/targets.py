@@ -1,10 +1,11 @@
 os_platform = {
-    'testing': ['lucid', 'maverick'],
-    'unstable': ['lucid', 'oneiric'],
+    'indigo': ['saucy', 'trusty'],
     'hydro': ['precise', 'quantal', 'raring'],
     'groovy': ['oneiric', 'precise', 'quantal'],
-    'fuerte': ['lucid', 'oneiric', 'precise'],
 # no longer supported
+#    'unstable': ['lucid', 'oneiric'],
+#    'testing': ['lucid', 'maverick'],
+#    'fuerte': ['lucid', 'oneiric', 'precise'],
 #    'electric': ['lucid', 'maverick', 'natty', 'oneiric'],
 #    'diamondback': ['lucid', 'maverick', 'natty'],
 #    'cturtle': ['lucid', 'maverick', 'karmic'],
