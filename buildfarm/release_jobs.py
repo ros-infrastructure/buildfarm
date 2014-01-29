@@ -163,7 +163,7 @@ def dry_get_versioned_dependency_tree(rosdistro):
     try:
         d = load_distro(url)
     except urllib2.URLError as ex:
-        print ("Loading distro from '%s'failed with URLError %s" % (url, ex), file=sys.stderr)
+        print("Loading distro from '%s'failed with URLError %s" % (url, ex), file=sys.stderr)
         raise
     dependency_tree = {}
     versions = {}
@@ -384,7 +384,7 @@ def sourcedeb_job(package, maintainer_emails, distros, fqdn, release_uri, child_
         TIMEOUT=timeout,
         SSH_KEY_ID=ssh_key_id
     )
-    return  (sourcedeb_job_name(package), create_sourcedeb_config(d))
+    return (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
 
 def dry_doit(package, dry_maintainers, distros, arches, fqdn, rosdistro, jobgraph, commit, jenkins_instance, packages_for_sync, ssh_key_id):
@@ -402,7 +402,7 @@ def dry_doit(package, dry_maintainers, distros, arches, fqdn, rosdistro, jobgrap
                 else:
                     failed_jobs.append(job_name)
             except urllib2.URLError as ex:
-                print ("Job creation failed with URLError %s" % ex, file=sys.stderr)
+                print("Job creation failed with URLError %s" % ex, file=sys.stderr)
                 failed_jobs.append(job_name)
 
     unattempted_jobs = [job for (job, config) in jobs if job not in successful_jobs and job not in failed_jobs]
@@ -432,14 +432,14 @@ def doit(release_uri, package_name, package, distros, arches, apt_target_reposit
 def summarize_results(unattempted_jobs, successful_jobs, failed_jobs):
     print('=' * 80)
     jobs = set(unattempted_jobs).union(set(successful_jobs)).union(set(failed_jobs))
-    print ('Summary: %d jobs configured.  Listed below.' % len(jobs))
-    print ('Unexecuted: %d' % len(unattempted_jobs))
+    print('Summary: %d jobs configured.  Listed below.' % len(jobs))
+    print('Unexecuted: %d' % len(unattempted_jobs))
     for job_name in unattempted_jobs:
-        print ("  %s" % job_name)
-    print ('Successful: %d' % len(successful_jobs))
+        print("  %s" % job_name)
+    print('Successful: %d' % len(successful_jobs))
     for job_name in successful_jobs:
-        print ("  %s" % job_name)
-    print ('Failed: %d' % len(failed_jobs))
+        print("  %s" % job_name)
+    print('Failed: %d' % len(failed_jobs))
     for job_name in failed_jobs:
-        print ("  %s" % job_name)
+        print("  %s" % job_name)
     print('=' * 80)

@@ -11,7 +11,7 @@ from buildfarm.apt_data import get_version_data
 from buildfarm.status_page import get_distro_arches, render_csv, transform_csv_to_html
 from rosdistro import get_cached_distribution, get_index, get_index_url
 
-JENKINS_HOST='http://jenkins.ros.org'
+JENKINS_HOST = 'http://jenkins.ros.org'
 
 
 def parse_options(args=sys.argv[1:]):
@@ -30,24 +30,24 @@ def parse_options(args=sys.argv[1:]):
                    help='The ROS distro to generate the status page'
                    ' for (i.e. groovy).')
     p.add_argument('--build-repo',
-          default='http://repos.ros.org/repos/building',
-          help='Repository URL for the build farm repository.')
+                   default='http://repos.ros.org/repos/building',
+                   help='Repository URL for the build farm repository.')
     p.add_argument('--shadow-repo',
-          default='http://repos.ros.org/repos/ros-shadow-fixed/ubuntu/',
-          help='Repository URL for the staging repository.')
+                   default='http://repos.ros.org/repos/ros-shadow-fixed/ubuntu/',
+                   help='Repository URL for the staging repository.')
     p.add_argument('--public-repo',
-          default='http://repos.ros.org/repos/ros/ubuntu/',
-          help='Repository URL for the public repository.')
+                   default='http://repos.ros.org/repos/ros/ubuntu/',
+                   help='Repository URL for the public repository.')
     p.add_argument('--distros',
-          nargs='+',
-          help='Distributions to query')
+                   nargs='+',
+                   help='Distributions to query')
     p.add_argument('--arches',
-          default=['i386', 'amd64'],
-          nargs='+',
-          help='Architectures to query')
+                   default=['i386', 'amd64'],
+                   nargs='+',
+                   help='Architectures to query')
     p.add_argument('--da',
-          nargs='+',
-          help='Distro/Arch pairs to query')
+                   nargs='+',
+                   help='Distro/Arch pairs to query')
     return p.parse_args(args)
 
 
@@ -57,8 +57,8 @@ if __name__ == '__main__':
     start_time = time.localtime()
 
     ros_repos = {'ros': args.public_repo,
-        'shadow-fixed': args.shadow_repo,
-            'building': args.build_repo}
+                 'shadow-fixed': args.shadow_repo,
+                 'building': args.build_repo}
 
     distro_arches = []
     if args.da:
@@ -78,8 +78,8 @@ if __name__ == '__main__':
         render_csv(rd_data, apt_data, csv_file, args.rosdistro,
                    distro_arches, ros_repos)
     elif not os.path.exists(csv_file):
-        print('.csv file "%s" is missing. Call script without "--skip-csv".' %\
-                  csv_file, file=sys.stderr)
+        print('.csv file "%s" is missing. Call script without "--skip-csv".' %
+              csv_file, file=sys.stderr)
     else:
         print('Skip generating .csv file')
 
@@ -134,7 +134,7 @@ if __name__ == '__main__':
                                      start_time, template_file, args.resources, cached_distribution)
     html_file = os.path.join(args.basedir, '%s.html' % args.rosdistro)
     with open(html_file, 'w') as f:
-        f.write(html) #.encode('utf8'))
+        f.write(html)  # .encode('utf8'))
 
     print('Symlinking js and css...')
     for res in ['js', 'css']:

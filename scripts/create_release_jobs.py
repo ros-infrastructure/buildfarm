@@ -18,32 +18,29 @@ except ImportError:
 
 
 def parse_options():
-    parser = argparse.ArgumentParser(
-             description='Create a set of jenkins jobs '
-             'for source debs and binary debs for a catkin package.')
+    parser = argparse.ArgumentParser(description='Create a set of jenkins jobs for source debs and binary debs for a catkin package.')
     parser.add_argument('--fqdn', dest='fqdn',
-           help='The source repo to push to, fully qualified something. Default: taken from distro-build.yaml, for Fuerte: repos.ros.org')
+                        help='The source repo to push to, fully qualified something. Default: taken from distro-build.yaml, for Fuerte: repos.ros.org')
     parser.add_argument(dest='rosdistro',
-           help='The ros distro. fuerte, groovy, hydro, ...')
-    parser.add_argument('--distros', nargs='+',
-           help='A list of debian distros. Default: %(default)s',
-           default=[])
+                        help='The ros distro. fuerte, groovy, hydro, ...')
+    parser.add_argument('--distros', nargs='+', default=[],
+                        help='A list of debian distros. Default: %(default)s')
     parser.add_argument('--arches', nargs='+',
-           help='A list of debian architectures. Default: taken from distro-build.yaml, for Fuerte: [amd64, i386]')
-    parser.add_argument('--commit', dest='commit',
-           help='Really?', action='store_true', default=False)
-    parser.add_argument('--delete', dest='delete',
-           help='Delete extra jobs', action='store_true', default=False)
-    parser.add_argument('--no-update', dest='skip_update',
-           help='Assume packages have already been downloaded', action='store_true', default=False)
-    parser.add_argument('--wet-only', dest='wet_only',
-           help='Only setup wet jobs', action='store_true', default=False)
+                        help='A list of debian architectures. Default: taken from distro-build.yaml, for Fuerte: [amd64, i386]')
+    parser.add_argument('--commit', action='store_true', default=False,
+                        help='Really?')
+    parser.add_argument('--delete', action='store_true', default=False,
+                        help='Delete extra jobs')
+    parser.add_argument('--no-update', dest='skip_update', action='store_true', default=False,
+                        help='Assume packages have already been downloaded')
+    parser.add_argument('--wet-only', action='store_true', default=False,
+                        help='Only setup wet jobs')
     parser.add_argument('--repo-workspace', action='store',
-           help='A directory into which all the repositories will be checked out into.')
+                        help='A directory into which all the repositories will be checked out into.')
     parser.add_argument('--repos', nargs='+',
-           help='A list of repository (or stack) names to create. Default: creates all')
+                        help='A list of repository (or stack) names to create. Default: creates all')
     parser.add_argument('--ssh-key-id',
-           help="Jenkins SSH key ID for accessing the package server")
+                        help="Jenkins SSH key ID for accessing the package server")
     args = parser.parse_args()
     if args.repos and args.delete:
         parser.error('A set of repos to create can not be combined with the --delete option.')
@@ -87,7 +84,7 @@ def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro
         #else:
         #    target_distros = list(set(r['target']) & set(default_distros))
 
-        print ('Configuring WET repo "%s" at "%s" for "%s"' % (r.name, r.url, target_distros))
+        print('Configuring WET repo "%s" at "%s" for "%s"' % (r.name, r.url, target_distros))
 
         for p in sorted(r.packages.iterkeys()):
             if not r.version:
@@ -95,29 +92,29 @@ def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro
                 continue
             pkg_name = rd.debianize_package_name(p)
             results[pkg_name] = release_jobs.doit(r.url,
-                 pkg_name,
-                 packages[p],
-                 target_distros,
-                 target_arches,
-                 apt_target_repository,
-                 fqdn,
-                 jobs_graph,
-                 rosdistro=rosdistro,
-                 short_package_name=p,
-                 commit=commit,
-                 jenkins_instance=jenkins_instance,
-                 sourcedeb_timeout=sourcedeb_timeout,
-                 binarydeb_timeout=binarydeb_timeout,
-                 ssh_key_id=ssh_key_id)
+                                                  pkg_name,
+                                                  packages[p],
+                                                  target_distros,
+                                                  target_arches,
+                                                  apt_target_repository,
+                                                  fqdn,
+                                                  jobs_graph,
+                                                  rosdistro=rosdistro,
+                                                  short_package_name=p,
+                                                  commit=commit,
+                                                  jenkins_instance=jenkins_instance,
+                                                  sourcedeb_timeout=sourcedeb_timeout,
+                                                  binarydeb_timeout=binarydeb_timeout,
+                                                  ssh_key_id=ssh_key_id)
             #time.sleep(1)
             #print ('individual results', results[pkg_name])
 
     if args.wet_only:
-        print ("wet only selected, skipping dry and delete")
+        print("wet only selected, skipping dry and delete")
         return results
 
     if rosdistro == 'backports':
-        print ("No dry backports support")
+        print("No dry backports support")
         return results
 
     if rosdistro == 'fuerte':
@@ -136,7 +133,7 @@ def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro
     for s in sorted(d.stacks.iterkeys()):
         if whitelist_repos and s not in whitelist_repos:
             continue
-        print ("Configuring DRY job [%s]" % s)
+        print("Configuring DRY job [%s]" % s)
         if not d.stacks[s].version:
             print('- skipping "%s" since version is null' % s)
             continue

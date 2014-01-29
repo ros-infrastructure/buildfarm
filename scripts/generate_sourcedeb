@@ -11,7 +11,7 @@ def parse_options():
     import argparse
     parser = argparse.ArgumentParser(description='Creates a set of source debs from a catkin gbp repo. Creates source debs from the latest upstream version.')
     parser.add_argument(dest='repo_uri',
-            help='A read-only git buildpackage repo uri.')
+                        help='A read-only git buildpackage repo uri.')
     parser.add_argument('package_name', help='The package name for the package we\'re building')
     parser.add_argument('rosdistro', help='Which rosdistro to operate on')
     parser.add_argument('short_package_name', help='The package name for the package we\'re building, w/o the debian extensions')
@@ -72,8 +72,8 @@ def verify_debian_tag(repo_path, package_name, package_version, distro):
 def build_source_deb(repo_path, tag, output):
     call(repo_path, ('git', 'checkout', tag))
     call(repo_path, ('git', 'buildpackage', '--git-export-dir=%s' % output,
-#        '--git-ignore-branch', '--git-upstream-tree=tag',
-        '--git-ignore-new', '-S', '-uc', '-us', '--lintian-opts', '--suppress-tags', 'newer-standards-version'))
+         # '--git-ignore-branch', '--git-upstream-tree=tag',
+         '--git-ignore-new', '-S', '-uc', '-us', '--lintian-opts', '--suppress-tags', 'newer-standards-version'))
     print("Successfully created changes in %s" % output)
     call(repo_path, ['ls', output])
 
@@ -81,11 +81,11 @@ def build_source_deb(repo_path, tag, output):
 def upload_source_deb(distros, repo_fqdn, repo_path, input_directory, packagename):
     upload_root = "/tmp/upload/%s" % packagename
 
-    # clear the upload directory to make sure that there are not old files lying around 
+    # clear the upload directory to make sure that there are not old files lying around
     cmd = ("ssh rosbuild@%s -- rm -rf %s" % (repo_fqdn, upload_root)).split()
     call('/tmp/', cmd)
     cmd = ("ssh rosbuild@%s -- mkdir -p %s" % (repo_fqdn, upload_root)).split()
-    call('/tmp/', cmd)    
+    call('/tmp/', cmd)
 
     # Copy up the data
     for distro in distros:
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     rd = Rosdistro(args.rosdistro)
 
     package_version = rd.get_version(args.short_package_name, full_version=True)
-    print ("package name", args.short_package_name, "version", package_version)
+    print("package name", args.short_package_name, "version", package_version)
 
     repo_base, extension = os.path.splitext(os.path.basename(args.repo_uri))
     repo_path = os.path.join(args.working, repo_base)
@@ -140,7 +140,7 @@ if __name__ == "__main__":
         try:
             build_source_deb(repo_path, tag, output_dir)
             print("successfully created sourcedeb for tag %s on repo %s." % (tag, repo_path))
-        except CalledProcessError, ex:
+        except CalledProcessError as ex:
             print("Failed to build source deb for tag %s on repo %s: %s" % (tag, repo_path, ex))
             report_failure = True
             continue
@@ -155,7 +155,7 @@ if __name__ == "__main__":
                               args.package_name
                               )
             print("Succeeded uploading for distro %s." % (d))
-    except CalledProcessError, ex:
+    except CalledProcessError as ex:
         print("Failed uploading for distro %s: %s" % (d, ex))
         report_failure = True
 

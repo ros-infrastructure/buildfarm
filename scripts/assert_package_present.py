@@ -29,7 +29,7 @@ if __name__ == "__main__":
     for p in args.packages:
         failure = False
         if p not in c:
-            print "Package %s missing in repo." % p
+            print("Package %s missing in repo." % p)
             failure = True
 
     if failure:

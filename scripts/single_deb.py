@@ -31,6 +31,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
+
 """
 Build debs for a package and all of its dependencies as necessary
 """
@@ -48,8 +50,7 @@ import time
 
 from rospkg.distro import distro_uri, load_distro
 import rosdeb
-from rosdeb import debianize_name, debianize_version, targets, list_missing
-from rosdeb.rosutil import send_email
+from rosdeb import debianize_name, debianize_version, list_missing
 from rosdeb.source_deb import download_control
 
 NAME = 'build_debs.py'
@@ -97,26 +98,26 @@ class InternalBuildFailure(Exception):
 def download_files(stack_name, stack_version, staging_dir, files):
     import urllib
 
-    base_name = "%s-%s"%(stack_name, stack_version)
+    base_name = "%s-%s" % (stack_name, stack_version)
 
     dl_files = []
     for f_name in files:
         try:
             dest = os.path.join(staging_dir, f_name)
         except:
-            raise BuildFailure("generating dest %s from %s and %s" %\
-                                   (dest, staging_dir, f_name))
+            raise BuildFailure("generating dest %s from %s and %s" %
+                               (dest, staging_dir, f_name))
         try:
             url = TARBALL_URL % locals()
         except:
-            raise BuildFailure("Failure generating tarball url from %s and %s" %\
-                                   (TARBALL_URL, locals()))
+            raise BuildFailure("Failure generating tarball url from %s and %s" %
+                               (TARBALL_URL, locals()))
         try:
             urllib.urlretrieve(url, dest)
 
         except:
-            raise BuildFailure("Problem fetching file %s.  [Reason Unknown]" %\
-                                   (f_name))
+            raise BuildFailure("Problem fetching file %s.  [Reason Unknown]" %
+                               (f_name))
         dl_files.append(dest)
 
     return dl_files
@@ -160,7 +161,7 @@ def compute_deps(distro, stack_name):
             try:
                 add_stack(s)
             except BuildFailure as e:
-                print "WARNING: Failed loading stack [%s] removing from ALL.  Error:\n%s" % (s, e)
+                print("WARNING: Failed loading stack [%s] removing from ALL.  Error:\n%s" % (s, e))
     else:
         add_stack(stack_name)
 
@@ -229,8 +230,8 @@ def create_chroot(distro, distro_name, os_platform, arch, repo_fqdn):
 def do_deb_build(distro_name, stack_name, stack_version, os_platform, arch, staging_dir, noupload, interactive, repo_fqdn):
     debug("Actually trying to build %s-%s..." % (stack_name, stack_version))
 
-    distro_tgz = os.path.join('/var/cache/pbuilder', "%s-%s-%s.tgz" %\
-                                  (os_platform, arch, TGZ_VERSION))
+    distro_tgz = os.path.join('/var/cache/pbuilder', "%s-%s-%s.tgz" %
+                              (os_platform, arch, TGZ_VERSION))
 
     deb_name = "ros-%s-%s" % (distro_name, debianize_name(stack_name))
     deb_version = debianize_version(stack_version, '0', os_platform)
@@ -369,13 +370,13 @@ dpkg -l %(deb_name)s
     # Upload the debs to the server
     base_files = ['%s_%s.changes' % (deb_file, arch)]  # , "%s_%s.deb"%(deb_file_final, arch)
     files = [os.path.join(results_dir, x) for x in base_files]
-    print "Generated debian change files: %s" % files
+    print("Generated debian change files: %s" % files)
 
     if not noupload:
         invalidate_debs(deb_name, os_platform, arch, repo_fqdn)
 
         if not upload_debs(files, distro_name, os_platform, arch, repo_fqdn):
-            print "Upload of debs failed!!!"
+            print("Upload of debs failed!!!")
             return 1
     return 0
 
@@ -392,16 +393,16 @@ def invalidate_debs(package, os_platform, arch, repo_fqdn):
     cmd = "/usr/bin/reprepro -b %(repo_path)s -T deb -V removefilter %(os_platform)s \"Architecture (== %(arch)s ), Depends ($ *%(package)s[ ,]* ) | Depends ($ *%(package)s )\" " % locals()
     cmd = cmd.replace('$', '%')
 
-    print "Invalidation command: ", cmd
+    print("Invalidation command: ", cmd)
     _, stdout, stderr = ssh.exec_command(cmd)
-    print "Invalidation results:", stdout.readlines(), stderr.readlines()
+    print("Invalidation results:", stdout.readlines(), stderr.readlines())
 
     # remove the package itseif
     cmd = "/usr/bin/reprepro -b %(repo_path)s -T deb -V removefilter %(os_platform)s \"Package (== %(package)s ), Architecture (== %(arch)s ) \" " % locals()
 
-    print "Invalidation command: ", cmd
+    print("Invalidation command: ", cmd)
     _, stdout, stderr = ssh.exec_command(cmd)
-    print "Invalidation results:", stdout.readlines(), stderr.readlines()
+    print("Invalidation results:", stdout.readlines(), stderr.readlines())
     ssh.close()
 
 
@@ -415,7 +416,7 @@ def upload_debs(files, distro_name, os_platform, arch, repo_fqdn):
 
     try:
         tf_name = None
-        with tempfile.NamedTemporaryFile(delete=False)  as tf:
+        with tempfile.NamedTemporaryFile(delete=False) as tf:
             tf.write("""
 [debtarget]
 method                  = scp
@@ -430,7 +431,7 @@ post_upload_command     = ssh %(repo_username)s@%(repo_hostname)s -- /usr/bin/re
         ret_val = subprocess.call(['cat', tf_name])
         cmd = ['dput', '-u', '-c', tf_name, 'debtarget']
         cmd.extend(files)
-        print "Uploading with command: %s" % cmd
+        print("Uploading with command: %s" % cmd)
         subprocess.check_call(cmd)
     finally:
         if tf_name:
@@ -492,7 +493,7 @@ rm %(new_files)s
 
 
 def debug(msg):
-    print "[build_debs]: %s" % (msg)
+    print("[build_debs]: %s" % (msg))
 
 
 def build_debs(distro, stack_name, os_platform, arch, staging_dir, force, noupload, interactive, repo_fqdn):
@@ -503,7 +504,7 @@ def build_debs(distro, stack_name, os_platform, arch, staging_dir, force, nouplo
 
     try:
         stack_version = distro.released_stacks[stack_name].version
-    except KeyError, ex:
+    except KeyError as ex:
         debug("Stack [%s] is not in in the distro: %s" % (stack_name, ex))
 
     broken = set()
@@ -541,7 +542,7 @@ def parse_deb_packages(text):
         if len(l) == 0:
             if len(pkg) > 0:
                 if not 'Package' in pkg:
-                    print 'INVALID at %d' % count
+                    print('INVALID at %d' % count)
                 else:
                     if key:
                         pkg[key] = val
@@ -626,10 +627,10 @@ def gen_metapkgs(distro, os_platform, arch, staging_dir, repo_fqdn, force=False)
     try:
         packagetxt = urllib2.urlopen(packageurl).read()
     except urllib2.URLError as ex:
-        print "Failed to open url: %s with error %s" % (packageurl, ex)
+        print("Failed to open url: %s with error %s" % (packageurl, ex))
         raise ex
-    except: 
-        print "Failed to open url: %s" % (packageurl)
+    except:
+        print("Failed to open url: %s" % (packageurl))
         raise
     packagelist = parse_deb_packages(packagetxt)
 
@@ -694,9 +695,9 @@ def gen_metapkgs_setup(staging_dir_arg, distro, os_platform, arch, repo_fqdn):
 
     try:
         gen_metapkgs(distro, os_platform, arch, staging_dir, repo_fqdn)
-    except BuildFailure, e:
+    except BuildFailure as e:
         failure_message = "Failure Message:\n" + "=" * 80 + '\n' + str(e)
-    except StackBuildFailure, e:
+    except StackBuildFailure as e:
         warning_message = "Warning Message:\n" + "=" * 80 + '\n' + str(e)
     except Exception as e:
         failure_message = "Internal failure in the release system generating metapackages. Please notify ros-release@code.ros.org:\n%s\n\n%s" % (e, traceback.format_exc(e))
@@ -758,11 +759,11 @@ def single_deb_main():
         else:
             build_debs(distro, stack_name, os_platform, arch, staging_dir, options.force, options.noupload, options.interactive, options.fqdn)
 
-    except StackBuildFailure, e:
+    except StackBuildFailure as e:
         warning_message = "Warning Message:\n" + "=" * 80 + '\n' + str(e)
-    except BuildFailure, e:
+    except BuildFailure as e:
         failure_message = "Failure Message:\n" + "=" * 80 + '\n' + str(e)
-    except Exception, e:
+    except Exception as e:
         failure_message = "Internal failure release system setting up the staging dir. Please notify ros-release@code.ros.org:\n%s\n\n%s" % (e, traceback.format_exc(e))
     finally:
         # if we created our own staging dir, we are responsible for cleaning it up

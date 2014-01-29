@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
             if not dsc_file:
                 missing.append(p)
-                print "No DSC file fetched for package %s" % p
+                print("No DSC file fetched for package %s" % p)
 
             with open(dsc_file, 'r') as dsc:
                 y = yaml.load(dsc.read())
@@ -58,18 +58,18 @@ if __name__ == "__main__":
                 for dep in [dep.strip() for dep in build_depends]:
                     dep_name_only = dep.split()[0]
                     if dep_name_only not in c:
-                        print "package %s does not have dependency [%s]" % \
-                            (p, dep_name_only)
+                        print("package %s does not have dependency [%s]" %
+                              (p, dep_name_only))
                         missing.append(dep_name_only)
 
         except Exception as ex:
-            print "Exception processing package %s: %s" % (p, ex)
+            print("Exception processing package %s: %s" % (p, ex))
             missing.append(p)
         finally:
             shutil.rmtree(tdir)
 
     if missing:
-        print "Dependencies not satisfied for packages: %s" % missing
+        print("Dependencies not satisfied for packages: %s" % missing)
         sys.exit(1)
     else:
         sys.exit(0)

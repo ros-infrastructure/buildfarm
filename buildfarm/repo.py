@@ -136,7 +136,7 @@ def parse_Packages(packagelist):
             deps = [d.strip() for d in deps]
         elif l.lower().startswith('wg-rosdistro: '):
             distro = l[len('wg-rosdistro: '):]
-        if package != None and version != None and deps != None and distro != None:
+        if package is not None and version is not None and deps is not None and distro is not None:
             package_deps.append((package, version, deps, distro))
             package = version = deps = distro = None
     return package_deps

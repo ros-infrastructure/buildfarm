@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import csv
 import re
-import time
 from StringIO import StringIO
 
 # Monkey-patching over some unicode bugs in empy.
@@ -19,6 +18,7 @@ from buildfarm.ros_distro import debianize_package_name
 
 version_rx = re.compile(r'[0-9.-]+[0-9]')
 REPOS = ['building', 'shadow-fixed', 'ros/public']
+
 
 def get_da_strs(distro_arches):
     distros = set()
@@ -52,7 +52,7 @@ def make_versions_table(rd_data, apt_data,
     right_columns = [(da_str, object) for da_str in da_strs]
     columns = left_columns + right_columns
 
-    distro_debian_names = [debianize_package_name(rosdistro, pkg.name) for pkg in  rd_data.packages.values()]
+    distro_debian_names = [debianize_package_name(rosdistro, pkg.name) for pkg in rd_data.packages.values()]
 
     # prefixes of other ros distros
     prefixes = ['ros-electric-', 'ros-fuerte-', 'ros-unstable-']
@@ -206,9 +206,8 @@ def transform_csv_to_html(data_source, metadata_builder,
     rows = rows[1:]
 
     metadata_columns = [None] * 3 + [metadata_builder(c) for c in headers[3:]]
-    headers = [format_header_cell(headers[i],
-                                 metadata_columns[i]) \
-                  for i in range(len(headers))]
+    headers = [format_header_cell(headers[i], metadata_columns[i])
+               for i in range(len(headers))]
 
     # count non-None rows per (sub-)column
     row_counts = [[]] * 3 + [[0] * 3 for _ in range(3, len(headers))]
@@ -225,7 +224,7 @@ def transform_csv_to_html(data_source, metadata_builder,
     rows = [format_row(r, metadata_columns) for r in rows]
     inject_status_and_maintainer(cached_distribution, headers, row_counts, rows)
 
-    # div-wrap the first two cells for layout reasons. It's difficult to contrain the 
+    # div-wrap the first two cells for layout reasons. It's difficult to contrain the
     # overall dimensions of a table cell without an inner element to use as the overflow
     # container.
     for row in rows:
@@ -276,7 +275,7 @@ def inject_status_and_maintainer(cached_distribution, header, counts, rows):
                         if u.type == 'website':
                             url = u
                             break
-                except InvalidPackage as e:
+                except InvalidPackage:
                     maintainer_cell = '<a><b>bad package.xml</b></a>'
         else:
             status_cell = '<a class="unknown"/>'
@@ -310,21 +309,24 @@ def format_row(row, metadata_columns):
     # only pass no_source if this is a sourcedeb entry
     row = row[:3] + [format_versions_cell(get_cell_versions(row[i]),
                                           latest_version,
-                                          no_source and metadata[i]['is_source']) \
-                         for i in range(3, len(row))]
+                                          no_source and metadata[i]['is_source'])
+                     for i in range(3, len(row))]
 
     hidden_texts = []
-    if has_diff_between_rosdistros: hidden_texts.append('diff')
-    if True in public_changing_on_sync: hidden_texts.append('sync')
-    if True in regression: hidden_texts.append('regression')
-    if len(hidden_texts) > 0: 
+    if has_diff_between_rosdistros:
+        hidden_texts.append('diff')
+    if True in public_changing_on_sync:
+        hidden_texts.append('sync')
+    if True in regression:
+        hidden_texts.append('regression')
+    if len(hidden_texts) > 0:
         row[0] += ' <span class="ht">%s</span>' % ' '.join(hidden_texts)
 
     type_texts = {
-       'wet': 'wet',
-       'dry': 'dry',
-       'unknown': '?',
-       'variant': "var"
+        'wet': 'wet',
+        'dry': 'dry',
+        'unknown': '?',
+        'variant': "var"
     }
     row[2] = type_texts[row[2]]
     return row
@@ -354,8 +356,7 @@ def format_versions_cell(versions, latest_version,
     # set the latest_version to None if no package expected
     if no_source:
         latest_version = None
-    cell = ''.join([format_version(v, latest_version)\
-                        for v in versions])
+    cell = ''.join([format_version(v, latest_version) for v in versions])
 
     return cell
 
@@ -363,16 +364,16 @@ def format_versions_cell(versions, latest_version,
 def format_version(version, latest):
     if latest:
         if not version or version == 'None':
-            color = 'm' # missing
+            color = 'm'  # missing
         elif version == latest:
-            color = None # latest
+            color = None  # latest
         else:
-            color = 'o' # outdated
+            color = 'o'  # outdated
     else:
         if not version or version == 'None':
-            color = 'i' # ignore
+            color = 'i'  # ignore
         else:
-            color = 'obs' # obsolete
+            color = 'obs'  # obsolete
 
     label = version
     if version == latest:
@@ -394,4 +395,3 @@ def make_square_div(label, color):
             return '<a class="%s"/>' % color
     else:
         return '<a/>'
-

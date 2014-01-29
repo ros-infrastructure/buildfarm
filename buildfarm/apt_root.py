@@ -28,7 +28,7 @@ def setup_directories(rootdir):
     for d in dirs:
         try:
             os.makedirs(os.path.join(rootdir, d))
-        except OSError, ex:
+        except OSError as ex:
             if ex.errno == 17:
                 continue
             raise ex
