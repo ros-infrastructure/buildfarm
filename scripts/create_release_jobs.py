@@ -42,6 +42,8 @@ def parse_options():
            help='A directory into which all the repositories will be checked out into.')
     parser.add_argument('--repos', nargs='+',
            help='A list of repository (or stack) names to create. Default: creates all')
+    parser.add_argument('--ssh-key-id',
+           help="Jenkins SSH key ID for accessing the package server")
     args = parser.parse_args()
     if args.repos and args.delete:
         parser.error('A set of repos to create can not be combined with the --delete option.')
@@ -55,7 +57,7 @@ def parse_options():
     return args
 
 
-def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit=False, delete_extra_jobs=False, whitelist_repos=None, sourcedeb_timeout=None, binarydeb_timeout=None):
+def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit=False, delete_extra_jobs=False, whitelist_repos=None, sourcedeb_timeout=None, binarydeb_timeout=None, ssh_key_id=None):
     jenkins_instance = None
     if args.commit or delete_extra_jobs:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
@@ -104,7 +106,9 @@ def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro
                  short_package_name=p,
                  commit=commit,
                  jenkins_instance=jenkins_instance,
-                 sourcedeb_timeout=sourcedeb_timeout, binarydeb_timeout=binarydeb_timeout)
+                 sourcedeb_timeout=sourcedeb_timeout,
+                 binarydeb_timeout=binarydeb_timeout,
+                 ssh_key_id=ssh_key_id)
             #time.sleep(1)
             #print ('individual results', results[pkg_name])
 
@@ -136,15 +140,15 @@ def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro
         if not d.stacks[s].version:
             print('- skipping "%s" since version is null' % s)
             continue
-        results[rd.debianize_package_name(s)] = release_jobs.dry_doit(s, dry_maintainers[s], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync)
+        results[rd.debianize_package_name(s)] = release_jobs.dry_doit(s, dry_maintainers[s], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync, ssh_key_id=ssh_key_id)
         #time.sleep(1)
 
     # special metapackages job
     if not whitelist_repos or 'metapackages' in whitelist_repos:
-        results[rd.debianize_package_name('metapackages')] = release_jobs.dry_doit('metapackages', [], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync)
+        results[rd.debianize_package_name('metapackages')] = release_jobs.dry_doit('metapackages', [], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync, ssh_key_id=ssh_key_id)
 
     if not whitelist_repos or 'sync' in whitelist_repos:
-        results[rd.debianize_package_name('sync')] = release_jobs.dry_doit('sync', [], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync)
+        results[rd.debianize_package_name('sync')] = release_jobs.dry_doit('sync', [], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync, ssh_key_id=ssh_key_id)
 
     if delete_extra_jobs:
         assert(not whitelist_repos)
@@ -237,7 +241,9 @@ if __name__ == '__main__':
         commit=args.commit,
         delete_extra_jobs=args.delete,
         whitelist_repos=args.repos,
-        sourcedeb_timeout=sourcedeb_timeout, binarydeb_timeout=binarydeb_timeout)
+        sourcedeb_timeout=sourcedeb_timeout,
+        binarydeb_timeout=binarydeb_timeout,
+        ssh_key_id=args.ssh_key_id)
 
     if not args.commit:
         print('This was not pushed to the server.  If you want to do so use "--commit" to do it for real.')
