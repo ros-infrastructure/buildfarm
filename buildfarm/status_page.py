@@ -254,7 +254,7 @@ def inject_status_and_maintainer(cached_distribution, header, counts, rows):
         url = 'http://wiki.ros.org/%s' % pkg_name
         if row[2] == 'wet' and cached_distribution:
             pkg = cached_distribution.release_packages[pkg_name]
-            repo = cached_distribution.repositories[pkg.repository_name].release_repository
+            repo = cached_distribution.repositories[pkg.repository_name]
             status = 'unknown'
             if pkg.status is not None:
                 status = pkg.status
