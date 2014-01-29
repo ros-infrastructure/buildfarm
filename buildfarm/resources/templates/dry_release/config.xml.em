@@ -214,11 +214,13 @@ if (manager.logContains(".*W: Failed to fetch .* Hash Sum mismatch.*")) {
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
   </publishers>
-  <buildWrappers>
 @[if SSH_KEY_ID]
+  <buildWrappers>
     <com.cloudbees.jenkins.plugins.sshagent.SSHAgentBuildWrapper plugin="ssh-agent@@1.4.1">
       <user>@(SSH_KEY_ID)</user>
     </com.cloudbees.jenkins.plugins.sshagent.SSHAgentBuildWrapper>
-@[end if]
   </buildWrappers>
+@[else]
+  <buildWrappers/>
+@[end if]
 </project>
