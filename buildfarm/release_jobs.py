@@ -78,7 +78,7 @@ def compute_missing(distros, arches, fqdn, rosdistro, sourcedeb_only=False):
                     if not repo.deb_in_repo(repo_url, deb_name, str(expected_version) + ".*", d, a):
                         missing[short_package_name].append('%s_%s' % (d, a))
 
-    if not sourcedeb_only:
+    if not sourcedeb_only and rosdistro == 'groovy':
         #dry stacks
         # dry dependencies
         dist = load_distro(distro_uri(rosdistro))
