@@ -50,7 +50,7 @@ import time
 
 from rospkg.distro import distro_uri, load_distro
 import rosdeb
-from rosdeb import debianize_name, debianize_version, list_missing
+from rosdeb import debianize_name, debianize_version, targets, list_missing
 from rosdeb.source_deb import download_control
 
 NAME = 'build_debs.py'
