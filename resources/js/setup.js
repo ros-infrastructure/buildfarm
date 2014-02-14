@@ -1,4 +1,4 @@
-var SORT_COLUMNS = [ 1, 2, 3, 4, 5 ];
+var SORT_COLUMNS = [ 1, 2, 3, 4, 5, 6 ];
 var QUERY_TRANSFORMS = {
   'blue': 'class="o"',
   'red': '<a class="m"></a>',
@@ -8,7 +8,7 @@ var QUERY_TRANSFORMS = {
   'red2': '</a><a class="m"></a><a',
   'red3': '<a class="m"></a></td>'
 };
-var META_COLUMNS = 5;
+var META_COLUMNS = 6;
 
 window.body_ready = function() {
   var url_parts = window.location.href.split('?');
@@ -81,7 +81,7 @@ window.tbody_ready = function() {
     var ver = a.text();
     if (!ver) {
       // If not included, then it's the same as the "latest", grab from that cell.
-      ver = $('td:nth-child(2)', tr).text();
+      ver = $('td:nth-child(3)', tr).text();
       if (a.hasClass('m') || a.hasClass('i')) {
         // Unless this square is "missing" or "intentionally missing", in which case, it's None.
         ver = "None"
@@ -183,7 +183,7 @@ function scan_rows() {
   window.rows = [];
   $('table tbody tr').each(function() {
     // Add lowercased version of name for faster case-insensitive search.
-    var name_td = $('td:nth-child(5)', this);
+    var name_td = $('td:nth-child(6)', this);
     if (name_td.text().length > 0) {
       name_td.append(' <span class="ht">' + name_td.text().toLowerCase() + '</span>');
     }

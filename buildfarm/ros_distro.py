@@ -88,6 +88,9 @@ class Rosdistro:
     def get_repo(self, name):
         return self._repoinfo[name]
 
+    def get_repo_name(self, pkg_name):
+        return self._package_in_repo[pkg_name]
+
     def get_package_list(self):
         packages = set()
         for repo_obj in self._repoinfo.values():

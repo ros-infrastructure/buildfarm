@@ -1,6 +1,6 @@
 @{
 import time
-static_asset_version=1001
+static_asset_version=1002
 }
 <!DOCTYPE html>
 <html>
@@ -11,7 +11,7 @@ static_asset_version=1001
   <script type="text/javascript" src="@(resource_path)/js/zepto.min.js"></script>
   <script type="text/javascript">
     window.repos = @(repr(repos));
-    window.job_url_templates = @(repr([c['job_url'] for c in metadata_columns[3:]]));
+    window.job_url_templates = @(repr([c['job_url'] for c in metadata_columns[4:]]));
   </script>
   <script type="text/javascript" src="@(resource_path)/js/setup.js?@(static_asset_version)"></script>
 
