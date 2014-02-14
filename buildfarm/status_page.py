@@ -48,7 +48,7 @@ def make_versions_table(rd_data, apt_data,
     ros package names and versions followed by debian versions for each
     distro/arch.
     '''
-    left_columns = [('name', object), ('version', object), ('wet', object)]
+    left_columns = [('name', object), ('repo', object), ('version', object), ('wet', object)]
     right_columns = [(da_str, object) for da_str in da_strs]
     columns = left_columns + right_columns
 
@@ -85,6 +85,12 @@ def make_versions_table(rd_data, apt_data,
     # add all packages coming from the distro (wet, dry, variant)
     for i, pkg_data in enumerate(rd_data.packages.values()):
         table['name'][i] = pkg_data.name
+        repo_name = ''
+        try:
+            repo_name = rd_data.rosdistro_dist.release_packages[pkg_data.name].repository_name
+        except KeyError:
+            pass
+        table['repo'][i] = repo_name
         table['version'][i] = pkg_data.version
         table['wet'][i] = pkg_data.type
         for da_str in da_strs:
@@ -100,6 +106,7 @@ def make_versions_table(rd_data, apt_data,
         if pkg_name.startswith(rosdistro_prefix):
             pkg_name = pkg_name[len(rosdistro_prefix):]
         table['name'][i] = pkg_name
+        table['repo'][i] = ''
         table['version'][i] = ''
         table['wet'][i] = 'unknown'
         all_versions = []
@@ -205,14 +212,14 @@ def transform_csv_to_html(data_source, metadata_builder,
     headers = rows[0]
     rows = rows[1:]
 
-    metadata_columns = [None] * 3 + [metadata_builder(c) for c in headers[3:]]
+    metadata_columns = [None] * 4 + [metadata_builder(c) for c in headers[4:]]
     headers = [format_header_cell(headers[i], metadata_columns[i])
                for i in range(len(headers))]
 
     # count non-None rows per (sub-)column
-    row_counts = [[]] * 3 + [[0] * 3 for _ in range(3, len(headers))]
+    row_counts = [[]] * 4 + [[0] * 3 for _ in range(4, len(headers))]
     for row in rows:
-        for i in range(3, len(row_counts)):
+        for i in range(4, len(row_counts)):
             versions = get_cell_versions(row[i])
             for j in range(0, len(versions)):
                 if versions[j] != 'None':
@@ -224,12 +231,12 @@ def transform_csv_to_html(data_source, metadata_builder,
     rows = [format_row(r, metadata_columns) for r in rows]
     inject_status_and_maintainer(cached_distribution, headers, row_counts, rows)
 
-    # div-wrap the first two cells for layout reasons. It's difficult to contrain the
+    # div-wrap the first three cells for layout reasons. It's difficult to contrain the
     # overall dimensions of a table cell without an inner element to use as the overflow
     # container.
     for row in rows:
-        row[0] = "<div>%s</div>" % row[0]
-        row[1] = "<div>%s</div>" % row[1]
+        for i in range(3):
+            row[i] = "<div>%s</div>" % row[i]
 
     repos = REPOS
 
@@ -244,15 +251,18 @@ def transform_csv_to_html(data_source, metadata_builder,
 
 def inject_status_and_maintainer(cached_distribution, header, counts, rows):
     from catkin_pkg.package import InvalidPackage, parse_package_string
-    header[3:3] = ['Status', 'Maintainer']
-    counts[3:3] = [[], []]
+    header[4:4] = ['Status', 'Maintainer']
+    counts[4:4] = [[], []]
     for row in rows:
         status_cell = ''
         maintainer_cell = '<a>?</a>'
         # Use website url if defined, otherwise default to ros wiki
         pkg_name = row[0].split(' ')[0]
         url = 'http://wiki.ros.org/%s' % pkg_name
-        if row[2] == 'wet' and cached_distribution:
+        repo_name = row[1]
+        repo_url = None
+        repo_version = None
+        if row[3] == 'wet' and cached_distribution:
             pkg = cached_distribution.release_packages[pkg_name]
             repo = cached_distribution.repositories[pkg.repository_name]
             status = 'unknown'
@@ -277,10 +287,17 @@ def inject_status_and_maintainer(cached_distribution, header, counts, rows):
                             break
                 except InvalidPackage:
                     maintainer_cell = '<a><b>bad package.xml</b></a>'
+            if repo.source_repository:
+                repo_url = repo.source_repository.url
+                repo_version = repo.source_repository.version
         else:
             status_cell = '<a class="unknown"/>'
         row[0] = row[0].replace(pkg_name, '<a href="%s">%s</a>' % (url, pkg_name), 1)
-        row[3:3] = [status_cell, maintainer_cell]
+        if repo_url:
+            if repo_url.startswith('https://github.com/') and repo_url.endswith('.git') and repo_version:
+                repo_url = '%s/tree/%s' % (repo_url[:-4], repo_version)
+            row[1] = '<a href="%s">%s</a>' % (repo_url, repo_name)
+        row[4:4] = [status_cell, maintainer_cell]
 
 
 def format_header_cell(cell, metadata):
@@ -292,25 +309,25 @@ def format_header_cell(cell, metadata):
 
 
 def format_row(row, metadata_columns):
-    public_changing_on_sync = [False] * 3 + \
-        [is_public_changing_on_sync(c) for c in row[3:]]
-    regression = [False] * 3 + \
-        [is_regression(c) for c in row[3:]]
+    public_changing_on_sync = [False] * 4 + \
+        [is_public_changing_on_sync(c) for c in row[4:]]
+    regression = [False] * 4 + \
+        [is_regression(c) for c in row[4:]]
     # Flag if this is dry or a variant so as not to show sourcedebs as red
-    no_source = row[2] in ['variant', 'dry']
+    no_source = row[3] in ['variant', 'dry']
     # ignore source columns for dry/variant when deciding of columns are homogeneous
-    diff_columns = [c for i, c in enumerate(row) if i > 2 and (not no_source or i % 3)]
+    diff_columns = [c for i, c in enumerate(row) if i > 3 and (not no_source or i % 3 - 1)]
     has_diff_between_rosdistros = len(set(diff_columns)) > 1
 
     # urls for each building repository column
-    metadata = [None] * 3 + [md for md in metadata_columns[3:]]
+    metadata = [None] * 4 + [md for md in metadata_columns[4:]]
     # for unknown packages the latest version number is only a guess so don't mark missing cells
-    latest_version = row[1] if row[2] != 'unknown' else None
+    latest_version = row[2] if row[3] != 'unknown' else None
     # only pass no_source if this is a sourcedeb entry
-    row = row[:3] + [format_versions_cell(get_cell_versions(row[i]),
+    row = row[:4] + [format_versions_cell(get_cell_versions(row[i]),
                                           latest_version,
                                           no_source and metadata[i]['is_source'])
-                     for i in range(3, len(row))]
+                     for i in range(4, len(row))]
 
     hidden_texts = []
     if has_diff_between_rosdistros:
@@ -328,7 +345,7 @@ def format_row(row, metadata_columns):
         'unknown': '?',
         'variant': "var"
     }
-    row[2] = type_texts[row[2]]
+    row[3] = type_texts[row[3]]
     return row
 
 
