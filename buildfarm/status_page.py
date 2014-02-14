@@ -290,6 +290,9 @@ def inject_status_and_maintainer(cached_distribution, header, counts, rows):
             if repo.source_repository:
                 repo_url = repo.source_repository.url
                 repo_version = repo.source_repository.version
+            elif repo.doc_repository:
+                repo_url = repo.doc_repository.url
+                repo_version = repo.doc_repository.version
         else:
             status_cell = '<a class="unknown"/>'
         row[0] = row[0].replace(pkg_name, '<a href="%s">%s</a>' % (url, pkg_name), 1)
