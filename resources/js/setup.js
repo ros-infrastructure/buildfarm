@@ -235,7 +235,27 @@ function filter_table() {
       console.log("Filtering for queries:", queries);
       result_rows = $.map(window.rows, function(row) {
         for (var i = 0; i < queries.length; i++) {
-          if (row[0].indexOf(queries[i]) == -1) return null;
+          var is_known_query = false
+          for(var q in QUERY_TRANSFORMS) {
+            if (queries[i] === QUERY_TRANSFORMS[q]) {
+              is_known_query = true;
+              break;
+            }
+          }
+          if(is_known_query) {
+            // search in full row html
+            if (row[0].indexOf(queries[i]) == -1) return null;
+          } else {
+            // search in plain text of each column
+            match = false;
+            for (var j = 1; j < row.length; j++) {
+              if (row[j].indexOf(queries[i]) != -1) {
+                match = true;
+                break;
+              }
+            }
+            if (!match) return null;
+          }
         }
         return [row];
       });
