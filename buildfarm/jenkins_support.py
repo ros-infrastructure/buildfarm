@@ -30,9 +30,13 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
+import difflib
+import em
 import os
 import jenkins
 import yaml
+import xml.etree.ElementTree as ElementTree
 
 # TODO Push this up to python-jenkins
 
@@ -81,3 +85,47 @@ def load_server_config_file(server_config_file):
     if not ('url' in server_keys and 'username' in server_keys and 'password' in server_keys):
         raise InvalidJenkinsConfig("Server config file does not contains 'url', 'username' and 'password'  all of which are required. %s" % server_config_file)
     return JenkinsConfig(server['url'], server['username'], server['password'])
+
+
+def compare_configs(a, b):
+    a_root = ElementTree.fromstring(a)
+    b_root = ElementTree.fromstring(b)
+    a_str = ElementTree.tostring(a_root)
+    b_str = ElementTree.tostring(b_root)
+    return a_str == b_str, a_str, b_str
+
+
+
+def create_jenkins_job(jenkins_instance, name, config, commit):
+    try:
+        jobs = jenkins_instance.get_jobs()
+        if name in [job['name'] for job in jobs]:
+            remote_config = jenkins_instance.get_job_config(name)
+            configs_equal, remote_config_cleaned, config_cleaned = compare_configs(remote_config, config)
+            if not configs_equal:
+                print("Reconfiguring job '%s'" % name)
+                if commit:
+                    jenkins_instance.reconfig_job(name, config)
+                else:
+                    print('  not performed.')
+                diff = difflib.unified_diff(remote_config_cleaned.splitlines(), config_cleaned.splitlines(), 'remote', name + '.xml', n=0, lineterm='')
+                for line in diff:
+                    print(line)
+                print('')
+            else:
+                print("Skipping job '%s' as config is the same" % name)
+        else:
+            print("Creating job '%s'" % name)
+            if commit:
+                jenkins_instance.create_job(name, config)
+            else:
+                print('  not performed.')
+        return True
+    except jenkins.JenkinsException as e:
+        print("Failed to configure job '%s': %s" % (name, e), file=sys.stderr)
+        return False
+
+
+def expand(config_template, d):
+    s = em.expand(config_template, **d)
+    return s

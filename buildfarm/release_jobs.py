@@ -33,9 +33,7 @@ class Templates(object):
     command_sync_binarydeb = pkg_resources.resource_string('buildfarm', 'resources/templates/dry_release/sync.sh.em')  # A config.xml template for something that runs a shell script
 
 
-def expand(config_template, d):
-    s = em.expand(config_template, **d)
-    return s
+expand = jenkins_support.expand
 
 
 def compute_missing(distros, arches, fqdn, rosdistro, sourcedeb_only=False):
@@ -214,38 +212,6 @@ def dry_generate_jobgraph(rosdistro, wet_jobgraph, stack_depends):
     return jobgraph
 
 
-def compare_configs(a, b):
-    """Return True if the configs are the same, except the
-    description, else False"""
-    aroot = ET.fromstring(a)
-    broot = ET.fromstring(b)
-    aroot.find('description').text = ''
-    broot.find('description').text = ''
-    return ET.tostring(aroot) == ET.tostring(broot)
-
-
-def create_jenkins_job(jobname, config, jenkins_instance):
-    try:
-        try:
-            jobs = jenkins_instance.get_jobs()
-        except urllib2.URLError as e:
-            raise urllib2.URLError(str(e) + ' (%s)' % jenkins_instance.server)
-        print("working on job", jobname)
-        if jobname in [job['name'] for job in jobs]:
-            remote_config = jenkins_instance.get_job_config(jobname)
-            if not compare_configs(remote_config, config):
-                jenkins_instance.reconfig_job(jobname, config)
-            else:
-                print("Skipping %s as config is the same" % jobname)
-
-        else:
-            jenkins_instance.create_job(jobname, config)
-        return True
-    except jenkins.JenkinsException as ex:
-        print('Failed to configure "%s" with error: %s' % (jobname, ex), file=sys.stderr)
-        return False
-
-
 def sourcedeb_job_name(packagename):
     return "%(packagename)s_sourcedeb" % locals()
 
@@ -396,7 +362,7 @@ def dry_doit(package, dry_maintainers, distros, arches, fqdn, rosdistro, jobgrap
     for job_name, config in jobs:
         if commit:
             try:
-                ret_val = create_jenkins_job(job_name, config, jenkins_instance)
+                ret_val = jenkins_support.create_jenkins_job(job_name, config, jenkins_instance)
                 if ret_val:
                     successful_jobs.append(job_name)
                 else:
@@ -420,7 +386,7 @@ def doit(release_uri, package_name, package, distros, arches, apt_target_reposit
     failed_jobs = []
     for job_name, config in jobs:
         if commit:
-            if create_jenkins_job(job_name, config, jenkins_instance):
+            if jenkins_support.create_jenkins_job(job_name, config, jenkins_instance):
                 successful_jobs.append(job_name)
             else:
                 failed_jobs.append(job_name)
