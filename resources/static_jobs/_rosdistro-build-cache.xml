@@ -49,5 +49,13 @@ done</command>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
   </publishers>
-  <buildWrappers/>
+  <buildWrappers>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.12.2">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>30</timeoutMinutes>
+      </strategy>
+      <failBuild>true</failBuild>
+      <writingDescription>false</writingDescription>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+  </buildWrappers>
 </project>
