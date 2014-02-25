@@ -76,6 +76,7 @@ tbody tr td:nth-child(n+7) a {
 .ht { display: none; }
 
 tbody tr { background-color: #fff; }
+tbody tr:not(:first-child):hover { background-color: #eef0ff; }
 tbody tr:nth-child(odd) { background-color: #E2E4FF; }
 tbody tr td:nth-child(n+7) {
     white-space: nowrap;
