@@ -1,6 +1,6 @@
 @{
 import time
-static_asset_version=1002
+static_asset_version=1003
 }
 <!DOCTYPE html>
 <html>

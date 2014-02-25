@@ -184,7 +184,7 @@ function scan_rows() {
   $('table tbody tr').each(function() {
     // Add lowercased version of name for faster case-insensitive search.
     var name_td = $('td:nth-child(6)', this);
-    if (name_td.text().length > 0) {
+    if (name_td.text() && name_td.text().length > 0) {
       name_td.append(' <span class="ht">' + name_td.text().toLowerCase() + '</span>');
     }
     var row_info = [$(this).html()];
@@ -249,7 +249,7 @@ function filter_table() {
             // search in plain text of each column
             match = false;
             for (var j = 1; j < row.length; j++) {
-              if (row[j].indexOf(queries[i]) != -1) {
+              if (row[j] && row[j].indexOf(queries[i]) != -1) {
                 match = true;
                 break;
               }
