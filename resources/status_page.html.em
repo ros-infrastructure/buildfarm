@@ -1,6 +1,5 @@
 @{
 import time
-static_asset_version=1003
 }
 <!DOCTYPE html>
 <html>
@@ -13,9 +12,9 @@ static_asset_version=1003
     window.repos = @(repr(repos));
     window.job_url_templates = @(repr([c['job_url'] for c in metadata_columns[4:]]));
   </script>
-  <script type="text/javascript" src="@(resource_path)/js/setup.js?@(static_asset_version)"></script>
+  <script type="text/javascript" src="@(resource_path)/js/setup.js?@(resource_hashes['setup.js'])"></script>
 
-  <link rel="stylesheet" href="@(resource_path)/css/status_page.css?@(static_asset_version)" />
+  <link rel="stylesheet" href="@(resource_path)/css/status_page.css?@(resource_hashes['status_page.css'])" />
 </head>
 <body>
   <script type="text/javascript">window.body_ready();</script>
