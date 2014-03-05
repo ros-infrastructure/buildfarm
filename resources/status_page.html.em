@@ -40,13 +40,13 @@ import time
       <li><a class="o"></a> different version</li>
       <li><a class="m"></a> missing</li>
       <li><a class="obs"></a> obsolete</li>
-      <li><a class="i"></a> intentionally missing</li> 
-    </ul> 
+      <li><a class="i"></a> intentionally missing</li>
+    </ul>
   </div>
   <div class="top search">
     <form>
       <input type="text" name="q" id="q" />
-      <p>Quick: 
+      <p>Quick:
         <a href="?q=" title="Show all packages">all</a>,
         <a href="?q=sync" title="Filter packages which are affected by a sync from shadow-fixed to public">sync</a>,
         <a href="?q=regression" title="Filter packages which disappear by a sync from shadow-fixed to public">regression</a>,
@@ -57,7 +57,7 @@ import time
         <a href="?q=gray">gray</a>
       </p>
       <p id="search-count"></p>
-    </form> 
+    </form>
   </div>
   <table>
     <thead>
@@ -65,7 +65,7 @@ import time
 @[for header, row_count in zip(headers, row_counts)]@
       <th><div>@(header)</div>@[for count in row_count]<span class="sum">@(count)</span>@[end for]</th>
 @[end for]@
-      </tr>    
+      </tr>
     </thead>
     <tbody>
       <script type="text/javascript">window.tbody_ready();</script>

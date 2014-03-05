@@ -80,11 +80,14 @@ class Row(object):
             labels.append('diff_branch_same_version')
         return labels
 
+
 def _is_only_patch_is_different(a, b):
     return a.version[0] == b.version[0] and a.version[1] == b.version[1] and a.version[2] != b.version[2]
 
+
 def _is_greater(a, b):
     return a.version[0] > b.version[0] or (a.version[0] == b.version[0] and a.version[1] > b.version[1])
+
 
 def _is_same_version_but_different_branch(version_a, version_b, branch_a, branch_b):
     # skip when any version is unknown
