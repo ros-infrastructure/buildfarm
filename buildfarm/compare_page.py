@@ -6,13 +6,11 @@ from distutils.version import LooseVersion
 import itertools
 from StringIO import StringIO
 
-# Monkey-patching over some unicode bugs in empy.
-import em
-em.str = unicode
-em.Stream.write_old = em.Stream.write
-em.Stream.write = lambda self, data: em.Stream.write_old(self, data.encode('utf8'))
-
 from rosdistro import get_cached_distribution
+
+# Monkey-patching over some unicode bugs in empy
+# is implicitly done by importing status_page module
+from .status_page import em, get_resource_hashes
 
 
 def generate_html(index, distro_names, start_time, template_file, resource_path):
@@ -32,6 +30,8 @@ def generate_html(index, distro_names, start_time, template_file, resource_path)
     for repo_name in sorted(repos.keys()):
         rows.append(repos[repo_name])
     repos = repos.keys()
+
+    resource_hashes = get_resource_hashes()
 
     output = StringIO()
     try:

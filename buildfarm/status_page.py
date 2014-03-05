@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import csv
+import os
 import re
 from StringIO import StringIO
 
@@ -18,6 +19,17 @@ from buildfarm.ros_distro import debianize_package_name
 
 version_rx = re.compile(r'[0-9.-]+[0-9]')
 REPOS = ['building', 'shadow-fixed', 'ros/public']
+
+
+def get_resource_hashes():
+    hashes = {}
+    for ext in ['css', 'js']:
+        path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'resources', ext)
+        for filename in os.listdir(path):
+            if filename.endswith('.%s' % ext):
+                with open(os.path.join(path, filename)) as f:
+                    hashes[filename] = hash(tuple(f.read()))
+    return hashes
 
 
 def get_da_strs(distro_arches):
@@ -239,6 +251,8 @@ def transform_csv_to_html(data_source, metadata_builder,
             row[i] = "<div>%s</div>" % row[i]
 
     repos = REPOS
+
+    resource_hashes = get_resource_hashes()
 
     output = StringIO()
     try:
