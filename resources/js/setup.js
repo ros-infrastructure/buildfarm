@@ -162,7 +162,10 @@ window.tbody_ready = function() {
   if (window.queries || window.sort) {
     $('tbody').css('visibility', 'hidden');
     setTimeout(function() {
-      $('tbody').css('visibility', 'visible').hide();
+      $('tbody').css('visibility', 'visible');
+      if (!$('tbody').data('body_done')) {
+        $('tbody').hide();
+      }
     }, 0);
   }
 };
@@ -175,6 +178,7 @@ window.body_done = function() {
     $("#search-count").text("showing " + count + " of " + count + " total");
   }
   $('tbody').show();
+  $('tbody').data('body_done', true);
 }
 
 function scan_rows() {
