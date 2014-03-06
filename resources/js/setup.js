@@ -1,4 +1,3 @@
-var SORT_COLUMNS = [ 1, 2, 3, 4, 5, 6 ];
 var QUERY_TRANSFORMS = {
   'blue': 'class="o"',
   'red': '<a class="m"></a>',
@@ -8,7 +7,6 @@ var QUERY_TRANSFORMS = {
   'red2': '</a><a class="m"></a><a',
   'red3': '<a class="m"></a></td>'
 };
-var META_COLUMNS = 6;
 
 window.body_ready = function() {
   var url_parts = window.location.href.split('?');
@@ -74,7 +72,7 @@ window.tbody_ready = function() {
   // when the mouse hovers on a version square. Critically important is that 
   // there's only instance of this handler: on the tbody. 
   // This is the "live" event pattern.
-  $('tbody', table).on('mouseover', 'tr td:nth-child(n+' + (META_COLUMNS + 1) + ') a', function(e) {
+  $('tbody', table).on('mouseover', 'tr td:nth-child(n+' + (window.META_COLUMNS + 1) + ') a', function(e) {
     var a = $(this);
     var tr = a.closest('tr');
     var repo_num = child_num(this);
@@ -89,7 +87,7 @@ window.tbody_ready = function() {
     }
     a.attr('title', repos[repo_num] + ': ' + ver);
     if (repo_num == 0) {
-      var job_url = window.job_url_templates[child_num(a.closest('td')[0]) - META_COLUMNS];
+      var job_url = window.job_url_templates[child_num(a.closest('td')[0]) - window.META_COLUMNS];
       var pkg_name_converted = $('td div', tr).text().split(' ')[0].replace(/_/g, '-');
       if (!a.hasClass('i') && !a.hasClass('obs') ) {
         a.attr('href', job_url.replace('{pkg}', pkg_name_converted));
@@ -144,7 +142,7 @@ window.tbody_ready = function() {
   });
 
   // Hook up sort logic on click to table headers.
-  $('th:nth-child(-n+' + META_COLUMNS + ')', header).on('click', function() {
+  $('th:nth-child(-n+' + window.META_COLUMNS + ')', header).on('click', function() {
     var sort = child_num(this) + 1;
     if (window.sort == sort) {
       window.reverse = window.reverse ? 0 : 1;
@@ -186,19 +184,18 @@ function scan_rows() {
   // go in chunks, with timeouts in between.
   window.rows = [];
   $('table tbody tr').each(function() {
-    // Add lowercased version of name for faster case-insensitive search.
-    var name_td = $('td:nth-child(6)', this);
+    // Add lowercased version of name (which is the last meta column) for faster case-insensitive search.
+    var name_td = $('td:nth-child(' + window.META_COLUMNS + ')', this);
     if (name_td.text() && name_td.text().length > 0) {
       name_td.append(' <span class="ht">' + name_td.text().toLowerCase() + '</span>');
     }
     var row_info = [$(this).html()];
-    var tr = this;
-    $.each(SORT_COLUMNS, function() {
-      var td = $("td:nth-child(" + this + ")", tr);
+    for (var i = 1; i <= window.META_COLUMNS; i++) {
+      var td = $("td:nth-child(" + i + ")", this);
       var sort_text = td.text();
       if (sort_text == '') sort_text = td.html();
       row_info.push(sort_text);
-    });
+    }
     window.rows.push(row_info);
   });
   console.log("Total rows found: " + window.rows.length);

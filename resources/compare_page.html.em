@@ -9,6 +9,7 @@ import time
 
   <script type="text/javascript" src="@(resource_path)/js/zepto.min.js"></script>
   <script type="text/javascript">
+    window.META_COLUMNS = 2;
     window.repos = @(repr(repos));
   </script>
   <script type="text/javascript" src="@(resource_path)/js/setup.js?@(resource_hashes['setup.js'])"></script>

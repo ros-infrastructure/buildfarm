@@ -9,6 +9,7 @@ import time
 
   <script type="text/javascript" src="@(resource_path)/js/zepto.min.js"></script>
   <script type="text/javascript">
+    window.META_COLUMNS = 6;
     window.repos = @(repr(repos));
     window.job_url_templates = @(repr([c['job_url'] for c in metadata_columns[4:]]));
   </script>
