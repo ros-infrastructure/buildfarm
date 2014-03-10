@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>Generate status page for Hydro.&#xd;
+  <description>Querying the Debian mirrors of ros.org for their status.&#xd;
 &#xd;
 Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator class="hudson.tasks.LogRotator">
