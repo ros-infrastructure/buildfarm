@@ -42,154 +42,13 @@ import urllib2
 import threading
 from buildfarm.storm_helpers import get_slave_servers,\
     get_default_catkin_debs_config,\
-    get_default_storm_config, load_config_from_file
-
-import subprocess
-import paramiko
-import stat
-
-
-class SSHOpenConn:
-    ssh_conn = {}
-
-
-def run_cmd(cmd, quiet=True, extra_args=None, feed=None):
-    args = {'shell': True}
-    if quiet:
-        args['stderr'] = args['stdout'] = subprocess.PIPE
-    if feed is not None:
-        args['stdin'] = subprocess.PIPE
-    if extra_args is not None:
-        args.update(extra_args)
-    p = subprocess.Popen(cmd, **args)
-    if feed is not None:
-        p.communicate(feed)
-    return p.wait()
-
-
-def ssh_cmd(host, user='root'):
-    sshoption = "-o StrictHostKeyChecking=no -i identity/id_rsa"
-    sshuserhost = user + "@" + host
-    return "ssh " + sshoption + " " + sshuserhost
-
-
-def do_ssh_popen(host, cmd, user='root', feed=None):
-    return run_cmd(ssh_cmd(host, user=user) + ' ' + cmd, feed=feed)
-
-
-def do_ssh_paramiko(host, cmd, user='root', feed=None):
-    if host not in SSHOpenConn.ssh_conn:
-        s = paramiko.SSHClient()
-        s.set_missing_host_key_policy(paramiko.WarningPolicy())
-        s.connect(host, username=user, key_filename='identity/id_rsa')
-        SSHOpenConn.ssh_conn[host] = s
-
-    s = SSHOpenConn.ssh_conn[host]
-    c = s.get_transport().open_session()
-    c.exec_command(cmd)
-    if feed is not None:
-        stdin = c.makefile('wb')
-        stdin.write(feed)
-        stdin.flush()
-    c.shutdown_write()
-    c.set_combine_stderr(True)
-    stdout = c.makefile('r')
-    buf = stdout.read()
-    while buf != '':
-        #print(buf)  # uncomment this line if you want to debug
-        buf = stdout.read()
-    return c.recv_exit_status()
-
-
-def do_ssh(host, cmd, user='root', feed=None):
-    return do_ssh_paramiko(host, cmd, user=user, feed=feed)
-
-
-def do_scp(host, filename, remote_filename, user='root',
-           mode=stat.S_IRUSR | stat.S_IWUSR):
-    if host not in SSHOpenConn.ssh_conn:
-        s = paramiko.SSHClient()
-        s.set_missing_host_key_policy(paramiko.WarningPolicy())
-        s.connect(host, username=user, key_filename='identity/id_rsa')
-        SSHOpenConn.ssh_conn[host] = s
-
-    s = SSHOpenConn.ssh_conn[host]
-    sftp = s.open_sftp()
-    sftp.put(filename, remote_filename)
-    sftp.chmod(remote_filename, mode)
-    sftp.close()
-    return True
-
-
-
-def push_storm(ip, hostname):
-    """
-    Gets keys from the puppet master, pushes them to the slave,
-    and installs puppet
-    """
-
-    # do stuff with slave
-    # first, install puppet
-    print "updating apt"
-    if do_ssh(ip, 'apt-get update'):
-        return False
-    print "installing puppet and git"
-    if do_ssh(ip, 'apt-get install -y puppet git-core'):
-        return False
-
-    print "stopping puppet"
-    # stop puppet
-    if do_ssh(ip, 'service puppet stop'):
-        return False
-
-    print "copying key"
-    do_scp(ip, 'identity/id_rsa', '/root/.ssh/id_rsa')
-
-    print "adding github known_hosts"
-    do_scp(ip, 'identity/known_hosts', '/root/.ssh/known_hosts')
-
-    print "adding ssh config"
-    do_scp(ip, 'identity/ssh_config', '/root/.ssh/config')
-
-    print "Clearing /etc/puppet"
-    if do_ssh(ip, 'rm -rf /etc/puppet'):
-        return False
-
-    print "cloning puppet repo"
-    if do_ssh(ip, 'git clone git@github.com:wg-buildfarm/puppet.git /etc/puppet'):
-        return False
-
-    print "Copying cron rule"
-    do_scp(ip, 'identity/cron.puppet', '/etc/cron.d/puppet')
-
-    # moved into threading in manage.py TODO move it back here and call push_storm inside the threaded portion of manage.py
-
-    # TODO: catch some more errors
-    return True
+    get_default_storm_config, load_config_from_file,\
+    do_ssh_popen, do_ssh_paramiko, do_ssh, do_scp,\
+    push_storm, generate_hostname, print_elapsed_time
 
 
 
 
-def generate_hostname(existing_hostnames, template, value_range):
-    #Iterate over all possible server names using the template and a numeric addition
-    for j in range(value_range):
-        potential_hostname="host%02d.%s"%(j, template)
-        #print "evaluating potential", potential_hostname
-        match = False
-        for s in existing_hostnames:
-            #print "  comparing to", s
-            if s == potential_hostname:
-                match = True
-                #print "Match"
-                continue
-
-        if match == False:
-            return potential_hostname
-    return None
-
-
-def print_elapsed_time(start_time):
-    print "Elapsed time: %s seconds" % (time.time() - start_time)
 
 parser = OptionParser()
 
@@ -210,7 +69,7 @@ if len(args) != 1:
 start_time = time.time()
 
 number = int(args[0])
-print "Requested to make %d machines"%number
+print "Requested to make %d machines" % number
 
 config_id = int(options.storm_config_id)
 
@@ -224,7 +83,7 @@ print "balance before", sapi.account_paymethod_balance()
 
 print "%d servers preexisting" % len(servers)
 slave_servers = get_slave_servers(servers)
-num_others= len(servers) - len(slave_servers)
+num_others = len(servers) - len(slave_servers)
 print "%d slave servers, %d others" % (len(slave_servers), num_others)
 
 server_limit = sapi.account_limits_servers()
@@ -321,7 +180,9 @@ if number_of_new_machines > 0:
             details = sapi.storm_server_details(sid)
             if 'ip' in details:
                 # push the keys needed for puppet
-                if push_storm(details['ip'], details['domain']):
+                if push_storm(details['ip'],
+                              details['domain'],
+                              identity_dir=storm_config['storm_vm_identity_dir']):
                     successful_ips.append(details['ip'])
                     pushed_ids[details['ip']] = sid
                 else:
@@ -338,14 +199,16 @@ if number_of_new_machines > 0:
             # puppetcommand="puppet agent --test --server puppet.ros.org"
             # Run puppet agent
             print('%-15s: calling puppet' % ip)
-            ret = do_ssh_popen(ip, puppetcommand)
+            ret = do_ssh_popen(ip, puppetcommand,
+                               key_filename=storm_config['storm_vm_private_keyfile'])
             if ret & 1 or ret & 4:
                 print("%-15s: errors occured during puppet configuration" % ip)
                 status[ip] = False
                 return
 
             # Stop client's puppet service. Re-stopping it, because --no-daemonize fails to do it's job.
-            do_ssh_popen(ip, 'service puppet stop')
+            do_ssh_popen(ip, 'service puppet stop',
+                         key_filename=storm_config['storm_vm_private_keyfile'])
 
             status[ip] = True
 
