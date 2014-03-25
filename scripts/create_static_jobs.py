@@ -27,10 +27,9 @@ def compare_configs(a, b):
     return a_str == b_str, a_str, b_str
 
 
-def create_jenkins_job(jenkins_instance, name, config, commit):
+def create_jenkins_job(jenkins_instance, jenkins_jobs, name, config, commit):
     try:
-        jobs = jenkins_instance.get_jobs()
-        if name in [job['name'] for job in jobs]:
+        if name in [job['name'] for job in jenkins_jobs]:
             remote_config = jenkins_instance.get_job_config(name)
             configs_equal, remote_config_cleaned, config_cleaned = compare_configs(remote_config, config)
             if not configs_equal:
@@ -80,9 +79,10 @@ if __name__ == '__main__':
             jobs.append(template)
 
     jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
+    jenkins_jobs = jenkins_instance.get_jobs()
 
     for job in jobs:
         template_filename = os.path.join(template_dir, job + '.xml')
         with open(template_filename, 'r') as f:
             config = f.read()
-            create_jenkins_job(jenkins_instance, job, config, args.commit)
+            create_jenkins_job(jenkins_instance, jenkins_jobs, job, config, args.commit)

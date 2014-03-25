@@ -4,6 +4,7 @@ from __future__ import print_function
 import argparse
 import os
 import tempfile
+import urllib2
 
 from buildfarm import jenkins_support, release_jobs
 
@@ -56,8 +57,13 @@ def parse_options():
 
 def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro, packages, dry_maintainers, commit=False, delete_extra_jobs=False, whitelist_repos=None, sourcedeb_timeout=None, binarydeb_timeout=None, ssh_key_id=None):
     jenkins_instance = None
+    jenkins_jobs = []
     if args.commit or delete_extra_jobs:
         jenkins_instance = jenkins_support.JenkinsConfig_to_handle(jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config()))
+        try:
+            jenkins_jobs = jenkins_instance.get_jobs()
+        except urllib2.URLError as e:
+            raise urllib2.URLError(str(e) + ' (%s)' % jenkins_instance.server)
 
     # Figure out default distros.  Command-line arg takes precedence; if
     # it's not specified, then read targets.yaml.
@@ -103,6 +109,7 @@ def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro
                                                   short_package_name=p,
                                                   commit=commit,
                                                   jenkins_instance=jenkins_instance,
+                                                  jenkins_jobs=jenkins_jobs,
                                                   sourcedeb_timeout=sourcedeb_timeout,
                                                   binarydeb_timeout=binarydeb_timeout,
                                                   ssh_key_id=ssh_key_id)
@@ -140,15 +147,15 @@ def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro
             if not d.stacks[s].version:
                 print('- skipping "%s" since version is null' % s)
                 continue
-            results[rd.debianize_package_name(s)] = release_jobs.dry_doit(s, dry_maintainers[s], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync, ssh_key_id=ssh_key_id)
+            results[rd.debianize_package_name(s)] = release_jobs.dry_doit(s, dry_maintainers[s], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, jenkins_jobs=jenkins_jobs, packages_for_sync=packages_for_sync, ssh_key_id=ssh_key_id)
             #time.sleep(1)
 
     # special metapackages job
     if not whitelist_repos or 'metapackages' in whitelist_repos:
-        results[rd.debianize_package_name('metapackages')] = release_jobs.dry_doit('metapackages', [], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync, ssh_key_id=ssh_key_id)
+        results[rd.debianize_package_name('metapackages')] = release_jobs.dry_doit('metapackages', [], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, jenkins_jobs=jenkins_jobs, packages_for_sync=packages_for_sync, ssh_key_id=ssh_key_id)
 
     if not whitelist_repos or 'sync' in whitelist_repos:
-        results[rd.debianize_package_name('sync')] = release_jobs.dry_doit('sync', [], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, packages_for_sync=packages_for_sync, ssh_key_id=ssh_key_id)
+        results[rd.debianize_package_name('sync')] = release_jobs.dry_doit('sync', [], default_distros, target_arches, fqdn, rosdistro, jobgraph=jobs_graph, commit=commit, jenkins_instance=jenkins_instance, jenkins_jobs=jenkins_jobs, packages_for_sync=packages_for_sync, ssh_key_id=ssh_key_id)
 
     if delete_extra_jobs:
         assert(not whitelist_repos)
@@ -160,7 +167,7 @@ def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro
             for e in jobs:
                 configured_jobs.update(set(e))
 
-        existing_jobs = set([j['name'] for j in jenkins_instance.get_jobs()])
+        existing_jobs = set([j['name'] for j in jenkins_jobs])
         relevant_jobs = existing_jobs - configured_jobs
         relevant_jobs = [j for j in relevant_jobs if rosdistro in j and ('_sourcedeb' in j or '_binarydeb' in j)]
 

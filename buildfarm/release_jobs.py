@@ -227,14 +227,10 @@ def compare_configs(a, b):
     return ET.tostring(aroot) == ET.tostring(broot)
 
 
-def create_jenkins_job(jobname, config, jenkins_instance):
+def create_jenkins_job(jobname, config, jenkins_instance, jenkins_jobs):
     try:
-        try:
-            jobs = jenkins_instance.get_jobs()
-        except urllib2.URLError as e:
-            raise urllib2.URLError(str(e) + ' (%s)' % jenkins_instance.server)
         print("working on job", jobname)
-        if jobname in [job['name'] for job in jobs]:
+        if jobname in [job['name'] for job in jenkins_jobs]:
             remote_config = jenkins_instance.get_job_config(jobname)
             if not compare_configs(remote_config, config):
                 jenkins_instance.reconfig_job(jobname, config)
@@ -390,7 +386,7 @@ def sourcedeb_job(package, maintainer_emails, distros, fqdn, release_uri, child_
     return (sourcedeb_job_name(package), create_sourcedeb_config(d))
 
 
-def dry_doit(package, dry_maintainers, distros, arches, fqdn, rosdistro, jobgraph, commit, jenkins_instance, packages_for_sync, ssh_key_id):
+def dry_doit(package, dry_maintainers, distros, arches, fqdn, rosdistro, jobgraph, commit, jenkins_instance, jenkins_jobs, packages_for_sync, ssh_key_id):
 
     jobs = dry_binarydeb_jobs(package, dry_maintainers, rosdistro, distros, arches, fqdn, jobgraph, packages_for_sync, ssh_key_id)
 
@@ -399,7 +395,7 @@ def dry_doit(package, dry_maintainers, distros, arches, fqdn, rosdistro, jobgrap
     for job_name, config in jobs:
         if commit:
             try:
-                ret_val = create_jenkins_job(job_name, config, jenkins_instance)
+                ret_val = create_jenkins_job(job_name, config, jenkins_instance, jenkins_jobs)
                 if ret_val:
                     successful_jobs.append(job_name)
                 else:
@@ -413,7 +409,7 @@ def dry_doit(package, dry_maintainers, distros, arches, fqdn, rosdistro, jobgrap
     return (unattempted_jobs, successful_jobs, failed_jobs)
 
 
-def doit(release_uri, package_name, package, distros, arches, apt_target_repository, fqdn, job_graph, rosdistro, short_package_name, commit, jenkins_instance, sourcedeb_timeout=None, binarydeb_timeout=None, ssh_key_id=None):
+def doit(release_uri, package_name, package, distros, arches, apt_target_repository, fqdn, job_graph, rosdistro, short_package_name, commit, jenkins_instance, jenkins_jobs, sourcedeb_timeout=None, binarydeb_timeout=None, ssh_key_id=None):
     maintainer_emails = [m.email for m in package.maintainers]
     binary_jobs = binarydeb_jobs(package_name, maintainer_emails, distros, arches, apt_target_repository, fqdn, job_graph, timeout=binarydeb_timeout, ssh_key_id=ssh_key_id)
     child_projects = zip(*binary_jobs)[0]  # unzip the binary_jobs tuple
@@ -423,7 +419,7 @@ def doit(release_uri, package_name, package, distros, arches, apt_target_reposit
     failed_jobs = []
     for job_name, config in jobs:
         if commit:
-            if create_jenkins_job(job_name, config, jenkins_instance):
+            if create_jenkins_job(job_name, config, jenkins_instance, jenkins_jobs):
                 successful_jobs.append(job_name)
             else:
                 failed_jobs.append(job_name)
