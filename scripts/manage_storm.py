@@ -239,10 +239,10 @@ if number_of_new_machines > 0:
                                          remoteFS='/home/rosbuild/hudson',
                                          labels='devel prerelease released debbuild doc',
                                          exclusive=True,
-                                         launcher='hudson.plugins.sshslaves.SSHLauncher',
-                                         launcher_params={"host": ip,
-                                                          "credentialsId": "722636cf-5333-4485-b288-3dae57e17c7b",
-                                                          "port": "22" })
+                                         launcher={"stapler-class": "hudson.plugins.sshslaves.SSHLauncher", 
+                                                   "host": ip,
+                                                   "credentialsId": "722636cf-5333-4485-b288-3dae57e17c7b",
+                                                   "port": "22" })
                 print "Successfully registered jenkins node", node_name
             except jenkins.JenkinsException, ex:
                 print "Failed to register Jenkins node: %s.  Exception: %s"%( node_name, ex)
