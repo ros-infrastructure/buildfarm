@@ -112,7 +112,6 @@ def do_ssh_popen(host, cmd, user='root', feed=None,
 
 def do_ssh_paramiko(host, cmd, user='root', feed=None,
                     key_filename='identity/id_rsa'):
-    print "paramiko identity", key_filename
     if host not in SSHOpenConn.ssh_conn:
         s = paramiko.SSHClient()
         s.set_missing_host_key_policy(paramiko.WarningPolicy())
