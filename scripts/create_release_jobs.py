@@ -223,9 +223,9 @@ if __name__ == '__main__':
         dry_jobgraph = {}
 
     combined_jobgraph = {}
-    for k, v in dependencies.iteritems():
-        combined_jobgraph[k] = v
     for k, v in dry_jobgraph.iteritems():
+        combined_jobgraph[k] = v
+    for k, v in dependencies.iteritems():
         combined_jobgraph[k] = v
 
     # setup a job triggered by all other debjobs

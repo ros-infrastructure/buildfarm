@@ -1,6 +1,5 @@
 @{
 import time
-static_asset_version=1001
 }
 <!DOCTYPE html>
 <html>
@@ -10,12 +9,13 @@ static_asset_version=1001
 
   <script type="text/javascript" src="@(resource_path)/js/zepto.min.js"></script>
   <script type="text/javascript">
+    window.META_COLUMNS = 6;
     window.repos = @(repr(repos));
-    window.job_url_templates = @(repr([c['job_url'] for c in metadata_columns[3:]]));
+    window.job_url_templates = @(repr([c['job_url'] for c in metadata_columns[4:]]));
   </script>
-  <script type="text/javascript" src="@(resource_path)/js/setup.js?@(static_asset_version)"></script>
+  <script type="text/javascript" src="@(resource_path)/js/setup.js?@(resource_hashes['setup.js'])"></script>
 
-  <link rel="stylesheet" href="@(resource_path)/css/status_page.css?@(static_asset_version)" />
+  <link rel="stylesheet" href="@(resource_path)/css/status_page.css?@(resource_hashes['status_page.css'])" />
 </head>
 <body>
   <script type="text/javascript">window.body_ready();</script>
@@ -41,13 +41,13 @@ static_asset_version=1001
       <li><a class="o"></a> different version</li>
       <li><a class="m"></a> missing</li>
       <li><a class="obs"></a> obsolete</li>
-      <li><a class="i"></a> intentionally missing</li> 
-    </ul> 
+      <li><a class="i"></a> intentionally missing</li>
+    </ul>
   </div>
   <div class="top search">
     <form>
       <input type="text" name="q" id="q" />
-      <p>Quick: 
+      <p>Quick:
         <a href="?q=" title="Show all packages">all</a>,
         <a href="?q=sync" title="Filter packages which are affected by a sync from shadow-fixed to public">sync</a>,
         <a href="?q=regression" title="Filter packages which disappear by a sync from shadow-fixed to public">regression</a>,
@@ -58,7 +58,7 @@ static_asset_version=1001
         <a href="?q=gray">gray</a>
       </p>
       <p id="search-count"></p>
-    </form> 
+    </form>
   </div>
   <table>
     <thead>
@@ -66,7 +66,7 @@ static_asset_version=1001
 @[for header, row_count in zip(headers, row_counts)]@
       <th><div>@(header)</div>@[for count in row_count]<span class="sum">@(count)</span>@[end for]</th>
 @[end for]@
-      </tr>    
+      </tr>
     </thead>
     <tbody>
       <script type="text/javascript">window.tbody_ready();</script>

@@ -170,6 +170,9 @@ def dry_get_versioned_dependency_tree(rosdistro):
     maintainer_dict = {}
     for s in d.stacks:
         version = d.stacks[s].version
+        if version is None:
+            # ignore stacks without a version number
+            continue
         versions[s] = version
         yaml_info = dry_get_stack_info(s, version)
         if 'depends' in yaml_info:

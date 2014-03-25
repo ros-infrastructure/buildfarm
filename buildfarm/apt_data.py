@@ -50,6 +50,7 @@ class RosdistroData(object):
         # for fuerte we still fetch the new groovy rosdistro to get a list of distros
         rd = Rosdistro(rosdistro_name if rosdistro_name != 'fuerte' else 'groovy')
         self.rosdistro_index = rd._index
+        self.rosdistro_dist = rd._dist
 
         # load wet rosdistro packages
         if rosdistro_name == 'fuerte':

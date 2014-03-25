@@ -80,7 +80,7 @@ def get_Packages(repo_url, os_platform, arch, cache=None):
             raise BadRepo("[%s]: %s (HTTPError: %s)" % (repo_url, packages_url, ex))
         except urllib2.URLError as ex:
             raise BadRepo("[%s]: %s (URLError %s)" % (repo_url, packages_url, ex))
-        except:
+        except Exception:
             raise BadRepo("[%s]: %s" % (repo_url, packages_url))
     return retval
 

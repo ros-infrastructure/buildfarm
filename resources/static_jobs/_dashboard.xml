@@ -47,19 +47,14 @@ for (v in Jenkins.instance.views) {
       continue
     }
     def r = lb.result
-    if (!r) {
-      def pb = lb.previousBuild
+    def pb = lb
+    while (!r) {
+      pb = pb.previousBuild
       if (!pb) {
         // no finished build yet
-        not_built++
-        continue
+        break
       }
       r = pb.result
-    }
-    if (!r) {
-      // if only one build of each job is ongoing at the same time
-      println("View " + v.viewName + " job " + p.name + " has no result")
-      assert false
     }
     if (r == Result.SUCCESS) {
       success++
@@ -69,6 +64,8 @@ for (v in Jenkins.instance.views) {
       failure++
     } else if (r == Result.ABORTED) {
       aborted++
+    } else if (!r) {
+      not_built++
     } else if (r == Result.NOT_BUILT) {
       // this should never happen for the result of a build
       assert false

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>Querying the Debian mirrors of ros.org for their status.&#xd;
+  <description>Generate minimal manifest.yaml files for released packages which do not have a doc job for Indigo.&#xd;
 &#xd;
 Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
   <logRotator class="hudson.tasks.LogRotator">
@@ -14,14 +14,14 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   <properties>
     <jenkins.advancedqueue.AdvancedQueueSorterJobProperty plugin="PrioritySorter@2.6">
       <useJobPriority>true</useJobPriority>
-      <priority>800</priority>
+      <priority>970</priority>
     </jenkins.advancedqueue.AdvancedQueueSorterJobProperty>
   </properties>
   <scm class="hudson.plugins.git.GitSCM" plugin="git@2.0.1">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>git://github.com/ros-infrastructure/buildfarm.git</url>
+        <url>git://github.com/ros-infrastructure/jenkins_scripts.git</url>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
@@ -44,67 +44,15 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   <blockBuildWhenUpstreamBuilding>true</blockBuildWhenUpstreamBuilding>
   <triggers>
     <hudson.triggers.TimerTrigger>
-      <spec>*/15 * * * *</spec>
+      <spec>0 3 * * *</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>#!/usr/bin/env python
+      <command>#!/bin/bash -x
 
-# Fetch trace files from packages.ros.org mirrors
-from urllib2 import urlopen
-from dateutil import parser
-
-verbose = False
-
-repos = ['ros-ubuntu', 'ros-shadow-fixed']
-
-filenames = ['repos.ros.org',
-             'ftp-osl.osuosl.org',
-             'ftp-nyc.osuosl.org',
-             'ftp-chi.osuosl.org']
-
-
-hosts = ['ftp-osl.osuosl.org',
-         'ftp-chi.osuosl.org',
-         'ftp-nyc.osuosl.org']
-
-missing = []
-
-trace_files = {}
-
-
-def get_time_from_contents(contents):
-    lines = contents.split('\n')
-    if len(lines) > 0:
-        datestr = lines[0]
-        dateobj = parser.parse(datestr)
-        return dateobj
-    return None
-
-for repo in repos:
-    print "REPO %s " % repo
-    print 'v'*80
-    for host in hosts:
-        print "HOST %s" % host
-        for filename in filenames:
-            path = 'http://%s/pub/%s/project/trace/%s' %\
-                (host, repo, filename)
-            try:
-                contents = urlopen(path).read().decode('utf-8')
-                padding = 20 - len(filename)
-                print " %s %s @ %s" % (filename,
-                                       ' ' * padding,
-                                       get_time_from_contents(contents))
-                trace_files[(host, repo, filename)] = contents
-            except:
-                missing.append((host, repo, filename))
-    print '^'*80
-
-if verbose:
-    print "Did not find %s" % missing
-</command>
+$WORKSPACE/monitored_vcs/doc_released_packages indigo --upload</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
