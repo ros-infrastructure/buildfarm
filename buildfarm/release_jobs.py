@@ -332,10 +332,11 @@ def dry_binarydeb_jobs(stackname, dry_maintainers, rosdistro, distros, arches, f
     return jobs
 
 
-def binarydeb_jobs(package, maintainer_emails, distros, arches, apt_target_repository, fqdn, jobgraph, timeout=None, ssh_key_id=None):
+def binarydeb_jobs(package, maintainer_emails, distros, arches, apt_target_repository, fqdn, jobgraph, rosdistro, timeout=None, ssh_key_id=None):
     jenkins_config = jenkins_support.load_server_config_file(jenkins_support.get_default_catkin_debs_config())
     d = dict(
         ROSDISTRO_INDEX_URL=get_index_url(),
+        ROSDISTRO=rosdistro,
         DISTROS=distros,
         APT_TARGET_REPOSITORY=apt_target_repository,
         FQDN=fqdn,
@@ -411,7 +412,7 @@ def dry_doit(package, dry_maintainers, distros, arches, fqdn, rosdistro, jobgrap
 
 def doit(release_uri, package_name, package, distros, arches, apt_target_repository, fqdn, job_graph, rosdistro, short_package_name, commit, jenkins_instance, jenkins_jobs, sourcedeb_timeout=None, binarydeb_timeout=None, ssh_key_id=None):
     maintainer_emails = [m.email for m in package.maintainers]
-    binary_jobs = binarydeb_jobs(package_name, maintainer_emails, distros, arches, apt_target_repository, fqdn, job_graph, timeout=binarydeb_timeout, ssh_key_id=ssh_key_id)
+    binary_jobs = binarydeb_jobs(package_name, maintainer_emails, distros, arches, apt_target_repository, fqdn, job_graph, rosdistro, timeout=binarydeb_timeout, ssh_key_id=ssh_key_id)
     child_projects = zip(*binary_jobs)[0]  # unzip the binary_jobs tuple
     source_job = sourcedeb_job(package_name, maintainer_emails, distros, fqdn, release_uri, child_projects, rosdistro, short_package_name, timeout=sourcedeb_timeout, ssh_key_id=ssh_key_id)
     jobs = [source_job] + binary_jobs
