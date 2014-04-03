@@ -92,9 +92,9 @@ def _print_package_set(packages):
 
 def _get_depends(packages, package, recursive=False, buildtime=False):
     if buildtime:
-        immediate_depends = set([packages[d.name] for d in package.build_depends if d.name in packages] + [packages[d.name] for d in package.buildtool_depends if d.name in packages])
+        immediate_depends = set([packages[d.name] for d in (package.buildtool_depends + package.build_depends + (package.test_depends if package.package_format > 1 else [])) if d.name in packages])
     else:
-        immediate_depends = set([packages[d.name] for d in package.run_depends if d.name in packages])
+        immediate_depends = set([packages[d.name] for d in (package.run_depends + (package.test_depends if package.package_format == 1 else [])) if d.name in packages])
     prune_self_depends(immediate_depends, package)
 
     result = copy.copy(immediate_depends)
