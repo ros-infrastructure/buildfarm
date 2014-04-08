@@ -319,7 +319,7 @@ def dry_binarydeb_jobs(stackname, dry_maintainers, rosdistro, distros, arches, f
             d["CHILD_PROJECTS"] = calc_child_jobs(package, distro, arch, jobgraph)
             d["DEPENDENTS"] = "True"
             if stackname == 'sync':
-                d["CHILD_PROJECTS"] = debianize_package_name(rosdistro, 'metapackage')
+                d["CHILD_PROJECTS"] = []  # Sync jobs are final
                 d['DISTROS'] = distros
                 d['ARCHES'] = arches
                 config = create_sync_binarydeb_config(d)
