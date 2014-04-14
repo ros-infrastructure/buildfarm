@@ -120,6 +120,9 @@ def check_for_circular_dependencies(dependencies):
                     if depend not in rev_deps:
                         rev_deps[depend] = set([])
                     rev_deps[depend].add(name)
+        # remove dependencies which are not listed as keys anymore
+        for name, depends in rev_deps.iteritems():
+            rev_deps[name] = depends & set(rev_deps.keys())
         try:
             # this should also raise but with fewer deps as before
             _remove_leafs_recursively(rev_deps)
