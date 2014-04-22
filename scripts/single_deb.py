@@ -96,8 +96,6 @@ class InternalBuildFailure(Exception):
 
 
 def download_files(stack_name, stack_version, staging_dir, files):
-    import urllib
-
     base_name = "%s-%s" % (stack_name, stack_version)
 
     dl_files = []
@@ -113,11 +111,13 @@ def download_files(stack_name, stack_version, staging_dir, files):
             raise BuildFailure("Failure generating tarball url from %s and %s" %
                                (TARBALL_URL, locals()))
         try:
-            urllib.urlretrieve(url, dest)
+            h = urllib2.urlopen(url)
+            with open(dest, 'wb') as f:
+                f.write(h.read())
+        except Exception as e:
+            raise BuildFailure("Problem fetching file '%s' from '%s'.  [%e]" %
+                               (f_name, url, str(e)))
 
-        except:
-            raise BuildFailure("Problem fetching file %s.  [Reason Unknown]" %
-                               (f_name))
         dl_files.append(dest)
 
     return dl_files
