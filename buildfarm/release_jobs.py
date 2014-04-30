@@ -149,14 +149,31 @@ def _remove_leafs_recursively(deps):
 
 
 # dry dependencies
-def dry_get_stack_info(stackname, version):
+def dry_get_stack_info(stackname, version, workspace=None):
     url = 'http://ros-dry-releases.googlecode.com/svn/download/stacks/%(stackname)s/%(stackname)s-%(version)s/%(stackname)s-%(version)s.yaml' % locals()
+    if workspace:
+        filename = os.path.join(workspace,
+                                '%(stackname)s-%(version)s.yaml' % locals())
+        if not os.path.exists(filename):
+            # Use svn to avoid rate limiting ros/rosdistro#4062
+            print("svn fetching %s" % url)
+            cmd = 'svn export %s %s' % (url, filename)
+            import subprocess
+            subprocess.check_call(cmd.split())
+        else:
+            print("Using cached info from %s" % filename)
+        with open(filename) as fh:
+            content = fh.read()
+            try:
+                return yaml.load(content)
+            except yaml.scanner.ScannerError as ex:
+                raise Exception("Failed to load %s from %s with error %s" % (content, filename, ex))
+    print("fetching %s" % url)
     y = urllib.urlopen(url)
     try:
         content = y.read()
         return yaml.load(content)
     except yaml.scanner.ScannerError as ex:
-        
         raise Exception("Failed to load %s from %s with error %s" % (content, url, ex))
 
 def dry_get_stack_version(stackname, rosdistro_obj):
@@ -166,7 +183,7 @@ def dry_get_stack_version(stackname, rosdistro_obj):
     return st.version
 
 
-def dry_get_versioned_dependency_tree(rosdistro):
+def dry_get_versioned_dependency_tree(rosdistro, workspace):
     url = distro_uri(rosdistro)
     try:
         d = load_distro(url)
@@ -182,7 +199,7 @@ def dry_get_versioned_dependency_tree(rosdistro):
             # ignore stacks without a version number
             continue
         versions[s] = version
-        yaml_info = dry_get_stack_info(s, version)
+        yaml_info = dry_get_stack_info(s, version, workspace)
         if 'depends' in yaml_info:
             dependency_tree[s] = yaml_info['depends']
         else:
@@ -201,11 +218,11 @@ def _extract_emails(value):
     return [v for v in values if v.find('@', 1, -3) != -1]
 
 
-def dry_get_stack_dependencies(rosdistro):
+def dry_get_stack_dependencies(rosdistro, workspace=None):
     if rosdistro == 'backports':
         return {}, {}
 
-    (stack_depends, _, maintainers) = dry_get_versioned_dependency_tree(rosdistro)
+    (stack_depends, _, maintainers) = dry_get_versioned_dependency_tree(rosdistro, workspace)
     return stack_depends, maintainers
 
 
