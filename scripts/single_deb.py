@@ -61,6 +61,8 @@ REPO_USERNAME = 'rosbuild'
 
 TGZ_VERSION = 'dry_7'
 
+OLD_UBUNTU_DISTROS = ['oneiric']
+
 import traceback
 
 
@@ -208,8 +210,15 @@ def create_chroot(distro, distro_name, os_platform, arch, repo_fqdn):
     deplist = ' '.join(basedeps + rosdeps)
 
     debootstrap_type = 'debootstrap'  # use default
-    mirror = 'http://us.archive.ubuntu.com/ubuntu'
-    updates_mirror = "deb http://us.archive.ubuntu.com/ubuntu/ %s-updates main restricted universe multiverse" % (os_platform)
+
+    # For out of date Ubuntu releases
+    if os_platform in OLD_UBUNTU_DISTROS:
+        mirror = 'http://old-releases.ubuntu.com/ubuntu'
+        updates_mirror = "deb http://old-releases.ubuntu.com/ubuntu/ %s-updates main restricted universe multiverse" % (os_platform)
+    else:
+        mirror = 'http://us.archive.ubuntu.com/ubuntu'
+        updates_mirror = "deb http://us.archive.ubuntu.com/ubuntu/ %s-updates main restricted universe multiverse" % (os_platform)
+
     if arch == 'armel' or arch == 'armhf':
         debootstrap_type = 'qemu-debootstrap'
         mirror = 'http://ports.ubuntu.com/ubuntu-ports/'

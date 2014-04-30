@@ -30,8 +30,13 @@ then
     mirror=http://ports.ubuntu.com/ubuntu-ports
     debootstrap_type='qemu-debootstrap'
 else
-    mirror=http://us.archive.ubuntu.com/ubuntu
     debootstrap_type='debootstrap'
+    # Support for EOLd oneiric
+    if [ $distro == oneiric ]
+        mirror=http://old-releases.ubuntu.com/ubuntu
+    else
+        mirror=http://us.archive.ubuntu.com/ubuntu
+    fi
 fi
 
 
