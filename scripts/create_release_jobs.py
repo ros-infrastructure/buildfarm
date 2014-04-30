@@ -223,7 +223,7 @@ if __name__ == '__main__':
 
     if args.rosdistro == 'groovy':
         # even for wet_only the dry packages need to be consider, else they are not added as downstream dependencies for the wet jobs
-        stack_depends, dry_maintainers = release_jobs.dry_get_stack_dependencies(args.rosdistro)
+        stack_depends, dry_maintainers = release_jobs.dry_get_stack_dependencies(args.rosdistro, workspace)
         dry_jobgraph = release_jobs.dry_generate_jobgraph(args.rosdistro, dependencies, stack_depends)
     else:
         stack_depends, dry_maintainers = {}, {}
