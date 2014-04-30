@@ -33,6 +33,7 @@ else
     debootstrap_type='debootstrap'
     # Support for EOLd oneiric
     if [ $distro == oneiric ]
+    then
         mirror=http://old-releases.ubuntu.com/ubuntu
     else
         mirror=http://us.archive.ubuntu.com/ubuntu
