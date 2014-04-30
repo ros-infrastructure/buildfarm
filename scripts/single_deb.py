@@ -59,7 +59,7 @@ TARBALL_URL = "http://ros-dry-releases.googlecode.com/svn/download/stacks/%(stac
 REPO_PATH = '/var/www/repos/building'
 REPO_USERNAME = 'rosbuild'
 
-TGZ_VERSION = 'dry_7'
+TGZ_VERSION = 'dry_8'
 
 OLD_UBUNTU_DISTROS = ['oneiric']
 
