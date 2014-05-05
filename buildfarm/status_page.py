@@ -375,12 +375,12 @@ def is_regression(cell):
     versions = get_cell_versions(cell)
     public_version = versions[-1]
     if public_version != "None":
-        public_version_parts = [y for x in public_version.split('.') for y in x.split('-')]
+        public_version_parts = [int(y) for x in public_version.split('.') for y in x.split('-')]
         for v in versions:
             if v == "None":
                 return True
             # a downgrade of the version is considered to be a regression
-            v_parts = [y for x in v.split('.') for y in x.split('-')]
+            v_parts = [int(y) for x in v.split('.') for y in x.split('-')]
             if public_version_parts > v_parts:
                 return True
     return False
