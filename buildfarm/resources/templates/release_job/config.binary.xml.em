@@ -47,7 +47,7 @@
     <includedRegions/>
     <scmName/>
   </scm>
-  <assignedNode>debbuild || @(ROSDISTRO)_debbuild</assignedNode>
+  <assignedNode>@(ROSDISTRO)_debbuild</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
