@@ -17,7 +17,7 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
       <priority>800</priority>
     </jenkins.advancedqueue.AdvancedQueueSorterJobProperty>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.0.1">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.0.4">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>

@@ -22,7 +22,7 @@
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.14">
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.15">
       <scriptSource class="hudson.plugins.groovy.StringScriptSource">
         <command>import hudson.model.Result
 import jenkins.model.Jenkins
