@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Sync ros-shadow-fixed to OSUOSL&apos;s mirror. &#xd;
+&#xd;
+This has a 30 minute quiet period. </description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>180</daysToKeep>
+    <numToKeep>20</numToKeep>
+    <artifactDaysToKeep>30</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.advancedqueue.AdvancedQueueSorterJobProperty plugin="PrioritySorter@2.6">
+      <useJobPriority>false</useJobPriority>
+      <priority>-1</priority>
+    </jenkins.advancedqueue.AdvancedQueueSorterJobProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <quietPeriod>1800</quietPeriod>
+  <assignedNode>sync</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>EXPORT_SHADOW_FIXED</authToken>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -x
+
+# exit if anything fails
+set -o errexit
+
+ssh rosbuild@repos.ros.org -- bash /home/rosbuild/push_keys/push_fixed.bash</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@1.8">
+      <recipients>ros-buildfarm-release@googlegroups.com </recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
+  <buildWrappers/>
+</project>
