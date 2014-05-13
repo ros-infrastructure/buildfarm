@@ -115,7 +115,7 @@ if (manager.logContains(".*W: Failed to fetch .* Hash Sum mismatch.*")) {
       <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
-    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.22">
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@@2.22">
       <configs>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
