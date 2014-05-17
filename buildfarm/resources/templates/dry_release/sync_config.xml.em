@@ -118,16 +118,10 @@ if (manager.logContains(".*W: Failed to fetch .* Hash Sum mismatch.*")) {
     <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@@2.22">
       <configs>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
-          <configs>
-            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>
-                token=EXPORT_SHADOW_FIXED cause="Succesful build of @(PACKAGE)"
-              </properties>
-            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-          </configs>
+          <configs class="empty-list"/>
           <projects>_export-shadow-fixed,</projects>
           <condition>SUCCESS</condition>
-          <triggerWithNoParameters>True</triggerWithNoParameters>
+          <triggerWithNoParameters>true</triggerWithNoParameters>
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
       </configs>
     </hudson.plugins.parameterizedtrigger.BuildTrigger>
