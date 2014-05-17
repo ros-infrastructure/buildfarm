@@ -127,7 +127,7 @@ if (manager.logContains(".*W: Failed to fetch .* Hash Sum mismatch.*")) {
           </configs>
           <projects>_export-shadow-fixed,</projects>
           <condition>SUCCESS</condition>
-          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <triggerWithNoParameters>True</triggerWithNoParameters>
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
       </configs>
     </hudson.plugins.parameterizedtrigger.BuildTrigger>
