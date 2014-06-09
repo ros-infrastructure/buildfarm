@@ -34,4 +34,23 @@ Load Averages
 =============
 
 Indigo
+------
+
 ![Indigo Load](http://jenkins.ros.org/label/indigo_debbuild/loadStatistics/graph?type=sec10&width=800&height=200 "indigo_debbuild") ![Indigo Load](http://jenkins.ros.org/label/indigo_debbuild/loadStatistics/graph?type=min&width=800&height=200 "indigo_debbuild") ![Indigo Load](http://jenkins.ros.org/label/indigo_debbuild/loadStatistics/graph?type=hour&width=800&height=200 "indigo_debbuild") 
+
+Hydro
+------
+
+![Hydro Load](http://jenkins.ros.org/label/hydro_debbuild/loadStatistics/graph?type=sec10&width=800&height=200 "hydro_debbuild") ![Hydro Load](http://jenkins.ros.org/label/hydro_debbuild/loadStatistics/graph?type=min&width=800&height=200 "hydro_debbuild") ![Hydro Load](http://jenkins.ros.org/label/hydro_debbuild/loadStatistics/graph?type=hour&width=800&height=200 "hydro_debbuild") 
+
+Groovy
+------
+
+![Groovy Load](http://jenkins.ros.org/label/groovy_debbuild/loadStatistics/graph?type=sec10&width=800&height=200 "groovy_debbuild") ![Groovy Load](http://jenkins.ros.org/label/groovy_debbuild/loadStatistics/graph?type=min&width=800&height=200 "groovy_debbuild") ![Groovy Load](http://jenkins.ros.org/label/groovy_debbuild/loadStatistics/graph?type=hour&width=800&height=200 "groovy_debbuild") 
+
+Debbuild
+--------
+
+Generic jobs and Groovy dry
+
+![Debbuild Load](http://jenkins.ros.org/label/debbuild/loadStatistics/graph?type=sec10&width=800&height=200 "debbuild") ![Load](http://jenkins.ros.org/label/debbuild/loadStatistics/graph?type=min&width=800&height=200 "debbuild") ![Load](http://jenkins.ros.org/label/debbuild/loadStatistics/graph?type=hour&width=800&height=200 "debbuild") 
