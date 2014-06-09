@@ -28,3 +28,10 @@ Once you have made a new release into a gbp repo, and updated the version number
 To retrigger all job generating Debian packages where the package does not yet exist run:
 
     scripts/trigger_missing.py groovy --commit
+
+
+Load Averages
+=============
+
+Indigo
+![Indigo Load](http://jenkins.ros.org/label/indigo_debbuild/loadStatistics/graph?type=sec10&width=800&height=200 "indigo_debbuild") ![Indigo Load](http://jenkins.ros.org/label/indigo_debbuild/loadStatistics/graph?type=min&width=800&height=200 "indigo_debbuild") ![Indigo Load](http://jenkins.ros.org/label/indigo_debbuild/loadStatistics/graph?type=hour&width=800&height=200 "indigo_debbuild") 
