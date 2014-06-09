@@ -33,24 +33,26 @@ To retrigger all job generating Debian packages where the package does not yet e
 Load Averages
 =============
 
-Indigo
-------
+Three graphs 10sec, 3 min, 15 min rolling averages.
 
-![Indigo Load](http://jenkins.ros.org/label/indigo_debbuild/loadStatistics/graph?type=sec10&width=100&height=200 "indigo_debbuild") ![Indigo Load](http://jenkins.ros.org/label/indigo_debbuild/loadStatistics/graph?type=min&width=100&height=200 "indigo_debbuild") ![Indigo Load](http://jenkins.ros.org/label/indigo_debbuild/loadStatistics/graph?type=hour&width=100&height=200 "indigo_debbuild") 
+indigo_debbuild
+---------------
 
-Hydro
-------
+![Indigo Load](http://jenkins.ros.org/label/indigo_debbuild/loadStatistics/graph?type=sec10&width=200&height=200 "indigo_debbuild") ![Indigo Load](http://jenkins.ros.org/label/indigo_debbuild/loadStatistics/graph?type=min&width=200&height=200 "indigo_debbuild") ![Indigo Load](http://jenkins.ros.org/label/indigo_debbuild/loadStatistics/graph?type=hour&width=200&height=200 "indigo_debbuild") 
 
-![Hydro Load](http://jenkins.ros.org/label/hydro_debbuild/loadStatistics/graph?type=sec10&width=800&height=200 "hydro_debbuild") ![Hydro Load](http://jenkins.ros.org/label/hydro_debbuild/loadStatistics/graph?type=min&width=800&height=200 "hydro_debbuild") ![Hydro Load](http://jenkins.ros.org/label/hydro_debbuild/loadStatistics/graph?type=hour&width=800&height=200 "hydro_debbuild") 
+hydro_debbuild
+--------------
 
-Groovy
-------
+![Hydro Load](http://jenkins.ros.org/label/hydro_debbuild/loadStatistics/graph?type=sec10&width=200&height=200 "hydro_debbuild") ![Hydro Load](http://jenkins.ros.org/label/hydro_debbuild/loadStatistics/graph?type=min&width=200&height=200 "hydro_debbuild") ![Hydro Load](http://jenkins.ros.org/label/hydro_debbuild/loadStatistics/graph?type=hour&width=200&height=200 "hydro_debbuild") 
 
-![Groovy Load](http://jenkins.ros.org/label/groovy_debbuild/loadStatistics/graph?type=sec10&width=800&height=200 "groovy_debbuild") ![Groovy Load](http://jenkins.ros.org/label/groovy_debbuild/loadStatistics/graph?type=min&width=800&height=200 "groovy_debbuild") ![Groovy Load](http://jenkins.ros.org/label/groovy_debbuild/loadStatistics/graph?type=hour&width=800&height=200 "groovy_debbuild") 
+groovy_debbuild
+---------------
 
-Debbuild
+![Groovy Load](http://jenkins.ros.org/label/groovy_debbuild/loadStatistics/graph?type=sec10&width=200&height=200 "groovy_debbuild") ![Groovy Load](http://jenkins.ros.org/label/groovy_debbuild/loadStatistics/graph?type=min&width=200&height=200 "groovy_debbuild") ![Groovy Load](http://jenkins.ros.org/label/groovy_debbuild/loadStatistics/graph?type=hour&width=200&height=200 "groovy_debbuild") 
+
+debbuild
 --------
 
 Generic jobs and Groovy dry
 
-![Debbuild Load](http://jenkins.ros.org/label/debbuild/loadStatistics/graph?type=sec10&width=800&height=200 "debbuild") ![Load](http://jenkins.ros.org/label/debbuild/loadStatistics/graph?type=min&width=800&height=200 "debbuild") ![Load](http://jenkins.ros.org/label/debbuild/loadStatistics/graph?type=hour&width=800&height=200 "debbuild") 
+![Debbuild Load](http://jenkins.ros.org/label/debbuild/loadStatistics/graph?type=sec10&width=200&height=200 "debbuild") ![Load](http://jenkins.ros.org/label/debbuild/loadStatistics/graph?type=min&width=200&height=200 "debbuild") ![Load](http://jenkins.ros.org/label/debbuild/loadStatistics/graph?type=hour&width=200&height=200 "debbuild") 
