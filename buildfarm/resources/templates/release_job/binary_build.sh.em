@@ -53,7 +53,7 @@ sleep 1
 #setup the cross platform apt environment
 # using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary. 
 # And you can't chown it even with sudo and recursive 
-sudo PYTHONPATH=$PYTHONPATH $CHECKOUT_DIR/scripts/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE --mirror $mirror --repo "ros@@$APT_TARGET_REPOSITORY"
+sudo PYTHONPATH=$PYTHONPATH $CHECKOUT_DIR/scripts/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE --mirror $mirror --repo "ros@@$APT_TARGET_REPOSITORY" --gpg-key-url https://raw.githubusercontent.com/ros/rosdistro/master/ros.key
 
 # update apt update
 sudo apt-get update -c $aptconffile -o Apt::Architecture=$arch @(ARCH == 'armel' ? "-o Apt::Architectures::=armel") @(ARCH == 'armhf' ? "-o Apt::Architectures::=armhf")
