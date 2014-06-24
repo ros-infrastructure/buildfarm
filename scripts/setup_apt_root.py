@@ -20,6 +20,9 @@ def parse_options():
                         help='The rootdir to use')
     parser.add_argument('--local-conf-dir', dest='local_conf',
                         help='A directory to write an apt-conf to use with apt-get update.')
+    parser.add_argument('--gpg-key-url', dest='gpg_key_urls', action='append', metavar=['gpg keys to download'],
+                        help='Key ID(s) to fetch', default = ['https://raw.githubusercontent.com/ros/rosdistro/master/ros.key'])
+    # TODO remove default after adding argument into all jobs in jenkins_scripts for better generality
     args = parser.parse_args()
 
     if not args.repo_urls:
@@ -38,7 +41,7 @@ def doit():
 
     ros_repos = buildfarm.apt_root.parse_repo_args(args.repo_urls)
 
-    buildfarm.apt_root.setup_apt_rootdir(args.rootdir, args.distro, args.architecture, mirror=args.mirror, additional_repos=ros_repos)
+    buildfarm.apt_root.setup_apt_rootdir(args.rootdir, args.distro, args.architecture, mirror=args.mirror, additional_repos=ros_repos, gpg_key_urls=args.gpg_key_urls)
     if args.local_conf:
         buildfarm.apt_root.setup_conf(args.rootdir, args.local_conf, arch=args.architecture)
 

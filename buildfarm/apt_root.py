@@ -4,7 +4,10 @@ from __future__ import print_function
 
 from pkg_resources import resource_string
 import em
+import errno
 import os
+import urllib
+import urlparse
 
 
 def expand_template(config_template, d):
@@ -79,7 +82,8 @@ def set_additional_sources(rootdir, distro, repo, source_name):
 def setup_apt_rootdir(rootdir,
                       distro, arch,
                       mirror=None,
-                      additional_repos={}):
+                      additional_repos={},
+                      gpg_key_urls=[]):
     setup_directories(rootdir)
     if not mirror:
         if arch in ['amd64', 'i386']:
@@ -101,6 +105,26 @@ def setup_apt_rootdir(rootdir,
         template = resource_string('buildfarm',
                                    'resources/templates/arch.conf.em')
         arch_conf.write(expand_template(template, d))
+
+    key_dir = os.path.join(rootdir,
+                           'etc', 'apt', 'trusted.gpg.d')
+
+    # make sure the directory is there
+    if gpg_key_urls:
+        try:
+            os.makedirs(key_dir)
+        except OSError as exc:
+            if exc.errno == errno.EEXIST and os.path.isdir(key_dir):
+                pass
+            else:
+                raise
+
+    for gpg_key_url in gpg_key_urls:
+        elements = urlparse.urlparse(gpg_key_url)
+        base = os.path.basename(elements[2])
+        filename = os.path.join(key_dir, base + '.gpg')
+        urllib.urlretrieve(gpg_key_url,
+                           filename)
 
 
 def parse_repo_args(repo_args):
