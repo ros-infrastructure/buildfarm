@@ -21,8 +21,7 @@ def parse_options():
     parser.add_argument('--local-conf-dir', dest='local_conf',
                         help='A directory to write an apt-conf to use with apt-get update.')
     parser.add_argument('--gpg-key-url', dest='gpg_key_urls', action='append', metavar=['gpg keys to download'],
-                        help='Key ID(s) to fetch', default = ['https://raw.githubusercontent.com/ros/rosdistro/master/ros.key'])
-    # TODO remove default after adding argument into all jobs in jenkins_scripts for better generality
+                        help='Key ID(s) to fetch')
     args = parser.parse_args()
 
     if not args.repo_urls:
