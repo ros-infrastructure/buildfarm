@@ -7,6 +7,8 @@ export ROSDISTRO_INDEX_URL=@(ROSDISTRO_INDEX_URL)
 APT_TARGET_REPOSITORY=@(APT_TARGET_REPOSITORY)
 ROS_REPO_FQDN=@(FQDN)
 PACKAGE=@(PACKAGE)
+ROSDISTRO=@(ROSDISTRO)
+SHORT_NAME=@(SHORT_PACKAGE_NAME)
 distro=@(DISTRO)
 arch=@(ARCH)
 base=/var/cache/pbuilder-$distro-$arch
@@ -122,7 +124,13 @@ sudo pbuilder  --build \
     --hookdir hooks \
     *.dsc
 
-
+# check for a package.xml
+PACKAGE_XML_MISSING=0
+dpkg -c $output_dir/*$distro* | grep -q ./opt/ros/$ROSDISTRO/share/$SHORT_NAME/package.xml$ || PACKAGE_XML_MISSING=$?
+if [ $PACKAGE_XML_MISSING -ne 0 ]
+then
+    echo "WARNING: The package did not properly install a package.xml"
+fi
 
 # Upload invalidate and add to the repo
 UPLOAD_DIR=/tmp/upload/${PACKAGE}_${distro}_$arch

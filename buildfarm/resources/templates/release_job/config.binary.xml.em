@@ -248,6 +248,8 @@ class MatchExtractor {
 // define patterns and extraction parameters
 // catkin_pkg warnings for invalid package.xml files
 warnings_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile("WARNING\\(s\\) in .*:"), next_lines=1, skip_first_line=true))
+// dpkg warnings for missing package.xml files
+warnings_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile("WARNING: The package did not properly install a package\\.xml")))
 // custom catkin deprecation messages
 deprecations_group.match_extractors.add(new MatchExtractor(pattern=Pattern.compile(".*\\) is deprecated.*")))
 // c++ compiler warning for usage of a deprecated function
