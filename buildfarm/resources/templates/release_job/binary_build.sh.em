@@ -126,7 +126,7 @@ sudo pbuilder  --build \
 
 # check for a package.xml
 PACKAGE_XML_MISSING=0
-dpkg -c $output_dir/*$distro* | grep -q ./opt/ros/$ROSDISTRO/share/$SHORT_NAME/package.xml$ || PACKAGE_XML_MISSING=$?
+dpkg -c $output_dir/*$distro*.deb | grep -q ./opt/ros/$ROSDISTRO/share/$SHORT_NAME/package.xml$ || PACKAGE_XML_MISSING=$?
 if [ $PACKAGE_XML_MISSING -ne 0 ]
 then
     echo "WARNING: The package did not properly install a package.xml"
