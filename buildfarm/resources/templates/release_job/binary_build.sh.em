@@ -17,7 +17,7 @@ base=/var/cache/pbuilder-$distro-$arch
 aptconffile=$WORKSPACE/apt.conf
 
 #increment this value if you have changed something that will invalidate base tarballs. #TODO this will need cleanup eventually.
-basetgz_version=7
+basetgz_version=8
 
 rootdir=$base/apt-conf-$basetgz_version
 
@@ -33,8 +33,8 @@ then
     debootstrap_type='qemu-debootstrap'
 else
     debootstrap_type='debootstrap'
-    # Support for EOLd oneiric
-    if [ $distro == oneiric ]
+    # Support for EOLd distros
+    if [ $distro == oneiric ] || [ $distro == quantal ] || [ $distro == raring ]
     then
         mirror=http://old-releases.ubuntu.com/ubuntu
     else

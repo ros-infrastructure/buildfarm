@@ -59,9 +59,9 @@ TARBALL_URL = "http://ros-dry-releases.googlecode.com/svn/download/stacks/%(stac
 REPO_PATH = '/var/www/repos/building'
 REPO_USERNAME = 'rosbuild'
 
-TGZ_VERSION = 'dry_8'
+TGZ_VERSION = 'dry_9'
 
-OLD_UBUNTU_DISTROS = ['oneiric']
+OLD_UBUNTU_DISTROS = ['oneiric', 'quantal', 'raring']
 
 import traceback
 

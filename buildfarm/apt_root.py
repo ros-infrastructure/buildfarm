@@ -87,7 +87,7 @@ def setup_apt_rootdir(rootdir,
     setup_directories(rootdir)
     if not mirror:
         if arch in ['amd64', 'i386']:
-            if distro == 'oneiric':
+            if distro in ['oneiric', 'quantal', 'raring']:
                 repo = 'http://old-releases.ubuntu.com/ubuntu/'
             else:
                 repo = 'http://us.archive.ubuntu.com/ubuntu/'
