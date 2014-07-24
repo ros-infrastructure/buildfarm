@@ -130,7 +130,7 @@ def do_ssh_paramiko(host, cmd, user='root', feed=None,
     stdout = c.makefile('r')
     buf = stdout.read()
     while buf != '':
-        #print(buf)  # uncomment this line if you want to debug
+        print(buf)  # uncomment this line if you want to debug
         buf = stdout.read()
     return c.recv_exit_status()
 
@@ -169,7 +169,14 @@ def push_storm(ip, hostname, identity_dir='identity'):
     # first, install puppet
     print "updating apt"
     if do_ssh(ip, 'apt-get update', key_filename=key_filename):
-        return False
+        print "Failed to apt-get update, sometimes we collide with"\
+            " another process on the dpkg-lock." \
+            " Sleeping and retrying in 30 seconds"
+        time.sleep(30)
+        # retry we're seeing a collision on the dpkg lock file.
+        # It appears apt-get update is automatically run on boot.
+        if do_ssh(ip, 'apt-get update', key_filename=key_filename):
+            return False
     print "installing puppet and git"
     if do_ssh(ip, 'apt-get install -y puppet git-core',
               key_filename=key_filename):
