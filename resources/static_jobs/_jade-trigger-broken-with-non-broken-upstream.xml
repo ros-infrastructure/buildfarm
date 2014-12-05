@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Trigger broken jobs with non-broken upstream for Groovy.&#xd;
+&#xd;
+Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in the repository.</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>180</daysToKeep>
+    <numToKeep>30</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.advancedqueue.AdvancedQueueSorterJobProperty plugin="PrioritySorter@2.6">
+      <useJobPriority>true</useJobPriority>
+      <priority>856</priority>
+    </jenkins.advancedqueue.AdvancedQueueSorterJobProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@1.15">
+      <scriptSource class="hudson.plugins.groovy.StringScriptSource">
+        <command>
+// TRIGGER ALL NON (UN-)STABLE JOBS WHICH HAVE NO BROKEN UPSTREAM JOBS
+
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+import hudson.model.Cause
+import hudson.model.Result
+
+println "Triggering builds for the following jobs:"
+
+def prefix = "ros-jade-"
+pattern_src = Pattern.compile(prefix + ".+_sourcedeb")
+pattern_bin = Pattern.compile(prefix + ".+_binarydeb_.+")
+for (p in hudson.model.Hudson.instance.projects) {
+	if (!pattern_src.matcher(p.name).matches() &amp;&amp; !pattern_bin.matcher(p.name).matches()) continue
+	if (p.isDisabled()) continue
+	if (p.isInQueue() || p.isBuilding()) continue
+
+	// skip (un)stable jobs
+	if (p.getNextBuildNumber() &gt; 1) {
+		def lb = p.getLastBuild()
+		if (lb) {
+			def r = lb.getResult()
+			if (r) {
+				if (r.isBetterOrEqualTo(Result.UNSTABLE)) continue
+			}
+		}
+	}
+
+	// skip if any upstream job is broken
+	any_upstream_broken = false
+	for (u in p.getUpstreamProjects()) {
+		any_upstream_broken = true
+		if (u.getNextBuildNumber() &gt; 1) {
+			def lb = u.getLastBuild()
+			if (lb) {
+				def r = lb.getResult()
+				if (r) {
+					if (r.isBetterOrEqualTo(Result.UNSTABLE)) {
+						any_upstream_broken = false
+					}
+				}
+			}
+		}
+		if (any_upstream_broken) break
+	}
+	if (any_upstream_broken) continue
+
+	println "&lt;a href=\"" + p.getAbsoluteUrl() + "\"&gt;" + p.name + "&lt;/a&gt;"
+
+	scheduled = p.scheduleBuild(new Cause.UserIdCause())
+	if (!scheduled) {
+		println "FAILED to schedule build"
+	}
+}</command>
+      </scriptSource>
+      <bindings/>
+      <classpath/>
+    </hudson.plugins.groovy.SystemGroovy>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@1.8">
+      <recipients>ros-buildfarm-status@googlegroups.com</recipients>
+      <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
+  <buildWrappers/>
+</project>
