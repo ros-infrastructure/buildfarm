@@ -54,7 +54,7 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
       <command>#!/bin/bash
 
 source ./setup.sh
-./scripts/create_release_jobs.py indigo --repo-work $WORKSPACE/indigorepo/ --ssh-key-id 6967d370-5376-437b-b26a-55da4c72bd84 --commit --delete</command>
+./scripts/create_release_jobs.py indigo --repo-work $WORKSPACE/indigorepo/ --commit --delete</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

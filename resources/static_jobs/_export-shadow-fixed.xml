@@ -23,7 +23,7 @@ This has a 30 minute quiet period. </description>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>true</blockBuildWhenUpstreamBuilding>
   <authToken>EXPORT_SHADOW_FIXED</authToken>
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
