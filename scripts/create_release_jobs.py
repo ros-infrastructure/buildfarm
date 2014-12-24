@@ -132,6 +132,8 @@ def doit(rd, distros, arches, apt_target_repository, fqdn, jobs_graph, rosdistro
         packages_for_sync = 1200
     elif rosdistro == 'indigo':
         packages_for_sync = 900
+    elif rosdistro == 'jade':
+        packages_for_sync = 10
     else:
         packages_for_sync = 10000
 
