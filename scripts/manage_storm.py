@@ -237,7 +237,7 @@ if number_of_new_machines > 0:
                                          numExecutors=1,
                                          nodeDescription="Standard ROS Build Slave",
                                          remoteFS='/home/rosbuild/hudson',
-                                         labels='devel prerelease released debbuild groovy_debbuild hydro_debbuild indigo_debbuild doc',
+                                         labels='devel prerelease released debbuild groovy_debbuild hydro_debbuild indigo_debbuild jade_debbuild doc',
                                          exclusive=True,
                                          launcher={"stapler-class": "hudson.plugins.sshslaves.SSHLauncher", 
                                                    "host": ip,
