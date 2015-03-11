@@ -60,6 +60,9 @@ export PYTHONPATH=$WORKSPACE/monitored_vcs
 $WORKSPACE/monitored_vcs/scripts/generate_status_page.py indigo --basedir $WORKSPACE/indigo_apt_cache
 scp -o StrictHostKeyChecking=no -r $WORKSPACE/indigo_apt_cache/indigo.* $WORKSPACE/monitored_vcs/resources/css $WORKSPACE/monitored_vcs/resources/js rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/
 
+$WORKSPACE/monitored_vcs/scripts/generate_status_page.py indigo --basedir $WORKSPACE/indigo_armhf_apt_cache --resources .. --distros trusty --arches armhf
+scp -o StrictHostKeyChecking=no $WORKSPACE/indigo_armhf_apt_cache/indigo.* rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/armhf/
+
 $WORKSPACE/monitored_vcs/scripts/generate_status_page.py indigo --basedir $WORKSPACE/indigo_mirror_apt_cache --resources .. --shadow-repo http://packages.ros.org/ros-shadow-fixed/ubuntu/ --public-repo http://packages.ros.org/ros/ubuntu/
 scp -o StrictHostKeyChecking=no $WORKSPACE/indigo_mirror_apt_cache/indigo.* rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/mirror/</command>
     </hudson.tasks.Shell>
