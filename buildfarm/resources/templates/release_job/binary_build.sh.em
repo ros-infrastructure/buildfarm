@@ -17,7 +17,7 @@ base=/var/cache/pbuilder-$distro-$arch
 aptconffile=$WORKSPACE/apt.conf
 
 #increment this value if you have changed something that will invalidate base tarballs. #TODO this will need cleanup eventually.
-basetgz_version=8
+basetgz_version=9
 
 rootdir=$base/apt-conf-$basetgz_version
 
