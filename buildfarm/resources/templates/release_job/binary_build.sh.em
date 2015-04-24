@@ -34,7 +34,7 @@ then
 else
     debootstrap_type='debootstrap'
     # Support for EOLd distros
-    if [ $distro == oneiric ] || [ $distro == quantal ] || [ $distro == raring ]
+    if [ $distro == oneiric ] || [ $distro == quantal ] || [ $distro == raring ] || [ $distro == saucy ]
     then
         mirror=http://old-releases.ubuntu.com/ubuntu
     else
