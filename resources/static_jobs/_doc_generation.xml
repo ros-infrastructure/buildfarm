@@ -31,7 +31,8 @@ Generated from buildfarm/resources/static_jobs. Do not edit on Jenkins but in th
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>REPOS="https://github.com/ros-infrastructure/jenkins_tools.git
+      <command>REPOS="https://github.com/ros-infrastructure/catkin_pkg.git
+https://github.com/ros-infrastructure/jenkins_tools.git
 https://github.com/ros-infrastructure/rep.git
 https://github.com/ros-infrastructure/rosdep.git
 https://github.com/ros-infrastructure/rosdistro.git
