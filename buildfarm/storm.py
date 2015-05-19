@@ -32,6 +32,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import base64
 import urllib2
 import json
 import time
@@ -49,15 +50,20 @@ class StormAPI:
         self.handler = urllib2.HTTPBasicAuthHandler(self.password_mgr)
         self.opener = urllib2.build_opener(self.handler)
 
+        self.username = username
         self.password = password  # store for creation
         self.root_password = root_password
+
+    def open(self, request):
+        request.add_unredirected_header('Authorization', "Basic {0}".format(base64.b64encode('{0}:{1}'.format(self.username, self.password))))
+        return self.opener.open(request)
 
     def storm_server_available(self, domain):
         url = 'https://api.stormondemand.com/Storm/Server/available'
         values = {'params': {"domain": domain}}
         jsondump = json.dumps(values)
         request = urllib2.Request(url, jsondump)
-        response = self.opener.open(request)
+        response = self.open(request)
         d = json.loads(response.read())
         if 'domain' in d:
             return d['domain']
@@ -66,7 +72,7 @@ class StormAPI:
     def account_paymethod_balance(self):
         url = 'https://api.stormondemand.com/Account/Paymethod/balance'
         request = urllib2.Request(url)
-        response = self.opener.open(request)
+        response = self.open(request)
         d = json.loads(response.read())
         if 'balance' in d:
             return d['balance']
@@ -79,7 +85,7 @@ class StormAPI:
                   }
         jsondump = json.dumps(values)
         request = urllib2.Request(url, jsondump)
-        response = self.opener.open(request)
+        response = self.open(request)
         d = json.loads(response.read())
         if 'amount' in d:
             return d['amount']
@@ -88,7 +94,7 @@ class StormAPI:
     def account_limits_servers(self):
         url = 'https://api.stormondemand.com/Account/Limits/servers'
         request = urllib2.Request(url)
-        response = self.opener.open(request)
+        response = self.open(request)
         d = json.loads(response.read())
         if 'limit' in d:
             return int(d['limit'])
@@ -115,7 +121,7 @@ class StormAPI:
                   }
         jsondump = json.dumps(values)
         request = urllib2.Request(url, jsondump)
-        response = self.opener.open(request)
+        response = self.open(request)
         d = json.loads(response.read())
         return d
 
@@ -124,7 +130,7 @@ class StormAPI:
         values = {'params': {"uniq_id": uniq_id}}
         jsondump = json.dumps(values)
         request = urllib2.Request(url, jsondump)
-        response = self.opener.open(request)
+        response = self.open(request)
         d = json.loads(response.read())
         if 'destroyed' in d:
             return d['destroyed']
@@ -135,7 +141,7 @@ class StormAPI:
         values = {'params': {"uniq_id": uniq_id}}
         jsondump = json.dumps(values)
         request = urllib2.Request(url, jsondump)
-        response = self.opener.open(request)
+        response = self.open(request)
         d = json.loads(response.read())
         return d
 
@@ -148,7 +154,7 @@ class StormAPI:
         except URLError, ex:
             print "Failed to get url %s with exception %s" % (url, ex)
             return None
-        response = self.opener.open(request)
+        response = self.open(request)
         try:
             d = json.loads(response.read())
             if 'status' in d:
@@ -164,7 +170,7 @@ class StormAPI:
                              "page_size": 1000}}
         jsondump = json.dumps(values)
         request = urllib2.Request(url, jsondump)
-        response = self.opener.open(request)
+        response = self.open(request)
         d = json.loads(response.read())
         if 'items' in d:
             return d['items']
@@ -176,7 +182,7 @@ class StormAPI:
         values = {'params': {"page_size": 1000, 'category': 'all'}}
         jsondump = json.dumps(values)
         request = urllib2.Request(url, jsondump)
-        response = self.opener.open(request)
+        response = self.open(request)
         d = json.loads(response.read())
         if 'items' in d:
             return d['items']
@@ -188,7 +194,7 @@ class StormAPI:
         values = {'params': {"page_size": 1000}}
         jsondump = json.dumps(values)
         request = urllib2.Request(url, jsondump)
-        response = self.opener.open(request)
+        response = self.open(request)
         d = json.loads(response.read())
         if 'items' in d:
             return d['items']
@@ -200,7 +206,7 @@ class StormAPI:
         values = {'params': {"page_size": 1000}}
         jsondump = json.dumps(values)
         request = urllib2.Request(url, jsondump)
-        response = self.opener.open(request)
+        response = self.open(request)
         d = json.loads(response.read())
         if 'items' in d:
             return d['items']
