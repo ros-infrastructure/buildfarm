@@ -58,8 +58,8 @@ set -o errexit
 export PYTHONPATH=$WORKSPACE/monitored_vcs
 
 $WORKSPACE/monitored_vcs/scripts/generate_compare_page.py --basedir $WORKSPACE/compare
-$WORKSPACE/monitored_vcs/scripts/generate_compare_page.py groovy hydro --basedir $WORKSPACE/compare
 $WORKSPACE/monitored_vcs/scripts/generate_compare_page.py hydro indigo --basedir $WORKSPACE/compare
+$WORKSPACE/monitored_vcs/scripts/generate_compare_page.py indigo jade --basedir $WORKSPACE/compare
 scp -o StrictHostKeyChecking=no -r $WORKSPACE/compare/*.html $WORKSPACE/monitored_vcs/resources/css $WORKSPACE/monitored_vcs/resources/js rosbot@ros.osuosl.org:/var/www/www.ros.org/debbuild/</command>
     </hudson.tasks.Shell>
   </builders>
