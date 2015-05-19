@@ -44,11 +44,11 @@ pending_status_identifiers = ['Building', 'Building (Pending)',
 
 class StormAPI:
     def __init__(self, username, password, root_password):
-        self.password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        self.password_mgr.add_password(None, 'https://api.stormondemand.com',
-                                       username, password)
-        self.handler = urllib2.HTTPBasicAuthHandler(self.password_mgr)
-        self.opener = urllib2.build_opener(self.handler)
+        #self.password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+        #self.password_mgr.add_password(None, 'https://api.stormondemand.com',
+        #                               username, password)
+        #self.handler = urllib2.HTTPBasicAuthHandler(self.password_mgr)
+        #self.opener = urllib2.build_opener(self.handler)
 
         self.username = username
         self.password = password  # store for creation
@@ -56,7 +56,7 @@ class StormAPI:
 
     def open(self, request):
         request.add_unredirected_header('Authorization', "Basic {0}".format(base64.b64encode('{0}:{1}'.format(self.username, self.password))))
-        return self.opener.open(request)
+        return urllib2.urlopen(request)
 
     def storm_server_available(self, domain):
         url = 'https://api.stormondemand.com/Storm/Server/available'
