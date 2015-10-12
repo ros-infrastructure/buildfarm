@@ -9,6 +9,7 @@ import os
 import urllib
 import urlparse
 
+OLD_UBUNTU_DISTROS = ['oneiric', 'quantal', 'raring', 'saucy', 'utopic']
 
 def expand_template(config_template, d):
     s = em.expand(config_template, **d)
@@ -87,7 +88,7 @@ def setup_apt_rootdir(rootdir,
     setup_directories(rootdir)
     if not mirror:
         if arch in ['amd64', 'i386']:
-            if distro in ['oneiric', 'quantal', 'raring', 'saucy']:
+            if distro in OLD_UBUNTU_DISTROS:
                 repo = 'http://old-releases.ubuntu.com/ubuntu/'
             else:
                 repo = 'http://us.archive.ubuntu.com/ubuntu/'

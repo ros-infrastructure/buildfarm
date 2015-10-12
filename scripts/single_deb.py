@@ -61,7 +61,7 @@ REPO_USERNAME = 'rosbuild'
 
 TGZ_VERSION = 'dry_9'
 
-OLD_UBUNTU_DISTROS = ['oneiric', 'quantal', 'raring', 'saucy']
+OLD_UBUNTU_DISTROS = ['oneiric', 'quantal', 'raring', 'saucy', 'utopic']
 
 import traceback
 

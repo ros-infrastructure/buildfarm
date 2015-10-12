@@ -17,7 +17,7 @@ base=/var/cache/pbuilder-$distro-$arch
 aptconffile=$WORKSPACE/apt.conf
 
 #increment this value if you have changed something that will invalidate base tarballs. #TODO this will need cleanup eventually.
-basetgz_version=9
+basetgz_version=10
 
 rootdir=$base/apt-conf-$basetgz_version
 
@@ -34,7 +34,8 @@ then
 else
     debootstrap_type='debootstrap'
     # Support for EOLd distros
-    if [ $distro == oneiric ] || [ $distro == quantal ] || [ $distro == raring ] || [ $distro == saucy ]
+    # OLD_UBUNTU_DISTROS
+    if [ $distro == oneiric ] || [ $distro == quantal ] || [ $distro == raring ] || [ $distro == saucy ] || [ $distro == utopic ]
     then
         mirror=http://old-releases.ubuntu.com/ubuntu
     else
@@ -53,8 +54,8 @@ sudo python $CHECKOUT_DIR/scripts/subprocess_reaper.py $$ &
 sleep 1
 
 #setup the cross platform apt environment
-# using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary. 
-# And you can't chown it even with sudo and recursive 
+# using sudo since this is shared with pbuilder and if pbuilder is interupted it will leave a sudo only lock file.  Otherwise sudo is not necessary.
+# And you can't chown it even with sudo and recursive
 sudo PYTHONPATH=$PYTHONPATH $CHECKOUT_DIR/scripts/setup_apt_root.py $distro $arch $rootdir --local-conf-dir $WORKSPACE --mirror $mirror --repo "ros@@$APT_TARGET_REPOSITORY" --gpg-key-url https://raw.githubusercontent.com/ros/rosdistro/master/ros.key
 
 # update apt update
@@ -83,7 +84,7 @@ echo "package name ${PACKAGE} version ${version}"
 
 
 # Setup the pbuilder environment if not existing, or update
-if [ ! -e $basetgz ] || [ ! -s $basetgz ] 
+if [ ! -e $basetgz ] || [ ! -s $basetgz ]
 then
   #make sure the base dir exists
   sudo mkdir -p $base
