@@ -1,0 +1,5 @@
+Host *
+     IdentityFile identity/id_rsa
+     StrictHostKeyChecking no
+     User root
+

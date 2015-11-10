@@ -4,3 +4,4 @@
 /tmp/
 *.dsc
 /scripts/tmp/
+/scripts/identity/id_*

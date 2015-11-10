@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+ssh -i identity/id_rsa -X -o"StrictHostKeyChecking=no" root@$1

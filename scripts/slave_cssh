@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+cssh -o"-F identity/cssh_config" `python slave_ips.py 2>/dev/null`
