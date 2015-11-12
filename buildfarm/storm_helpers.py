@@ -49,7 +49,10 @@ def get_slave_servers(server_list):
     slave_servers = []
     for s in server_list:
         try:
-
+            print 
+            if s.get('active', 0) != 1:
+                print("Ignoring inactive server [[[%s]]]" % s)
+                continue
             if 'storm.ros.org' in s['domain']:
                 slave_servers.append(s)
 
