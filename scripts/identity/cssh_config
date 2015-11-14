@@ -1,5 +1,5 @@
 Host *
-     IdentityFile identity/id_rsa
+     IdentityFile ~/.ros/buildfarm/identity/id_rsa
      StrictHostKeyChecking no
      User root
 
