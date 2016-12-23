@@ -83,7 +83,7 @@ then
   rm -rf $WORKSPACE/release
 fi
 
-svn export http://ros-dry-releases.googlecode.com/svn/trunk/ release
+svn export http://svn.code.sf.net/p/ros-dry-releases/code/trunk/ release
 
 export PYTHONPATH=$WORKSPACE/buildfarm
 export ROS_PACKAGE_PATH=$WORKSPACE/release

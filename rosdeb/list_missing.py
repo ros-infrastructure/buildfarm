@@ -53,7 +53,7 @@ from core import debianize_name, debianize_version
 from repo import deb_in_repo, load_Packages, get_repo_version, get_stack_version, BadRepo
 
 NAME = 'list_missing.py' 
-TARBALL_URL = "http://ros-dry-releases.googlecode.com/svn/download/stacks/%(stack_name)s/%(base_name)s/%(f_name)s"
+TARBALL_URL = "http://svn.code.sf.net/p/ros-dry-releases/code/download/stacks/%(stack_name)s/%(base_name)s/%(f_name)s"
 
 REPO_URL="http://packages.ros.org/%(repo)s/"
 SHADOW_REPO=REPO_URL%{'repo': 'ros-shadow'}
@@ -174,7 +174,7 @@ def compute_missing_depends(stack_name, distro, os_platform, arch, repo=SHADOW_R
 def get_missing(distro, os_platform, arch, repo=SHADOW_REPO, lock_version=True):
     distro_name = distro.release_name
     # Load the list of exclusions
-    excludes_uri = "http://ros-dry-releases.googlecode.com/svn/trunk/distros/%s.excludes"%(distro_name)
+    excludes_uri = "http://svn.code.sf.net/p/ros-dry-releases/code/trunk/distros/%s.excludes"%(distro_name)
     excludes = ExclusionList(excludes_uri, distro_name, os_platform, arch)
 
     # Find all the deps in the distro for this stack
@@ -253,7 +253,7 @@ def load_distro(distro_name):
     "Load the distro from the URL"
     return rospkg.distro.load_distro(rospkg.distro.distro_uri(distro_name))
 
-SOURCEDEB_DIR_URI = 'http://ros-dry-releases.googlecode.com/svn/download/stacks/%(stack_name)s/%(stack_name)s-%(stack_version)s/'
+SOURCEDEB_DIR_URI = 'http://svn.code.sf.net/p/ros-dry-releases/code/download/stacks/%(stack_name)s/%(stack_name)s-%(stack_version)s/'
 SOURCEDEB_URI = SOURCEDEB_DIR_URI+'%(deb_name)s_%(stack_version)s-0~%(os_platform)s.dsc'
     
 MISSING_REPO = '*'

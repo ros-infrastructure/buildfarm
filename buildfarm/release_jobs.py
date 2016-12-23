@@ -150,7 +150,7 @@ def _remove_leafs_recursively(deps):
 
 # dry dependencies
 def dry_get_stack_info(stackname, version, workspace=None):
-    url = 'http://ros-dry-releases.googlecode.com/svn/download/stacks/%(stackname)s/%(stackname)s-%(version)s/%(stackname)s-%(version)s.yaml' % locals()
+    url = 'http://svn.code.sf.net/p/ros-dry-releases/code/download/stacks/%(stackname)s/%(stackname)s-%(version)s/%(stackname)s-%(version)s.yaml' % locals()
     if workspace:
         filename = os.path.join(workspace,
                                 '%(stackname)s-%(version)s.yaml' % locals())

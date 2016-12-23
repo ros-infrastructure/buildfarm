@@ -200,7 +200,7 @@ def stack_depends(metadata, distro_name, platform_name):
     return stackdeps
         
 def download_control(stack_name, stack_version):
-    url = 'http://ros-dry-releases.googlecode.com/svn/download/stacks/%(stack_name)s/%(stack_name)s-%(stack_version)s/%(stack_name)s-%(stack_version)s.yaml'
+    url = 'http://svn.code.sf.net/p/ros-dry-releases/code/download/stacks/%(stack_name)s/%(stack_name)s-%(stack_version)s/%(stack_name)s-%(stack_version)s.yaml'
     url = url%locals()
     import urllib2
     try:

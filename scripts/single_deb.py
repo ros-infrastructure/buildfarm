@@ -54,7 +54,7 @@ from rosdeb import debianize_name, debianize_version, targets, list_missing
 from rosdeb.source_deb import download_control
 
 NAME = 'build_debs.py'
-TARBALL_URL = "http://ros-dry-releases.googlecode.com/svn/download/stacks/%(stack_name)s/%(base_name)s/%(f_name)s"
+TARBALL_URL = "http://svn.code.sf.net/p/ros-dry-releases/code/download/stacks/%(stack_name)s/%(base_name)s/%(f_name)s"
 
 REPO_PATH = '/var/www/repos/building'
 REPO_USERNAME = 'rosbuild'
@@ -283,7 +283,7 @@ def do_deb_build(distro_name, stack_name, stack_version, os_platform, arch, stag
         f.write("""#!/bin/sh
 set -o errexit
 apt-get install ca-certificates -y # not in default ubuntu anymore
-wget http://ros-dry-releases.googlecode.com/svn/download/stacks/%(stack_name)s/%(stack_name)s-%(stack_version)s/%(stack_name)s-%(stack_version)s.tar.bz2 -O /tmp/buildd/%(stack_name)s-%(stack_version)s.tar.bz2
+wget http://svn.code.sf.net/p/ros-dry-releases/code/download/stacks/%(stack_name)s/%(stack_name)s-%(stack_version)s/%(stack_name)s-%(stack_version)s.tar.bz2 -O /tmp/buildd/%(stack_name)s-%(stack_version)s.tar.bz2
 rosdep update
 chown -R pbuilder /tmp/buildd/.ros
 su pbuilder -c "rosdep resolve gtest"
