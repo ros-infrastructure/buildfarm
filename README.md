@@ -1,3 +1,12 @@
+DEPRECATED
+==========
+
+This repository is availabe for archival purposes.
+It represents the code used for the first generation of the ROS buildfarm, legacy documentation is at: http://wiki.ros.org/buildfarm/Gen1Buildfarm
+
+It has been replaced by https://github.com/ros-infrastructure/ros_buildfarm
+See http://wiki.ros.org/buildfarm for more info.
+
 server.yaml
 ===========
 
